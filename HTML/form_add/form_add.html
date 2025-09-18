@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OA系统 - 新建表单</title>
+    <link rel="stylesheet" href="form_add.css">
+</head>
+<body>
+    <div class="form-add-container">
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>新建表单</h1>
+                    <p>创建自定义表单，完成5个环节的设置</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-cancel">取消</button>
+                    <button class="btn btn-save">保存</button>
+                    <button class="btn btn-publish">发布</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤指示器 -->
+        <div class="steps-indicator">
+            <div class="step-item active current" data-step="1">
+                <div class="step-number">①</div>
+                <div class="step-title">表单基本信息</div>
+                <div class="step-line"></div>
+                <button class="step-jump-btn" data-target="form_step1.html">点击跳转</button>
+            </div>
+            <div class="step-item" data-step="2">
+                <div class="step-number">②</div>
+                <div class="step-title">色彩风格设置</div>
+                <div class="step-line"></div>
+                <button class="step-jump-btn" data-target="form_step2.html">点击跳转</button>
+            </div>
+            <div class="step-item" data-step="3">
+                <div class="step-number">③</div>
+                <div class="step-title">表单内容设计</div>
+                <div class="step-line"></div>
+                <button class="step-jump-btn" data-target="form_step3.html">点击跳转</button>
+            </div>
+            <div class="step-item" data-step="4">
+                <div class="step-number">④</div>
+                <div class="step-title">控件逻辑设置</div>
+                <div class="step-line"></div>
+                <button class="step-jump-btn" data-target="form_step4.html">点击跳转</button>
+            </div>
+            <div class="step-item" data-step="5">
+                <div class="step-number">⑤</div>
+                <div class="step-title">发布设置</div>
+                <button class="step-jump-btn" data-target="form_step5.html">点击跳转</button>
+            </div>
+        </div>
+
+        <!-- 步骤内容区域 - 动态加载内容 -->
+        <div class="steps-content">
+            <div id="stepContent" class="step-content-container"></div>
+        </div>
+
+    
+    </div>
+
+    <script src="form_add.js"></script>
+</body>
+</html>

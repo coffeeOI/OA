@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表单基本信息 - OA系统</title>
+    <link rel="stylesheet" href="../../CSS/common.css">
+    <link rel="stylesheet" href="../../CSS/main.css">
+    <link rel="stylesheet" href="form_add.css">
+    <script src="../../JS/common.js"></script>
+</head>
+<body>
+    <div class="card">
+        <div style="position: absolute; top: 15px; right: 20px;">
+            <button class="btn btn-primary" style="cursor: not-allowed; opacity: 0.7;">保存</button>
+        </div>
+        <div class="form-group">
+            <label class="form-label">表单名称 <span class="required">*</span></label>
+            <input type="text" class="form-control" id="formName" placeholder="请输入表单名称" value="已经输入的表单" required>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">表单类型 <span class="required">*</span></label>
+                <select class="form-control" id="formType" required>
+                    <option value="">请选择表单类型</option>
+                    <option value="process">流程表单</option>
+                    <option value="data">数据收集表单</option>
+                    <option value="survey">调查问卷表单</option>
+                    <option value="other">其他表单</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">表单分类</label>
+                <select class="form-control" id="formCategory">
+                    <option value="">请选择表单分类</option>
+                    <option value="hr">人力资源</option>
+                    <option value="finance">财务</option>
+                    <option value="admin">行政</option>
+                    <option value="it">IT</option>
+                    <option value="other">其他</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">表单说明</label>
+            <textarea class="form-control" id="formDescription" rows="4" placeholder="请输入表单说明信息"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">是否启用版本控制</label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="enableVersionControl" checked>
+                启用版本控制，每次修改将创建新版本
+            </label>
+        </div>
+    </div>
+    <script>
+    // 步骤1的页面逻辑
+    document.addEventListener('DOMContentLoaded', function() {
+        // 请求父页面发送数据
+        window.parent.postMessage({ type: 'get_data' }, '*');
+        
+        // 监听父页面消息
+        window.addEventListener('message', handleParentMessage);
+        
+        // 表单类型变更事件
+        const formTypeSelect = document.getElementById('formType');
+        formTypeSelect.addEventListener('change', function() {
+            // 实时更新数据到父页面
+            updateParentData();
+        });
+    });
+    
+    // 处理父页面消息
+    function handleParentMessage(event) {
+        const data = event.data;
+        
+        if (data.type === 'form_data') {
+            // 填充表单数据
+            const formData = data.data;
+            
+            document.getElementById('formName').value = formData.basicInfo.formName || '';
+            document.getElementById('formType').value = formData.basicInfo.formType || '';
+            document.getElementById('formCategory').value = formData.basicInfo.formCategory || '';
+            document.getElementById('formDescription').value = formData.basicInfo.formDescription || '';
+            document.getElementById('enableVersionControl').checked = formData.basicInfo.enableVersionControl;
+        }
+    }
+    
+    // 更新数据到父页面
+    function updateParentData() {
+        const basicInfo = {
+            formName: document.getElementById('formName').value.trim(),
+            formType: document.getElementById('formType').value,
+            formCategory: document.getElementById('formCategory').value,
+            formDescription: document.getElementById('formDescription').value.trim(),
+            enableVersionControl: document.getElementById('enableVersionControl').checked
+        };
+        
+        window.parent.postMessage({
+            type: 'update_data',
+            section: 'basicInfo',
+            data: basicInfo
+        }, '*');
+    }
+    
+    // 验证当前步骤
+    function validateStep() {
+        const formName = document.getElementById('formName').value.trim();
+        const formType = document.getElementById('formType').value;
+        
+        let isValid = true;
+        let message = '';
+        
+        if (!formName) {
+            isValid = false;
+            message = '请输入表单名称';
+        } else if (!formType) {
+            isValid = false;
+            message = '请选择表单类型';
+        }
+        
+        // 发送验证结果到父页面
+        window.parent.postMessage({
+            type: 'validation_result',
+            isValid: isValid,
+            message: message
+        }, '*');
+        
+        // 更新数据到父页面
+        updateParentData();
+    }
+    
+    // 监听父页面的验证请求
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'validate') {
+            validateStep();
+        }
+    });
+    </script>
+</body>
+</html>

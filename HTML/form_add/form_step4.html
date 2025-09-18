@@ -1,0 +1,2111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>控件逻辑设置 - OA系统</title>
+    <link rel="stylesheet" href="../../CSS/common.css">
+    <link rel="stylesheet" href="../../CSS/main.css">
+    <link rel="stylesheet" href="form_add.css">
+    <script src="../../JS/common.js"></script>
+    <style>
+        /* 逻辑规则管理样式 */
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .no-rules-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            background-color: #fafafa;
+            border-radius: 4px;
+            border: 1px dashed #d9d9d9;
+            transition: all 0.3s ease;
+        }
+
+        .no-rules-message:hover {
+            background-color: #f0f0f0;
+            border-color: #40a9ff;
+        }
+
+        .rule-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* 规则列表样式 */
+        .rules-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .rule-item {
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            padding: 20px;
+            background-color: #fff;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .rule-item:hover {
+            border-color: #40a9ff;
+            box-shadow: 0 4px 12px rgba(24, 144, 255, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .rule-item.dragging {
+            opacity: 0.6;
+            border: 2px dashed #40a9ff;
+            background-color: #f0f7ff;
+        }
+
+        .rule-item.drag-over {
+            border: 2px solid #40a9ff;
+            background-color: #f0f7ff;
+            transform: translateY(-2px);
+        }
+
+        .rule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            min-height: 24px;
+        }
+
+        .rule-name {
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .rule-content {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            color: #666;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .rule-condition {
+            flex: 1;
+            min-width: 200px;
+            background-color: #f6ffed;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border-left: 3px solid #52c41a;
+        }
+
+        .rule-separator {
+            color: #999;
+            font-weight: bold;
+            padding: 0 4px;
+        }
+
+        .rule-action {
+            flex: 1;
+            min-width: 200px;
+            background-color: #e6f7ff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border-left: 3px solid #1890ff;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background-color: #f5f5f5;
+            color: #666;
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+        
+        /* 通知样式 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            z-index: 10000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateX(100%);
+            animation: slideIn 0.3s forwards;
+        }
+        
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .notification-info {
+            background-color: #1890ff;
+        }
+        
+        .notification-success {
+            background-color: #52c41a;
+        }
+        
+        .notification-error {
+            background-color: #ff4d4f;
+        }
+        
+        .notification-warning {
+            background-color: #faad14;
+        }
+        
+        .notification-fade {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        
+        /* 错误信息样式 */
+        .error-message {
+            color: #ff4d4f;
+            font-size: 12px;
+            margin-top: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .input-error {
+            border-color: #ff4d4f !important;
+            box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2) !important;
+        }
+        
+        /* 拖拽排序样式增强 */
+        .rule-item {
+            transition: all 0.3s ease;
+            cursor: move;
+        }
+        
+        .rule-item.dragging {
+            opacity: 0.5;
+            background-color: rgba(24, 144, 255, 0.1);
+        }
+        
+        .rule-item.drag-over {
+            border-top: 2px solid #1890ff;
+            margin-top: -2px;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* 表单控件样式 */
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+
+        .form-control:focus {
+            border-color: #40a9ff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+
+        .form-control:hover {
+            border-color: #40a9ff;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            white-space: nowrap;
+            user-select: none;
+            vertical-align: middle;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn:not(:disabled):active {
+            transform: scale(0.98);
+        }
+
+        .btn:not(:disabled):focus {
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }        
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-default {
+            background-color: #fff;
+            color: #333;
+        }
+
+        .btn-default:hover {
+            color: #40a9ff;
+            border-color: #40a9ff;
+            background-color: #f5f5f5;
+        }
+
+        .btn-primary {
+            background-color: #1890ff;
+            color: #fff;
+            border-color: #1890ff;
+        }
+
+        .btn-primary:hover {
+            background-color: #40a9ff;
+            border-color: #40a9ff;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+        }
+
+        .btn-danger {
+            background-color: #ff4d4f;
+            color: #fff;
+            border-color: #ff4d4f;
+        }
+
+        .btn-danger:hover {
+            background-color: #ff7875;
+            border-color: #ff7875;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(255, 77, 79, 0.3);
+        }
+
+        .btn-success {
+            background-color: #52c41a;
+            color: #fff;
+            border-color: #52c41a;
+        }
+
+        .btn-success:hover {
+            background-color: #73d13d;
+            border-color: #73d13d;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);
+        }
+
+        /* 条件构建器样式 */
+        #conditionBuilder {
+            background-color: #f6ffed;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #d9f7be;
+        }
+
+        .condition-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+            background-color: #fff;
+            padding: 12px;
+            border-radius: 4px;
+            border: 1px solid #e8e8e8;
+            transition: all 0.3s ease;
+        }
+
+        .condition-row:hover {
+            border-color: #40a9ff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .condition-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .condition-control {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .condition-operator {
+            flex: 0 0 120px;
+        }
+
+        .condition-value {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .condition-logic {
+            flex: 0 0 200px;
+        }
+
+        .condition-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed #d9f7be;
+            align-items: center;
+        }
+
+        /* 动作列表样式 */
+        .actions-container {
+            background-color: #e6f7ff;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #bae7ff;
+        }
+
+        .action-item {
+            background-color: #fff;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            border: 1px solid #e8e8e8;
+            transition: all 0.3s ease;
+        }
+
+        .action-item:hover {
+            border-color: #40a9ff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .action-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .action-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .action-type-label {
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        /* 隐藏类 */
+        .hidden {
+            display: none !important;
+        }
+
+        /* 级联关系指示器 */
+        .cascade-indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            background-color: #e6f7ff;
+            color: #1890ff;
+            font-size: 12px;
+            border-radius: 12px;
+            margin-left: 8px;
+            font-weight: 500;
+        }
+
+        /* 规则测试区域 */
+        .rule-test-section {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .test-scenarios {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .test-scenario {
+            background-color: #f9f9f9;
+            padding: 16px;
+            border-radius: 6px;
+            border-left: 3px solid #1890ff;
+            transition: all 0.3s ease;
+        }
+
+        .test-scenario:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .test-scenario-title {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .test-scenario-description {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* 拖拽排序样式 */
+        .drag-handle {
+            cursor: move;
+            display: inline-block;
+            margin-right: 8px;
+            color: #999;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .drag-handle:hover {
+            background-color: #f0f0f0;
+            color: #40a9ff;
+            transform: scale(1.1);
+        }
+
+        /* 提示信息样式 */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 4px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* 辅助类 */
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-1 { margin-top: 8px; }
+        .mt-2 { margin-top: 16px; }
+        .mt-3 { margin-top: 24px; }
+        
+        .mb-1 { margin-bottom: 8px; }
+        .mb-2 { margin-bottom: 16px; }
+        .mb-3 { margin-bottom: 24px; }
+        
+        .p-1 { padding: 8px; }
+        .p-2 { padding: 16px; }
+        .p-3 { padding: 24px; }
+
+        /* 表单验证样式 */
+        .form-error {
+            color: #ff4d4f;
+            font-size: 12px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .form-control.error {
+            border-color: #ff4d4f;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                margin: 20px;
+                max-height: calc(100vh - 40px);
+            }
+            
+            .condition-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .condition-control, .condition-operator, .condition-value {
+                flex: 1 1 100%;
+                min-width: auto;
+                margin-bottom: 8px;
+            }
+            
+            .condition-logic {
+                flex: 1 1 100%;
+                min-width: auto;
+            }
+            
+            .rule-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .rule-condition, .rule-action {
+                min-width: auto;
+            }
+            
+            .rule-separator {
+                padding: 8px 0;
+            }
+            
+            .test-scenarios {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div style="position: absolute; top: 15px; right: 20px;">
+            <button class="btn btn-primary" style="cursor: not-allowed; opacity: 0.7;">保存</button>
+        </div>
+        <div class="form-group">
+            <label class="form-label">逻辑规则管理</label>
+            <div id="logicRulesContainer">
+                <div class="no-rules-message">暂无逻辑规则，点击"添加规则"按钮创建</div>
+                <!-- 逻辑规则列表将在此动态生成 -->
+            </div>
+            <div class="rule-actions">
+                <button class="btn btn-success" id="loadExampleRulesBtn">加载示例规则</button>
+                <button class="btn btn-primary" id="addLogicRuleBtn">添加规则</button>
+            </div>
+        </div>
+
+        <!-- 规则测试区域 -->
+        <div class="form-group rule-test-section">
+            <label class="form-label">规则使用场景</label>
+            <div class="test-scenarios">
+                <div class="test-scenario">
+                    <div class="test-scenario-title">显示/隐藏控件</div>
+                    <div class="test-scenario-description">根据用户选择动态显示或隐藏相关字段，简化表单填写</div>
+                </div>
+                <div class="test-scenario">
+                    <div class="test-scenario-title">必填/只读控制</div>
+                    <div class="test-scenario-description">根据条件动态设置字段为必填或只读状态</div>
+                </div>
+                <div class="test-scenario">
+                    <div class="test-scenario-title">值传递</div>
+                    <div class="test-scenario-description">将一个字段的值自动填充到另一个字段</div>
+                </div>
+                <div class="test-scenario">
+                    <div class="test-scenario-title">级联选择</div>
+                    <div class="test-scenario-description">实现下拉框的级联效果，如省份选择后过滤城市列表</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 逻辑规则编辑弹窗（默认隐藏） -->
+    <div id="logicRuleModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">设置逻辑规则</div>
+                <button class="modal-close" id="closeLogicRuleModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">规则名称</label>
+                    <input type="text" class="form-control" id="ruleName" placeholder="请输入规则名称">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">触发条件</label>
+                    <div id="conditionBuilder">
+                        <div class="condition-row" data-condition-id="1">
+                            <select class="form-control condition-control" data-condition-id="1">
+                                <option value="">请选择触发控件</option>
+                                <!-- 动态填充可用控件 -->
+                            </select>
+                            <select class="form-control condition-operator" data-condition-id="1">
+                                <option value="eq">等于</option>
+                                <option value="neq">不等于</option>
+                                <option value="gt">大于</option>
+                                <option value="lt">小于</option>
+                                <option value="contains">包含</option>
+                                <option value="empty">为空</option>
+                                <option value="notempty">不为空</option>
+                            </select>
+                            <input type="text" class="form-control condition-value" data-condition-id="1" placeholder="请输入条件值">
+                        </div>
+                        <div class="condition-actions">
+                            <button class="btn btn-small btn-default" id="addConditionBtn">添加条件</button>
+                            <select class="form-control condition-logic" id="conditionLogicType">
+                                <option value="and">所有条件都满足 (AND)</option>
+                                <option value="or">任一条件满足 (OR)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">执行动作</label>
+                    <div class="actions-container">
+                        <div id="actionsList">
+                            <div class="action-item" data-action-id="1">
+                                <div class="action-header">
+                                    <span class="action-type-label">动作 1</span>
+                                    <button class="btn btn-small btn-danger remove-action-btn" data-action-id="1">删除</button>
+                                </div>
+                                <select class="form-control action-type" data-action-id="1">
+                                    <option value="show">显示控件</option>
+                                    <option value="hide">隐藏控件</option>
+                                    <option value="required">设为必填</option>
+                                    <option value="readonly">设为只读</option>
+                                    <option value="setvalue">设置值</option>
+                                    <option value="disable">禁用控件</option>
+                                    <option value="enable">启用控件</option>
+                                    <option value="cascade">级联选择</option>
+                                </select>
+                                <div class="form-group" data-target-control-group="1">
+                                    <label class="form-label">目标控件</label>
+                                    <select class="form-control target-control" data-action-id="1">
+                                        <option value="">请选择目标控件</option>
+                                        <!-- 动态填充可用控件 -->
+                                    </select>
+                                </div>
+                                <div class="form-group hidden" data-action-value-group="1">
+                                    <label class="form-label">设置值</label>
+                                    <input type="text" class="form-control action-value" data-action-id="1" placeholder="请输入要设置的值">
+                                </div>
+                                <div class="form-group hidden" data-cascade-config-group="1">
+                                    <label class="form-label">级联配置</label>
+                                    <div class="cascade-config">
+                                        <div class="form-group">
+                                            <label class="form-label">数据源类型</label>
+                                            <select class="form-control cascade-data-source" data-action-id="1">
+                                                <option value="static">静态数据</option>
+                                                <option value="dynamic">动态数据</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" data-static-data-config="1">
+                                            <label class="form-label">静态数据 (格式: 父值1:子值1,子值2|父值2:子值3,子值4)</label>
+                                            <input type="text" class="form-control cascade-static-data" data-action-id="1" placeholder="例如: 北京:朝阳区,海淀区|上海:浦东新区,静安区">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px;">
+                            <button class="btn btn-small btn-default" id="addActionBtn">添加动作</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" id="cancelLogicRuleBtn">取消</button>
+                <button class="btn btn-primary" id="saveLogicRuleBtn">保存规则</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 步骤4的页面逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加全局错误捕获
+            window.addEventListener('error', function(event) {
+                console.error('未捕获的错误:', event.error);
+                showNotification('发生未预期的错误，请刷新页面重试', 'error');
+                // 阻止默认事件处理
+                // return true; // 不阻止默认行为，让浏览器控制台也能看到错误
+            });
+
+            // 请求父页面发送数据
+            window.parent.postMessage({ type: 'get_data' }, '*');
+            
+            // 监听父页面消息
+            window.addEventListener('message', handleParentMessage);
+            
+            // 初始化按钮事件
+            initButtons();
+            
+            // 初始化拖拽排序功能
+            initDragAndDrop();
+            
+            // 如果没有从父页面获取到数据，使用默认控件数据
+            setTimeout(() => {
+                if (formControls.length === 0) {
+                    // 使用默认的控件数据，以便展示功能
+                    setDefaultControls();
+                }
+            }, 500);
+            
+            // 添加键盘快捷键
+            document.addEventListener('keydown', function(e) {
+                // Ctrl+S 保存规则（在模态框中）
+                if (e.ctrlKey && e.key === 's' && !document.getElementById('logicRuleModal').classList.contains('hidden')) {
+                    e.preventDefault();
+                    saveLogicRule();
+                }
+                // ESC 关闭模态框
+                if (e.key === 'Escape' && !document.getElementById('logicRuleModal').classList.contains('hidden')) {
+                    closeLogicRuleModal();
+                }
+            });
+            
+            // 添加焦点事件，清除错误提示
+            document.addEventListener('focusin', function(e) {
+                if (e.target.classList.contains('input-error')) {
+                    e.target.classList.remove('input-error');
+                    const errorMsg = e.target.nextElementSibling;
+                    if (errorMsg && errorMsg.classList.contains('error-message')) {
+                        errorMsg.remove();
+                    }
+                }
+            });
+        });
+        
+        // 表单控件数据
+        let formControls = [];
+        // 逻辑规则数据
+        let logicRules = [];
+        // 当前编辑的规则ID
+        let editingRuleId = null;
+        // 当前拖拽的规则
+        let draggedRule = null;
+        
+        // 处理父页面消息
+        function handleParentMessage(event) {
+            const data = event.data;
+            
+            if (data.type === 'form_data') {
+                // 填充表单数据
+                const formData = data.data;
+                
+                // 存储控件数据
+                if (formData.controls && formData.controls.length > 0) {
+                    formControls = formData.controls;
+                }
+                
+                // 加载逻辑规则
+                if (formData.logicRules && formData.logicRules.length > 0) {
+                    logicRules = formData.logicRules;
+                    renderLogicRules();
+                }
+            }
+        }
+        
+        // 设置默认控件数据
+        function setDefaultControls() {
+            formControls = [
+                { id: 'control_1', type: 'text', label: '员工姓名' },
+                { id: 'control_2', type: 'select', label: '员工类型', options: ['正式员工', '试用期员工', '实习生'] },
+                { id: 'control_3', type: 'select', label: '部门', options: ['技术部', '市场部', '人力资源部', '财务部'] },
+                { id: 'control_4', type: 'select', label: '省份', options: ['北京', '上海', '广东', '江苏'] },
+                { id: 'control_5', type: 'select', label: '城市', options: ['北京', '上海', '广州', '深圳', '南京', '苏州'] },
+                { id: 'control_6', type: 'text', label: '试用期评价' },
+                { id: 'control_7', type: 'date', label: '入职日期' },
+                { id: 'control_8', type: 'text', label: '薪资待遇' },
+                { id: 'control_9', type: 'checkbox', label: '是否需要培训' },
+                { id: 'control_10', type: 'textarea', label: '备注信息' }
+            ];
+            
+            // 如果没有规则，加载示例规则
+            if (logicRules.length === 0) {
+                loadExampleRules();
+            }
+        }
+        
+        // 初始化按钮事件
+        function initButtons() {
+            // 添加规则按钮
+            document.getElementById('addLogicRuleBtn').addEventListener('click', function() {
+                openLogicRuleModal();
+            });
+            
+            // 加载示例规则按钮
+            document.getElementById('loadExampleRulesBtn').addEventListener('click', function() {
+                if (confirm('加载示例规则将清除现有规则，确定要继续吗？')) {
+                    loadExampleRules();
+                }
+            });
+            
+            // 关闭模态框按钮
+            document.getElementById('closeLogicRuleModal').addEventListener('click', function() {
+                closeLogicRuleModal();
+            });
+            
+            // 取消按钮
+            document.getElementById('cancelLogicRuleBtn').addEventListener('click', function() {
+                closeLogicRuleModal();
+            });
+            
+            // 保存规则按钮
+            document.getElementById('saveLogicRuleBtn').addEventListener('click', function() {
+                saveLogicRule();
+            });
+            
+            // 添加条件按钮
+            document.getElementById('addConditionBtn').addEventListener('click', function() {
+                addCondition();
+            });
+            
+            // 添加动作按钮
+            document.getElementById('addActionBtn').addEventListener('click', function() {
+                addAction();
+            });
+            
+            // 监听动作类型变更事件
+            document.addEventListener('change', function(event) {
+                if (event.target.classList.contains('action-type')) {
+                    handleActionTypeChange(event.target);
+                }
+                
+                // 监听级联数据源类型变更
+                if (event.target.classList.contains('cascade-data-source')) {
+                    handleCascadeDataSourceChange(event.target);
+                }
+            });
+            
+            // 点击模态框外部关闭模态框
+            document.getElementById('logicRuleModal').addEventListener('click', function(event) {
+                if (event.target === this) {
+                    closeLogicRuleModal();
+                }
+            });
+        }
+        
+        // 初始化拖拽排序功能
+        function initDragAndDrop() {
+            const container = document.getElementById('logicRulesContainer');
+            
+            // 使用事件委托监听拖拽事件
+            container.addEventListener('dragstart', function(event) {
+                if (event.target.classList.contains('rule-item') || event.target.closest('.rule-item')) {
+                    const ruleItem = event.target.closest('.rule-item');
+                    draggedRule = ruleItem;
+                    setTimeout(() => {
+                        ruleItem.classList.add('dragging');
+                        ruleItem.style.opacity = '0.5';
+                    }, 0);
+                }
+            });
+            
+            container.addEventListener('dragend', function(event) {
+                if (draggedRule) {
+                    draggedRule.classList.remove('dragging');
+                    draggedRule.style.opacity = '1';
+                    draggedRule = null;
+                }
+                
+                // 移除所有拖拽悬停样式
+                document.querySelectorAll('.rule-item').forEach(item => {
+                    item.classList.remove('drag-over');
+                });
+                
+                // 显示排序成功提示
+                showNotification('规则顺序已更新', 'success');
+            });
+            
+            container.addEventListener('dragover', function(event) {
+                event.preventDefault();
+                
+                // 移除所有拖拽悬停样式
+                const ruleItems = document.querySelectorAll('.rule-item');
+                ruleItems.forEach(item => {
+                    item.classList.remove('drag-over');
+                });
+                
+                const afterElement = getDragAfterElement(container, event.clientY);
+                const draggable = document.querySelector('.rule-item.dragging');
+                
+                if (afterElement && afterElement !== draggable) {
+                    afterElement.classList.add('drag-over');
+                }
+                
+                if (afterElement == null) {
+                    container.querySelector('.rules-list').appendChild(draggable);
+                } else {
+                    container.querySelector('.rules-list').insertBefore(draggable, afterElement);
+                }
+            });
+            
+            container.addEventListener('dragenter', function(event) {
+                if (event.target.classList.contains('rule-item') && event.target !== draggedRule) {
+                    event.target.classList.add('drag-over');
+                }
+            });
+            
+            container.addEventListener('dragleave', function(event) {
+                if (event.target.classList.contains('rule-item')) {
+                    event.target.classList.remove('drag-over');
+                }
+            });
+            
+            container.addEventListener('drop', function(event) {
+                event.preventDefault();
+                
+                // 更新逻辑规则的顺序
+                updateRulesOrder();
+                
+                // 移除所有拖拽悬停样式
+                document.querySelectorAll('.rule-item').forEach(item => {
+                    item.classList.remove('drag-over');
+                });
+            });
+        }
+        
+        // 获取拖拽后应该放在哪个元素后面
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.rule-item:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+        
+        // 更新规则顺序
+        function updateRulesOrder() {
+            const rulesList = document.querySelectorAll('.rule-item');
+            const newOrder = [];
+            
+            rulesList.forEach(item => {
+                const ruleId = item.dataset.id;
+                const rule = logicRules.find(r => r.id === ruleId);
+                if (rule) {
+                    newOrder.push(rule);
+                }
+            });
+            
+            logicRules = newOrder;
+            updateParentData();
+        }
+        
+        // 打开逻辑规则编辑模态框
+        function openLogicRuleModal(ruleId = null) {
+            // 清空表单
+            document.getElementById('ruleName').value = '';
+            document.getElementById('conditionLogicType').value = 'and';
+            
+            // 重置条件区域
+            const conditionBuilder = document.getElementById('conditionBuilder');
+            // 保留第一个条件行，清空其他
+            const conditionRows = conditionBuilder.querySelectorAll('.condition-row');
+            const firstRow = conditionRows[0];
+            
+            // 清空第一个条件行
+            firstRow.querySelector('.condition-control').value = '';
+            firstRow.querySelector('.condition-operator').value = 'eq';
+            firstRow.querySelector('.condition-value').value = '';
+            
+            // 移除其他条件行
+            for (let i = 1; i < conditionRows.length; i++) {
+                conditionRows[i].remove();
+            }
+            
+            // 重置动作区域
+            const actionsList = document.getElementById('actionsList');
+            // 保留第一个动作项，清空其他
+            const actionItems = actionsList.querySelectorAll('.action-item');
+            const firstActionItem = actionItems[0];
+            
+            // 清空第一个动作项
+            firstActionItem.querySelector('.action-type').value = 'show';
+            firstActionItem.querySelector('.target-control').value = '';
+            firstActionItem.querySelector('.action-value').value = '';
+            firstActionItem.querySelector('.cascade-static-data').value = '';
+            
+            // 隐藏值设置组和级联配置组
+            firstActionItem.querySelector('[data-action-value-group="1"]').classList.add('hidden');
+            firstActionItem.querySelector('[data-cascade-config-group="1"]').classList.add('hidden');
+            
+            // 移除其他动作项
+            for (let i = 1; i < actionItems.length; i++) {
+                actionItems[i].remove();
+            }
+            
+            // 设置编辑模式
+            editingRuleId = ruleId;
+            
+            // 如果是编辑模式，填充表单数据
+            if (ruleId) {
+                const rule = logicRules.find(r => r.id === ruleId);
+                if (rule) {
+                    document.getElementById('ruleName').value = rule.name;
+                    
+                    // 填充条件逻辑类型
+                    if (rule.conditionLogic) {
+                        document.getElementById('conditionLogicType').value = rule.conditionLogic;
+                    }
+                    
+                    // 填充条件
+                    if (Array.isArray(rule.conditions)) {
+                        // 先清空现有条件
+                        const conditionRows = conditionBuilder.querySelectorAll('.condition-row');
+                        for (let i = 1; i < conditionRows.length; i++) {
+                            conditionRows[i].remove();
+                        }
+                        
+                        // 填充第一个条件
+                        if (rule.conditions.length > 0) {
+                            const firstCondition = rule.conditions[0];
+                            const firstRow = conditionBuilder.querySelector('.condition-row');
+                            firstRow.querySelector('.condition-control').value = firstCondition.control;
+                            firstRow.querySelector('.condition-operator').value = firstCondition.operator;
+                            firstRow.querySelector('.condition-value').value = firstCondition.value || '';
+                        }
+                        
+                        // 添加并填充其他条件
+                        for (let i = 1; i < rule.conditions.length; i++) {
+                            const condition = rule.conditions[i];
+                            const newRow = addCondition();
+                            newRow.querySelector('.condition-control').value = condition.control;
+                            newRow.querySelector('.condition-operator').value = condition.operator;
+                            newRow.querySelector('.condition-value').value = condition.value || '';
+                        }
+                    } else if (rule.condition) {
+                        // 兼容旧格式
+                        const firstRow = conditionBuilder.querySelector('.condition-row');
+                        firstRow.querySelector('.condition-control').value = rule.condition.control;
+                        firstRow.querySelector('.condition-operator').value = rule.condition.operator;
+                        firstRow.querySelector('.condition-value').value = rule.condition.value || '';
+                    }
+                    
+                    // 填充动作
+                    if (Array.isArray(rule.actions)) {
+                        // 先清空现有动作
+                        const actionsList = document.getElementById('actionsList');
+                        const actionItems = actionsList.querySelectorAll('.action-item');
+                        for (let i = 1; i < actionItems.length; i++) {
+                            actionItems[i].remove();
+                        }
+                        
+                        // 填充第一个动作
+                        if (rule.actions.length > 0) {
+                            const firstAction = rule.actions[0];
+                            const firstActionItem = actionsList.querySelector('.action-item');
+                            firstActionItem.querySelector('.action-type').value = firstAction.type;
+                            firstActionItem.querySelector('.target-control').value = firstAction.target;
+                            
+                            // 处理特殊动作类型
+                            if (firstAction.type === 'setvalue' && firstAction.value) {
+                                const valueGroup = firstActionItem.querySelector('[data-action-value-group="1"]');
+                                valueGroup.classList.remove('hidden');
+                                valueGroup.querySelector('.action-value').value = firstAction.value;
+                            } else if (firstAction.type === 'cascade' && firstAction.config) {
+                                const cascadeGroup = firstActionItem.querySelector('[data-cascade-config-group="1"]');
+                                cascadeGroup.classList.remove('hidden');
+                                
+                                if (firstAction.config.dataSource) {
+                                    cascadeGroup.querySelector('.cascade-data-source').value = firstAction.config.dataSource;
+                                }
+                                
+                                if (firstAction.config.staticData) {
+                                    cascadeGroup.querySelector('.cascade-static-data').value = firstAction.config.staticData;
+                                }
+                            }
+                        }
+                        
+                        // 添加并填充其他动作
+                        for (let i = 1; i < rule.actions.length; i++) {
+                            const action = rule.actions[i];
+                            const newActionItem = addAction();
+                            newActionItem.querySelector('.action-type').value = action.type;
+                            newActionItem.querySelector('.target-control').value = action.target;
+                            
+                            // 处理特殊动作类型
+                            if (action.type === 'setvalue' && action.value) {
+                                const valueGroup = newActionItem.querySelector('[data-action-value-group]');
+                                valueGroup.classList.remove('hidden');
+                                valueGroup.querySelector('.action-value').value = action.value;
+                            } else if (action.type === 'cascade' && action.config) {
+                                const cascadeGroup = newActionItem.querySelector('[data-cascade-config-group]');
+                                cascadeGroup.classList.remove('hidden');
+                                
+                                if (action.config.dataSource) {
+                                    cascadeGroup.querySelector('.cascade-data-source').value = action.config.dataSource;
+                                }
+                                
+                                if (action.config.staticData) {
+                                    cascadeGroup.querySelector('.cascade-static-data').value = action.config.staticData;
+                                }
+                            }
+                        }
+                    } else if (rule.action) {
+                        // 兼容旧格式
+                        const firstActionItem = document.getElementById('actionsList').querySelector('.action-item');
+                        firstActionItem.querySelector('.action-type').value = rule.action.type;
+                        firstActionItem.querySelector('.target-control').value = rule.action.target;
+                        
+                        // 处理特殊动作类型
+                        if (rule.action.type === 'setvalue' && rule.action.value) {
+                            const valueGroup = firstActionItem.querySelector('[data-action-value-group="1"]');
+                            valueGroup.classList.remove('hidden');
+                            valueGroup.querySelector('.action-value').value = rule.action.value;
+                        }
+                    }
+                }
+            }
+            
+            // 填充可用控件
+            fillAvailableControls();
+            
+            // 显示模态框
+            document.getElementById('logicRuleModal').classList.remove('hidden');
+        }
+        
+        // 关闭逻辑规则编辑模态框
+        function closeLogicRuleModal() {
+            document.getElementById('logicRuleModal').classList.add('hidden');
+            editingRuleId = null;
+        }
+        
+        // 添加条件
+        function addCondition() {
+            const conditionBuilder = document.getElementById('conditionBuilder');
+            const conditionRows = conditionBuilder.querySelectorAll('.condition-row');
+            const newConditionId = conditionRows.length + 1;
+            
+            const newRow = document.createElement('div');
+            newRow.className = 'condition-row';
+            newRow.setAttribute('data-condition-id', newConditionId);
+            
+            newRow.innerHTML = `
+                <select class="form-control condition-control" data-condition-id="${newConditionId}">
+                    <option value="">请选择触发控件</option>
+                    <!-- 动态填充可用控件 -->
+                </select>
+                <select class="form-control condition-operator" data-condition-id="${newConditionId}">
+                    <option value="eq">等于</option>
+                    <option value="neq">不等于</option>
+                    <option value="gt">大于</option>
+                    <option value="lt">小于</option>
+                    <option value="contains">包含</option>
+                    <option value="empty">为空</option>
+                    <option value="notempty">不为空</option>
+                </select>
+                <input type="text" class="form-control condition-value" data-condition-id="${newConditionId}" placeholder="请输入条件值">
+                <button class="btn btn-small btn-danger remove-condition-btn" data-condition-id="${newConditionId}">删除</button>
+            `;
+            
+            // 插入到最后一个条件行之后，条件操作之前
+            const conditionActions = conditionBuilder.querySelector('.condition-actions');
+            conditionBuilder.insertBefore(newRow, conditionActions);
+            
+            // 为新添加的删除按钮绑定事件
+            newRow.querySelector('.remove-condition-btn').addEventListener('click', function() {
+                const conditionId = this.getAttribute('data-condition-id');
+                const conditionRow = document.querySelector(`.condition-row[data-condition-id="${conditionId}"]`);
+                if (conditionRow) {
+                    conditionRow.remove();
+                }
+            });
+            
+            // 填充可用控件
+            fillAvailableControls();
+            
+            return newRow;
+        }
+        
+        // 添加动作
+        function addAction() {
+            const actionsList = document.getElementById('actionsList');
+            const actionItems = actionsList.querySelectorAll('.action-item');
+            const newActionId = actionItems.length + 1;
+            
+            const newActionItem = document.createElement('div');
+            newActionItem.className = 'action-item';
+            newActionItem.setAttribute('data-action-id', newActionId);
+            
+            newActionItem.innerHTML = `
+                <div class="action-header">
+                    <span class="action-type-label">动作 ${newActionId}</span>
+                    <button class="btn btn-small btn-danger remove-action-btn" data-action-id="${newActionId}">删除</button>
+                </div>
+                <select class="form-control action-type" data-action-id="${newActionId}">
+                    <option value="show">显示控件</option>
+                    <option value="hide">隐藏控件</option>
+                    <option value="required">设为必填</option>
+                    <option value="readonly">设为只读</option>
+                    <option value="setvalue">设置值</option>
+                    <option value="disable">禁用控件</option>
+                    <option value="enable">启用控件</option>
+                    <option value="cascade">级联选择</option>
+                </select>
+                <div class="form-group" data-target-control-group="${newActionId}">
+                    <label class="form-label">目标控件</label>
+                    <select class="form-control target-control" data-action-id="${newActionId}">
+                        <option value="">请选择目标控件</option>
+                        <!-- 动态填充可用控件 -->
+                    </select>
+                </div>
+                <div class="form-group hidden" data-action-value-group="${newActionId}">
+                    <label class="form-label">设置值</label>
+                    <input type="text" class="form-control action-value" data-action-id="${newActionId}" placeholder="请输入要设置的值">
+                </div>
+                <div class="form-group hidden" data-cascade-config-group="${newActionId}">
+                    <label class="form-label">级联配置</label>
+                    <div class="cascade-config">
+                        <div class="form-group">
+                            <label class="form-label">数据源类型</label>
+                            <select class="form-control cascade-data-source" data-action-id="${newActionId}">
+                                <option value="static">静态数据</option>
+                                <option value="dynamic">动态数据</option>
+                            </select>
+                        </div>
+                        <div class="form-group" data-static-data-config="${newActionId}">
+                            <label class="form-label">静态数据 (格式: 父值1:子值1,子值2|父值2:子值3,子值4)</label>
+                            <input type="text" class="form-control cascade-static-data" data-action-id="${newActionId}" placeholder="例如: 北京:朝阳区,海淀区|上海:浦东新区,静安区">
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            actionsList.appendChild(newActionItem);
+            
+            // 为新添加的删除按钮绑定事件
+            newActionItem.querySelector('.remove-action-btn').addEventListener('click', function() {
+                const actionId = this.getAttribute('data-action-id');
+                const actionItem = document.querySelector(`.action-item[data-action-id="${actionId}"]`);
+                if (actionItem) {
+                    actionItem.remove();
+                }
+            });
+            
+            // 填充可用控件
+            fillAvailableControls();
+            
+            return newActionItem;
+        }
+        
+        // 处理动作类型变更
+        function handleActionTypeChange(actionTypeElement) {
+            const actionId = actionTypeElement.getAttribute('data-action-id');
+            const actionType = actionTypeElement.value;
+            
+            const actionValueGroup = document.querySelector(`[data-action-value-group="${actionId}"]`);
+            const cascadeConfigGroup = document.querySelector(`[data-cascade-config-group="${actionId}"]`);
+            
+            // 根据动作类型显示或隐藏相关设置
+            if (actionValueGroup) {
+                actionValueGroup.classList.add('hidden');
+            }
+            
+            if (cascadeConfigGroup) {
+                cascadeConfigGroup.classList.add('hidden');
+            }
+            
+            if (actionType === 'setvalue' && actionValueGroup) {
+                actionValueGroup.classList.remove('hidden');
+            } else if (actionType === 'cascade' && cascadeConfigGroup) {
+                cascadeConfigGroup.classList.remove('hidden');
+            }
+        }
+        
+        // 处理级联数据源类型变更
+        function handleCascadeDataSourceChange(dataSourceElement) {
+            const actionId = dataSourceElement.getAttribute('data-action-id');
+            const dataSourceType = dataSourceElement.value;
+            
+            const staticDataConfig = document.querySelector(`[data-static-data-config="${actionId}"]`);
+            
+            if (staticDataConfig) {
+                if (dataSourceType === 'static') {
+                    staticDataConfig.classList.remove('hidden');
+                } else {
+                    staticDataConfig.classList.add('hidden');
+                }
+            }
+        }
+        
+        // 填充可用控件
+        function fillAvailableControls() {
+            const conditionControls = document.querySelectorAll('.condition-control');
+            const targetControls = document.querySelectorAll('.target-control');
+            
+            // 填充条件控件
+            conditionControls.forEach(control => {
+                // 清空现有选项
+                control.innerHTML = '<option value="">请选择触发控件</option>';
+                
+                // 添加控件选项
+                formControls.forEach(formControl => {
+                    // 排除分割线等不适合作为条件的控件
+                    if (formControl.type !== 'divider') {
+                        const option = document.createElement('option');
+                        option.value = formControl.id;
+                        option.textContent = formControl.label;
+                        control.appendChild(option);
+                    }
+                });
+            });
+            
+            // 填充目标控件
+            targetControls.forEach(control => {
+                // 清空现有选项
+                control.innerHTML = '<option value="">请选择目标控件</option>';
+                
+                // 添加控件选项
+                formControls.forEach(formControl => {
+                    // 排除分割线等不适合作为目标的控件
+                    if (formControl.type !== 'divider') {
+                        const option = document.createElement('option');
+                        option.value = formControl.id;
+                        option.textContent = formControl.label;
+                        control.appendChild(option);
+                    }
+                });
+            });
+        }
+        
+        // 保存逻辑规则
+        function saveLogicRule() {
+            // 获取表单数据
+            const ruleName = document.getElementById('ruleName').value;
+            const conditionLogicType = document.getElementById('conditionLogicType').value;
+            
+            // 清除之前的验证提示
+            clearAllErrors();
+            
+            // 基本验证
+            let isValid = true;
+            
+            if (!ruleName) {
+                showInputError('ruleName', '请输入规则名称');
+                isValid = false;
+            } else if (ruleName.length > 50) {
+                showInputError('ruleName', '规则名称不能超过50个字符');
+                isValid = false;
+            }
+            
+            // 获取所有条件
+            const conditionRows = document.querySelectorAll('.condition-row');
+            const conditions = [];
+            let hasValidCondition = false;
+            
+            conditionRows.forEach(row => {
+                const control = row.querySelector('.condition-control').value;
+                const operator = row.querySelector('.condition-operator').value;
+                const value = row.querySelector('.condition-value').value;
+                
+                // 验证条件
+                if (control) {
+                    // 对于特定操作符，验证值是否为空
+                    if ((operator !== 'empty' && operator !== 'notempty') && (!value || value.trim() === '')) {
+                        showConditionError(row, '该条件需要输入值');
+                        isValid = false;
+                    } else {
+                        hasValidCondition = true;
+                        conditions.push({
+                            control: control,
+                            operator: operator,
+                            value: value
+                        });
+                    }
+                }
+            });
+            
+            if (!hasValidCondition) {
+                showNotification('请至少添加一个有效的触发条件', 'error');
+                isValid = false;
+            }
+            
+            // 获取所有动作
+            const actionItems = document.querySelectorAll('.action-item');
+            const actions = [];
+            let hasValidAction = false;
+            
+            actionItems.forEach(item => {
+                const type = item.querySelector('.action-type').value;
+                const target = item.querySelector('.target-control').value;
+                
+                // 验证动作
+                if (type && target) {
+                    const action = {
+                        type: type,
+                        target: target
+                    };
+                    
+                    // 处理特殊动作类型
+                    if (type === 'setvalue') {
+                        const actionValue = item.querySelector('.action-value').value;
+                        if (!actionValue || actionValue.trim() === '') {
+                            showActionError(item, '设置值动作需要输入值');
+                            isValid = false;
+                            return;
+                        }
+                        action.value = actionValue;
+                    } else if (type === 'cascade') {
+                        const dataSource = item.querySelector('.cascade-data-source').value;
+                        action.config = {
+                            dataSource: dataSource
+                        };
+                        
+                        if (dataSource === 'static') {
+                            const staticData = item.querySelector('.cascade-static-data').value;
+                            if (!staticData || staticData.trim() === '') {
+                                showActionError(item, '级联选择的静态数据不能为空');
+                                isValid = false;
+                                return;
+                            }
+                            
+                            // 验证静态数据格式
+                            if (!validateCascadeDataFormat(staticData)) {
+                                showActionError(item, '级联数据格式不正确，请使用格式：父值1:子值1,子值2|父值2:子值3,子值4');
+                                isValid = false;
+                                return;
+                            }
+                            
+                            action.config.staticData = staticData;
+                        }
+                    }
+                    
+                    hasValidAction = true;
+                    actions.push(action);
+                } else {
+                    if (!type) showActionError(item, '请选择动作类型');
+                    if (!target) showActionError(item, '请选择目标控件');
+                    isValid = false;
+                }
+            });
+            
+            if (!hasValidAction) {
+                showNotification('请至少添加一个有效的执行动作', 'error');
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                // 滚动到第一个错误位置
+                const firstError = document.querySelector('.input-error, .condition-error, .action-error');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+            
+            // 创建规则对象
+            const rule = {
+                name: ruleName,
+                conditionLogic: conditionLogicType,
+                conditions: conditions,
+                actions: actions
+            };
+            
+            // 保存规则
+            try {
+                if (editingRuleId) {
+                    // 编辑现有规则
+                    const ruleIndex = logicRules.findIndex(r => r.id === editingRuleId);
+                    if (ruleIndex !== -1) {
+                        rule.id = editingRuleId;
+                        logicRules[ruleIndex] = rule;
+                    }
+                    showNotification('规则更新成功', 'success');
+                } else {
+                    // 添加新规则
+                    rule.id = 'rule_' + Date.now();
+                    logicRules.push(rule);
+                    showNotification('规则添加成功', 'success');
+                }
+                
+                // 渲染规则列表
+                renderLogicRules();
+                
+                // 关闭模态框
+                closeLogicRuleModal();
+                
+                // 更新数据到父页面
+                updateParentData();
+            } catch (error) {
+                console.error('保存规则时出错:', error);
+                showNotification('保存规则失败，请重试', 'error');
+            }
+        }
+        
+        // 清除所有错误提示
+        function clearAllErrors() {
+            // 清除输入错误
+            const formInputs = document.querySelectorAll('.input-error');
+            formInputs.forEach(input => {
+                input.classList.remove('input-error');
+            });
+            
+            // 清除错误消息
+            const errorMessages = document.querySelectorAll('.error-message');
+            errorMessages.forEach(msg => {
+                msg.remove();
+            });
+        }
+        
+        // 验证级联数据格式
+        function validateCascadeDataFormat(data) {
+            try {
+                // 格式：父值1:子值1,子值2|父值2:子值3,子值4
+                const parentItems = data.split('|');
+                if (parentItems.length === 0) return false;
+                
+                for (const item of parentItems) {
+                    const parts = item.split(':');
+                    if (parts.length !== 2) return false;
+                    
+                    const parentValue = parts[0].trim();
+                    const childValues = parts[1].split(',').map(v => v.trim());
+                    
+                    if (!parentValue || childValues.some(v => !v)) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+        
+        // 显示输入错误提示
+        function showInputError(inputId, message) {
+            const input = document.getElementById(inputId);
+            input.classList.add('input-error');
+            
+            // 检查是否已存在错误信息
+            let errorMsg = input.nextElementSibling;
+            if (errorMsg && errorMsg.classList.contains('error-message')) {
+                errorMsg.textContent = message;
+            } else {
+                errorMsg = document.createElement('div');
+                errorMsg.className = 'error-message';
+                errorMsg.textContent = message;
+                input.parentNode.insertBefore(errorMsg, input.nextSibling);
+            }
+        }
+        
+        // 显示条件错误提示
+        function showConditionError(conditionRow, message) {
+            let errorMsg = conditionRow.querySelector('.condition-error');
+            if (errorMsg) {
+                errorMsg.textContent = message;
+            } else {
+                errorMsg = document.createElement('div');
+                errorMsg.className = 'condition-error error-message';
+                errorMsg.textContent = message;
+                conditionRow.appendChild(errorMsg);
+            }
+        }
+        
+        // 显示动作错误提示
+        function showActionError(actionItem, message) {
+            let errorMsg = actionItem.querySelector('.action-error');
+            if (errorMsg) {
+                errorMsg.textContent = message;
+            } else {
+                errorMsg = document.createElement('div');
+                errorMsg.className = 'action-error error-message';
+                errorMsg.textContent = message;
+                actionItem.appendChild(errorMsg);
+            }
+        }
+        
+        // 渲染逻辑规则列表
+        function renderLogicRules() {
+            const container = document.getElementById('logicRulesContainer');
+            
+            // 清空容器
+            container.innerHTML = '';
+            
+            // 如果没有规则，显示提示消息
+            if (logicRules.length === 0) {
+                container.innerHTML = '<div class="no-rules-message">暂无逻辑规则，点击"添加规则"按钮创建</div>';
+                return;
+            }
+            
+            // 创建规则列表
+            const rulesList = document.createElement('div');
+            rulesList.className = 'rules-list';
+            
+            // 添加每个规则
+            logicRules.forEach(rule => {
+                const ruleItem = document.createElement('div');
+                ruleItem.className = 'rule-item';
+                ruleItem.dataset.id = rule.id;
+                ruleItem.draggable = true;
+                
+                // 构建条件文本
+                let conditionText = '';
+                if (Array.isArray(rule.conditions) && rule.conditions.length > 0) {
+                    const conditionsTexts = [];
+                    rule.conditions.forEach(condition => {
+                        const triggerControl = formControls.find(c => c.id === condition.control);
+                        const operatorText = getOperatorText(condition.operator);
+                        conditionsTexts.push(`${triggerControl ? triggerControl.label : '未知控件'} ${operatorText} ${condition.value || ''}`);
+                    });
+                    
+                    const logicText = rule.conditionLogic === 'and' ? ' 并且 ' : ' 或者 ';
+                    conditionText = conditionsTexts.join(logicText);
+                } else if (rule.condition) {
+                    // 兼容旧格式
+                    const triggerControl = formControls.find(c => c.id === rule.condition.control);
+                    const operatorText = getOperatorText(rule.condition.operator);
+                    conditionText = `${triggerControl ? triggerControl.label : '未知控件'} ${operatorText} ${rule.condition.value || ''}`;
+                }
+                
+                // 构建动作文本
+                let actionText = '';
+                if (Array.isArray(rule.actions) && rule.actions.length > 0) {
+                    const actionsTexts = [];
+                    rule.actions.forEach(action => {
+                        const targetControl = formControls.find(c => c.id === action.target);
+                        let actionTypeText = getActionText(action.type);
+                        
+                        // 检查是否有级联标记
+                        let cascadeIndicator = '';
+                        if (action.type === 'cascade') {
+                            cascadeIndicator = '<span class="cascade-indicator">级联</span>';
+                        }
+                        
+                        actionsTexts.push(`${actionTypeText} ${targetControl ? targetControl.label : '未知控件'}${action.value ? ' 为 ' + action.value : ''} ${cascadeIndicator}`);
+                    });
+                    
+                    actionText = actionsTexts.join('，然后 ');
+                } else if (rule.action) {
+                    // 兼容旧格式
+                    const targetControl = formControls.find(c => c.id === rule.action.target);
+                    const actionTypeText = getActionText(rule.action.type);
+                    actionText = `${actionTypeText} ${targetControl ? targetControl.label : '未知控件'}${rule.action.value ? ' 为 ' + rule.action.value : ''}`;
+                }
+                
+                // 创建规则内容
+                ruleItem.innerHTML = `
+                    <div class="rule-header">
+                        <div class="rule-name">
+                            <span class="drag-handle">⋮⋮</span>
+                            ${rule.name}
+                        </div>
+                        <div class="rule-actions">
+                            <button class="btn btn-small btn-default edit-rule-btn">编辑</button>
+                            <button class="btn btn-small btn-danger delete-rule-btn">删除</button>
+                        </div>
+                    </div>
+                    <div class="rule-content">
+                        <span class="rule-condition">
+                            当 ${conditionText}
+                        </span>
+                        <span class="rule-separator">→</span>
+                        <span class="rule-action">
+                            ${actionText}
+                        </span>
+                    </div>
+                `;
+                
+                // 添加编辑按钮事件
+                ruleItem.querySelector('.edit-rule-btn').addEventListener('click', function() {
+                    openLogicRuleModal(rule.id);
+                });
+                
+                // 添加删除按钮事件
+                ruleItem.querySelector('.delete-rule-btn').addEventListener('click', function() {
+                    deleteLogicRule(rule.id);
+                });
+                
+                // 添加克隆按钮事件
+                const cloneBtn = document.createElement('button');
+                cloneBtn.className = 'btn btn-small btn-primary clone-rule-btn';
+                cloneBtn.textContent = '克隆';
+                cloneBtn.addEventListener('click', function() {
+                    cloneLogicRule(rule.id);
+                });
+                ruleItem.querySelector('.rule-actions').appendChild(cloneBtn);
+                
+                rulesList.appendChild(ruleItem);
+            });
+            
+            container.appendChild(rulesList);
+        }
+        
+        // 加载示例规则
+        function loadExampleRules() {
+            try {
+                // 显示加载中提示
+                showNotification('正在加载示例规则...', 'info');
+                
+                // 清除现有规则
+                logicRules = [];
+                
+                // 添加示例规则
+                const exampleRules = [
+                    {
+                        id: 'rule_example_1',
+                        name: '员工类型控制试用期评价显示',
+                        conditionLogic: 'and',
+                        conditions: [
+                            {
+                                control: 'control_2',
+                                operator: 'eq',
+                                value: '试用期员工'
+                            }
+                        ],
+                        actions: [
+                            {
+                                type: 'show',
+                                target: 'control_6'
+                            },
+                            {
+                                type: 'required',
+                                target: 'control_6'
+                            }
+                        ]
+                    },
+                    {
+                        id: 'rule_example_2',
+                        name: '省份与城市级联选择',
+                        conditionLogic: 'and',
+                        conditions: [
+                            {
+                                control: 'control_4',
+                                operator: 'notempty',
+                                value: ''
+                            }
+                        ],
+                        actions: [
+                            {
+                                type: 'cascade',
+                                target: 'control_5',
+                                config: {
+                                    dataSource: 'static',
+                                    staticData: '北京:北京|上海:上海|广东:广州,深圳|江苏:南京,苏州'
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'rule_example_3',
+                        name: '入职日期大于30天显示薪资待遇',
+                        conditionLogic: 'and',
+                        conditions: [
+                            {
+                                control: 'control_2',
+                                operator: 'eq',
+                                value: '正式员工'
+                            },
+                            {
+                                control: 'control_7',
+                                operator: 'lt',
+                                value: '30'
+                            }
+                        ],
+                        actions: [
+                            {
+                                type: 'show',
+                                target: 'control_8'
+                            }
+                        ]
+                    },
+                    {
+                        id: 'rule_example_4',
+                        name: '技术部员工需要培训',
+                        conditionLogic: 'and',
+                        conditions: [
+                            {
+                                control: 'control_3',
+                                operator: 'eq',
+                                value: '技术部'
+                            }
+                        ],
+                        actions: [
+                            {
+                                type: 'setvalue',
+                                target: 'control_9',
+                                value: 'true'
+                            },
+                            {
+                                type: 'readonly',
+                                target: 'control_9'
+                            }
+                        ]
+                    }
+                ];
+                
+                // 添加示例规则到规则列表
+                logicRules = [...exampleRules];
+                
+                // 渲染规则列表
+                renderLogicRules();
+                
+                // 更新数据到父页面
+                updateParentData();
+                
+                // 显示加载成功提示
+                setTimeout(() => {
+                    showNotification('示例规则加载成功', 'success');
+                }, 500);
+            } catch (error) {
+                console.error('加载示例规则时出错:', error);
+                showNotification('加载示例规则失败，请重试', 'error');
+            }
+        }
+        
+        // 获取操作符文本
+        function getOperatorText(operator) {
+            const operators = {
+                'eq': '等于',
+                'neq': '不等于',
+                'gt': '大于',
+                'lt': '小于',
+                'contains': '包含',
+                'empty': '为空',
+                'notempty': '不为空'
+            };
+            
+            return operators[operator] || operator;
+        }
+        
+        // 获取动作文本
+        function getActionText(actionType) {
+            const actions = {
+                'show': '显示',
+                'hide': '隐藏',
+                'required': '设为必填',
+                'readonly': '设为只读',
+                'setvalue': '设置值',
+                'disable': '禁用',
+                'enable': '启用',
+                'cascade': '级联'
+            };
+            
+            return actions[actionType] || actionType;
+        }
+        
+        // 删除逻辑规则
+        function deleteLogicRule(ruleId) {
+            if (confirm('确定要删除此逻辑规则吗？')) {
+                // 过滤掉要删除的规则
+                logicRules = logicRules.filter(rule => rule.id !== ruleId);
+                
+                // 重新渲染规则列表
+                renderLogicRules();
+                
+                // 更新数据到父页面
+                updateParentData();
+                
+                // 显示删除成功提示
+                showNotification('规则删除成功', 'success');
+            }
+        }
+        
+        // 克隆逻辑规则
+        function cloneLogicRule(ruleId) {
+            try {
+                const ruleToClone = logicRules.find(rule => rule.id === ruleId);
+                if (ruleToClone) {
+                    // 深拷贝规则对象
+                    const clonedRule = JSON.parse(JSON.stringify(ruleToClone));
+                    
+                    // 生成新的ID
+                    clonedRule.id = 'rule_' + Date.now();
+                    clonedRule.name = clonedRule.name + '（克隆）';
+                    
+                    // 添加到规则列表
+                    logicRules.push(clonedRule);
+                    
+                    // 重新渲染规则列表
+                    renderLogicRules();
+                    
+                    // 更新数据到父页面
+                    updateParentData();
+                    
+                    // 显示克隆成功提示
+                    showNotification('规则克隆成功', 'success');
+                } else {
+                    showNotification('未找到要克隆的规则', 'error');
+                }
+            } catch (error) {
+                console.error('克隆规则时出错:', error);
+                showNotification('克隆规则失败，请重试', 'error');
+            }
+        }
+        
+        // 创建提示信息
+        function showNotification(message, type = 'info') {
+            // 移除已存在的提示
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // 创建新提示
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            
+            // 添加到页面
+            document.body.appendChild(notification);
+            
+            // 自动移除
+            setTimeout(() => {
+                notification.classList.add('notification-fade');
+                setTimeout(() => {
+                    notification.remove();
+                }, 500);
+            }, 3000);
+        }
+        
+        // 更新数据到父页面
+        function updateParentData() {
+            try {
+                window.parent.postMessage({
+                    type: 'update_data',
+                    section: 'logicRules',
+                    data: logicRules
+                }, '*');
+            } catch (error) {
+                console.error('更新父页面数据时出错:', error);
+                // 不显示错误通知，因为这可能是在独立页面运行时的正常现象
+            }
+        }
+        
+        // 验证当前步骤
+        function validateStep() {
+            // 逻辑规则不是必填项，直接通过
+            window.parent.postMessage({ type: 'validation_result', isValid: true }, '*');
+            
+            // 更新数据到父页面
+            updateParentData();
+        }
+        
+        // 监听父页面的验证请求
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'validate') {
+                validateStep();
+            }
+        });
+    </script>
+</body>
+</html>

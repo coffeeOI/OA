@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发布设置 - OA系统</title>
+    <link rel="stylesheet" href="../../CSS/common.css">
+    <link rel="stylesheet" href="../../CSS/main.css">
+    <link rel="stylesheet" href="form_add.css">
+    <script src="../../JS/common.js"></script>
+</head>
+<body>
+    <div class="card">
+        <!-- 保存按钮容器 -->
+
+        <!-- 表单状态设置 -->
+        <div class="form-section">
+            <h3 class="form-section-title">表单状态设置</h3>
+            
+            <div class="form-group">
+                <label class="form-label">表单状态</label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="formStatus" value="draft" checked>
+                        保存为草稿
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="formStatus" value="published">
+                        立即发布
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="formStatus" value="scheduled">
+                        定时发布
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group hidden" id="schedulePublishGroup">
+                <label class="form-label">发布时间</label>
+                <input type="datetime-local" class="form-control" id="schedulePublishTime">
+                <small class="help-text">请设置一个未来的时间点进行表单发布</small>
+            </div>
+        </div>
+
+        <!-- 有效范围设置 -->
+        <div class="form-section">
+            <h3 class="form-section-title">有效范围设置</h3>
+            
+            <div class="form-group">
+                <label class="form-label">有效范围</label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="formScope" value="all" checked>
+                        全公司可见
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="formScope" value="department">
+                        指定部门可见
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="formScope" value="user">
+                        指定用户可见
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="formScope" value="role">
+                        指定角色可见
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group hidden" id="departmentSelectorGroup">
+                <label class="form-label">选择部门</label>
+                <select class="form-control" id="departmentSelector" multiple>
+                    <option value="dept1">人力资源部</option>
+                    <option value="dept2">财务部</option>
+                    <option value="dept3">行政部</option>
+                    <option value="dept4">技术部</option>
+                    <option value="dept5">市场部</option>
+                </select>
+                <small class="help-text">按住Ctrl键可多选部门</small>
+            </div>
+
+            <div class="form-group hidden" id="userSelectorGroup">
+                <label class="form-label">选择用户</label>
+                <select class="form-control" id="userSelector" multiple>
+                    <option value="user1">张三</option>
+                    <option value="user2">李四</option>
+                    <option value="user3">王五</option>
+                    <option value="user4">赵六</option>
+                    <option value="user5">孙七</option>
+                </select>
+                <small class="help-text">按住Ctrl键可多选用户</small>
+            </div>
+
+            <div class="form-group hidden" id="roleSelectorGroup">
+                <label class="form-label">选择角色</label>
+                <select class="form-control" id="roleSelector" multiple>
+                    <option value="role1">普通员工</option>
+                    <option value="role2">部门经理</option>
+                    <option value="role3">总监</option>
+                    <option value="role4">副总裁</option>
+                    <option value="role5">总裁</option>
+                </select>
+                <small class="help-text">按住Ctrl键可多选角色</small>
+            </div>
+        </div>
+
+        <!-- 有效时间设置 -->
+        <div class="form-section">
+            <h3 class="form-section-title">有效时间设置</h3>
+            
+            <div class="form-group">
+                <label class="form-label">有效时间</label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="validityType" value="forever" checked>
+                        永久有效
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="validityType" value="range">
+                        时间段
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="validityType" value="number">
+                        填写次数
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-row hidden" id="validityRangeGroup">
+                <div class="form-group">
+                    <label class="form-label">开始时间</label>
+                    <input type="datetime-local" class="form-control" id="startTime">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">结束时间</label>
+                    <input type="datetime-local" class="form-control" id="endTime">
+                </div>
+            </div>
+
+            <div class="form-group hidden" id="submitLimitGroup">
+                <label class="form-label">填写次数限制</label>
+                <input type="number" class="form-control" id="submitLimit" min="1" placeholder="请输入最大填写次数">
+                <small class="help-text">设置表单可被填写的总次数上限</small>
+            </div>
+        </div>
+
+        <!-- 填写后操作设置 -->
+        <div class="form-section">
+            <h3 class="form-section-title">填写后操作设置</h3>
+            
+            <div class="form-group">
+                <label class="form-label">填写后操作</label>
+                <select class="form-control" id="afterSubmitAction">
+                    <option value="message">显示提示信息</option>
+                    <option value="redirect">跳转到指定页面</option>
+                    <option value="close">关闭页面</option>
+                    <option value="print">打印表单</option>
+                    <option value="download">下载PDF</option>
+                    <option value="share">分享表单</option>
+                </select>
+            </div>
+
+            <div class="form-group hidden" id="submitMessageGroup">
+                <label class="form-label">提示信息</label>
+                <textarea class="form-control" id="submitMessage" rows="3" placeholder="请输入提交后的提示信息">提交成功，感谢您的参与！</textarea>
+            </div>
+
+            <div class="form-group hidden" id="redirectUrlGroup">
+                <label class="form-label">跳转URL</label>
+                <input type="url" class="form-control" id="redirectUrl" placeholder="请输入跳转的URL地址">
+                <div class="radio-group" style="margin-top: 10px;">
+                    <label class="radio-label">
+                        <input type="radio" name="redirectTarget" value="self" checked>
+                        在当前窗口打开
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="redirectTarget" value="blank">
+                        在新窗口打开
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 通知设置 -->
+        <div class="form-section">
+            <h3 class="form-section-title">通知设置</h3>
+            
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="enableNotification">
+                    提交后发送通知
+                </label>
+            </div>
+
+            <div class="form-group hidden" id="notificationSettingsGroup">
+                <label class="form-label">通知接收人</label>
+                <select class="form-control" id="notificationRecipients" multiple>
+                    <option value="creator">表单创建者</option>
+                    <option value="admin">系统管理员</option>
+                    <option value="department">部门负责人</option>
+                    <option value="custom">自定义</option>
+                </select>
+                <small class="help-text">按住Ctrl键可多选</small>
+            </div>
+
+            <div class="form-group hidden" id="customNotificationRecipientsGroup">
+                <label class="form-label">自定义通知接收人</label>
+                <select class="form-control" id="customNotificationRecipients" multiple>
+                    <option value="user1">张三</option>
+                    <option value="user2">李四</option>
+                    <option value="user3">王五</option>
+                    <option value="user4">赵六</option>
+                    <option value="user5">孙七</option>
+                </select>
+                <small class="help-text">按住Ctrl键可多选用户</small>
+            </div>
+
+            <div class="form-group hidden" id="notificationContentGroup">
+                <label class="form-label">通知方式</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="notifyByEmail" checked>
+                        邮件通知
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="notifyBySystem" checked>
+                        系统消息通知
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="notifyBySMS">
+                        短信通知
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 高级设置 -->
+        <div class="form-section">
+            <h3 class="form-section-title">高级设置</h3>
+            
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="allowAnonymousSubmit">
+                    允许匿名提交
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="allowModifyAfterSubmit">
+                    允许提交后修改
+                </label>
+            </div>
+
+            <div class="form-group hidden" id="modifyExpiryGroup">
+                <label class="form-label">修改有效期</label>
+                <select class="form-control" id="modifyExpiry">
+                    <option value="unlimited">无限制</option>
+                    <option value="24h">24小时</option>
+                    <option value="7d">7天</option>
+                    <option value="30d">30天</option>
+                    <option value="custom">自定义天数</option>
+                </select>
+            </div>
+
+            <div class="form-group hidden" id="customModifyDaysGroup">
+                <label class="form-label">自定义修改天数</label>
+                <input type="number" class="form-control" id="customModifyDays" min="1" placeholder="请输入允许修改的天数">
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="enableAntiDuplication">
+                    防止重复提交
+                </label>
+            </div>
+
+            <div class="form-group hidden" id="antiDuplicationSettingsGroup">
+                <label class="form-label">防重复提交方式</label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="antiDuplicationMethod" value="ip" checked>
+                        根据IP地址
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="antiDuplicationMethod" value="user">
+                        根据用户ID
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="antiDuplicationMethod" value="field">
+                        根据表单字段
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">重复提交间隔</label>
+                    <select class="form-control" id="duplicationInterval">
+                        <option value="1h">1小时</option>
+                        <option value="24h">24小时</option>
+                        <option value="7d">7天</option>
+                        <option value="forever">永久</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="enableDataAnalysis">
+                    开启数据统计分析
+                </label>
+            </div>
+
+            <div class="form-group hidden" id="dataAnalysisSettingsGroup">
+                <label class="form-label">数据分析维度</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="analysisByDepartment" checked>
+                        按部门统计
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="analysisByTime" checked>
+                        按时间段统计
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="analysisByUser" checked>
+                        按用户统计
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div style="text-align: right;">
+            <button class="btn btn-primary" style="cursor: not-allowed; opacity: 0.7;">保存</button>
+        </div>
+    </div>
+    <script>
+        // 步骤5的页面逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            // 请求父页面发送数据
+            window.parent.postMessage({ type: 'get_data' }, '*');
+            
+            // 监听父页面消息
+            window.addEventListener('message', handleParentMessage);
+            
+            // 初始化事件监听
+            initEventListeners();
+        });
+        
+        // 发布设置数据
+        let publishSettings = {
+            formStatus: 'draft',
+            schedulePublishTime: '',
+            formScope: 'all',
+            departments: [],
+            users: [],
+            roles: [],
+            validityType: 'forever',
+            startTime: '',
+            endTime: '',
+            submitLimit: null,
+            afterSubmitAction: 'message',
+            submitMessage: '提交成功，感谢您的参与！',
+            redirectUrl: '',
+            redirectTarget: 'self',
+            enableNotification: false,
+            notificationRecipients: ['creator'],
+            customNotificationRecipients: [],
+            notifyByEmail: true,
+            notifyBySystem: true,
+            notifyBySMS: false,
+            allowAnonymousSubmit: false,
+            allowModifyAfterSubmit: false,
+            modifyExpiry: 'unlimited',
+            customModifyDays: null,
+            enableAntiDuplication: false,
+            antiDuplicationMethod: 'ip',
+            duplicationInterval: '24h',
+            enableDataAnalysis: false,
+            analysisByDepartment: true,
+            analysisByTime: true,
+            analysisByUser: true
+        };
+        
+        // 处理父页面消息
+        function handleParentMessage(event) {
+            const data = event.data;
+            
+            if (data.type === 'form_data') {
+                // 填充表单数据
+                const formData = data.data;
+                
+                // 如果有发布设置数据，更新本地数据
+                if (formData.publishSettings) {
+                    publishSettings = { ...publishSettings, ...formData.publishSettings };
+                    fillFormData();
+                }
+            }
+        }
+        
+        // 初始化事件监听
+        function initEventListeners() {
+            // 表单状态变更
+            document.querySelectorAll('input[name="formStatus"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    publishSettings.formStatus = this.value;
+                    toggleSchedulePublish();
+                    updateParentData();
+                });
+            });
+            
+            // 定时发布时间变更
+            document.getElementById('schedulePublishTime').addEventListener('change', function() {
+                publishSettings.schedulePublishTime = this.value;
+                updateParentData();
+            });
+            
+            // 有效范围变更
+            document.querySelectorAll('input[name="formScope"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    publishSettings.formScope = this.value;
+                    toggleScopeSelectors();
+                    updateParentData();
+                });
+            });
+            
+            // 部门选择变更
+            document.getElementById('departmentSelector').addEventListener('change', function() {
+                publishSettings.departments = Array.from(this.selectedOptions).map(option => option.value);
+                updateParentData();
+            });
+            
+            // 用户选择变更
+            document.getElementById('userSelector').addEventListener('change', function() {
+                publishSettings.users = Array.from(this.selectedOptions).map(option => option.value);
+                updateParentData();
+            });
+            
+            // 角色选择变更
+            document.getElementById('roleSelector').addEventListener('change', function() {
+                publishSettings.roles = Array.from(this.selectedOptions).map(option => option.value);
+                updateParentData();
+            });
+            
+            // 有效时间类型变更
+            document.querySelectorAll('input[name="validityType"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    publishSettings.validityType = this.value;
+                    toggleValidityRange();
+                    updateParentData();
+                });
+            });
+            
+            // 开始时间变更
+            document.getElementById('startTime').addEventListener('change', function() {
+                publishSettings.startTime = this.value;
+                updateParentData();
+            });
+            
+            // 结束时间变更
+            document.getElementById('endTime').addEventListener('change', function() {
+                publishSettings.endTime = this.value;
+                updateParentData();
+            });
+            
+            // 填写次数限制变更
+            document.getElementById('submitLimit').addEventListener('change', function() {
+                publishSettings.submitLimit = this.value ? parseInt(this.value) : null;
+                updateParentData();
+            });
+            
+            // 填写后操作变更
+            document.getElementById('afterSubmitAction').addEventListener('change', function() {
+                publishSettings.afterSubmitAction = this.value;
+                toggleAfterSubmitOptions();
+                updateParentData();
+            });
+            
+            // 提交消息变更
+            document.getElementById('submitMessage').addEventListener('input', function() {
+                publishSettings.submitMessage = this.value;
+                updateParentData();
+            });
+            
+            // 跳转URL变更
+            document.getElementById('redirectUrl').addEventListener('input', function() {
+                publishSettings.redirectUrl = this.value;
+                updateParentData();
+            });
+            
+            // 跳转目标变更
+            document.querySelectorAll('input[name="redirectTarget"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    publishSettings.redirectTarget = this.value;
+                    updateParentData();
+                });
+            });
+            
+            // 通知开关变更
+            document.getElementById('enableNotification').addEventListener('change', function() {
+                publishSettings.enableNotification = this.checked;
+                toggleNotificationSettings();
+                updateParentData();
+            });
+            
+            // 通知接收人变更
+            document.getElementById('notificationRecipients').addEventListener('change', function() {
+                publishSettings.notificationRecipients = Array.from(this.selectedOptions).map(option => option.value);
+                toggleCustomNotificationRecipients();
+                updateParentData();
+            });
+            
+            // 自定义通知接收人变更
+            document.getElementById('customNotificationRecipients').addEventListener('change', function() {
+                publishSettings.customNotificationRecipients = Array.from(this.selectedOptions).map(option => option.value);
+                updateParentData();
+            });
+            
+            // 邮件通知变更
+            document.getElementById('notifyByEmail').addEventListener('change', function() {
+                publishSettings.notifyByEmail = this.checked;
+                updateParentData();
+            });
+            
+            // 系统消息通知变更
+            document.getElementById('notifyBySystem').addEventListener('change', function() {
+                publishSettings.notifyBySystem = this.checked;
+                updateParentData();
+            });
+            
+            // 短信通知变更
+            document.getElementById('notifyBySMS').addEventListener('change', function() {
+                publishSettings.notifyBySMS = this.checked;
+                updateParentData();
+            });
+            
+            // 允许匿名提交变更
+            document.getElementById('allowAnonymousSubmit').addEventListener('change', function() {
+                publishSettings.allowAnonymousSubmit = this.checked;
+                updateParentData();
+            });
+            
+            // 允许提交后修改变更
+            document.getElementById('allowModifyAfterSubmit').addEventListener('change', function() {
+                publishSettings.allowModifyAfterSubmit = this.checked;
+                toggleModifyExpiry();
+                updateParentData();
+            });
+            
+            // 修改有效期变更
+            document.getElementById('modifyExpiry').addEventListener('change', function() {
+                publishSettings.modifyExpiry = this.value;
+                toggleCustomModifyDays();
+                updateParentData();
+            });
+            
+            // 自定义修改天数变更
+            document.getElementById('customModifyDays').addEventListener('change', function() {
+                publishSettings.customModifyDays = this.value ? parseInt(this.value) : null;
+                updateParentData();
+            });
+            
+            // 防止重复提交变更
+            document.getElementById('enableAntiDuplication').addEventListener('change', function() {
+                publishSettings.enableAntiDuplication = this.checked;
+                toggleAntiDuplicationSettings();
+                updateParentData();
+            });
+            
+            // 防重复提交方式变更
+            document.querySelectorAll('input[name="antiDuplicationMethod"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    publishSettings.antiDuplicationMethod = this.value;
+                    updateParentData();
+                });
+            });
+            
+            // 重复提交间隔变更
+            document.getElementById('duplicationInterval').addEventListener('change', function() {
+                publishSettings.duplicationInterval = this.value;
+                updateParentData();
+            });
+            
+            // 开启数据统计分析变更
+            document.getElementById('enableDataAnalysis').addEventListener('change', function() {
+                publishSettings.enableDataAnalysis = this.checked;
+                toggleDataAnalysisSettings();
+                updateParentData();
+            });
+            
+            // 按部门统计变更
+            document.getElementById('analysisByDepartment').addEventListener('change', function() {
+                publishSettings.analysisByDepartment = this.checked;
+                updateParentData();
+            });
+            
+            // 按时间段统计变更
+            document.getElementById('analysisByTime').addEventListener('change', function() {
+                publishSettings.analysisByTime = this.checked;
+                updateParentData();
+            });
+            
+            // 按用户统计变更
+            document.getElementById('analysisByUser').addEventListener('change', function() {
+                publishSettings.analysisByUser = this.checked;
+                updateParentData();
+            });
+        }
+        
+        // 填充表单数据
+        function fillFormData() {
+            // 设置表单状态
+            document.querySelector(`input[name="formStatus"][value="${publishSettings.formStatus}"]`).checked = true;
+            toggleSchedulePublish();
+            
+            // 设置定时发布时间
+            document.getElementById('schedulePublishTime').value = publishSettings.schedulePublishTime || '';
+            
+            // 设置有效范围
+            document.querySelector(`input[name="formScope"][value="${publishSettings.formScope}"]`).checked = true;
+            toggleScopeSelectors();
+            
+            // 设置部门选择
+            if (publishSettings.departments && publishSettings.departments.length > 0) {
+                Array.from(document.getElementById('departmentSelector').options).forEach(option => {
+                    option.selected = publishSettings.departments.includes(option.value);
+                });
+            }
+            
+            // 设置用户选择
+            if (publishSettings.users && publishSettings.users.length > 0) {
+                Array.from(document.getElementById('userSelector').options).forEach(option => {
+                    option.selected = publishSettings.users.includes(option.value);
+                });
+            }
+            
+            // 设置角色选择
+            if (publishSettings.roles && publishSettings.roles.length > 0) {
+                Array.from(document.getElementById('roleSelector').options).forEach(option => {
+                    option.selected = publishSettings.roles.includes(option.value);
+                });
+            }
+            
+            // 设置有效时间类型
+            document.querySelector(`input[name="validityType"][value="${publishSettings.validityType}"]`).checked = true;
+            toggleValidityRange();
+            
+            // 设置时间范围
+            document.getElementById('startTime').value = publishSettings.startTime || '';
+            document.getElementById('endTime').value = publishSettings.endTime || '';
+            
+            // 设置填写次数限制
+            document.getElementById('submitLimit').value = publishSettings.submitLimit || '';
+            
+            // 设置填写后操作
+            document.getElementById('afterSubmitAction').value = publishSettings.afterSubmitAction || 'message';
+            toggleAfterSubmitOptions();
+            
+            // 设置提交消息
+            document.getElementById('submitMessage').value = publishSettings.submitMessage || '提交成功，感谢您的参与！';
+            
+            // 设置跳转URL
+            document.getElementById('redirectUrl').value = publishSettings.redirectUrl || '';
+            
+            // 设置跳转目标
+            document.querySelector(`input[name="redirectTarget"][value="${publishSettings.redirectTarget}"]`).checked = true;
+            
+            // 设置通知开关
+            document.getElementById('enableNotification').checked = publishSettings.enableNotification || false;
+            toggleNotificationSettings();
+            
+            // 设置通知接收人
+            if (publishSettings.notificationRecipients && publishSettings.notificationRecipients.length > 0) {
+                Array.from(document.getElementById('notificationRecipients').options).forEach(option => {
+                    option.selected = publishSettings.notificationRecipients.includes(option.value);
+                });
+                toggleCustomNotificationRecipients();
+            }
+            
+            // 设置自定义通知接收人
+            if (publishSettings.customNotificationRecipients && publishSettings.customNotificationRecipients.length > 0) {
+                Array.from(document.getElementById('customNotificationRecipients').options).forEach(option => {
+                    option.selected = publishSettings.customNotificationRecipients.includes(option.value);
+                });
+            }
+            
+            // 设置通知方式
+            document.getElementById('notifyByEmail').checked = publishSettings.notifyByEmail || false;
+            document.getElementById('notifyBySystem').checked = publishSettings.notifyBySystem || false;
+            document.getElementById('notifyBySMS').checked = publishSettings.notifyBySMS || false;
+            
+            // 设置允许匿名提交
+            document.getElementById('allowAnonymousSubmit').checked = publishSettings.allowAnonymousSubmit || false;
+            
+            // 设置允许提交后修改
+            document.getElementById('allowModifyAfterSubmit').checked = publishSettings.allowModifyAfterSubmit || false;
+            toggleModifyExpiry();
+            
+            // 设置修改有效期
+            document.getElementById('modifyExpiry').value = publishSettings.modifyExpiry || 'unlimited';
+            toggleCustomModifyDays();
+            
+            // 设置自定义修改天数
+            document.getElementById('customModifyDays').value = publishSettings.customModifyDays || '';
+            
+            // 设置防止重复提交
+            document.getElementById('enableAntiDuplication').checked = publishSettings.enableAntiDuplication || false;
+            toggleAntiDuplicationSettings();
+            
+            // 设置防重复提交方式
+            document.querySelector(`input[name="antiDuplicationMethod"][value="${publishSettings.antiDuplicationMethod}"]`).checked = true;
+            
+            // 设置重复提交间隔
+            document.getElementById('duplicationInterval').value = publishSettings.duplicationInterval || '24h';
+            
+            // 设置开启数据统计分析
+            document.getElementById('enableDataAnalysis').checked = publishSettings.enableDataAnalysis || false;
+            toggleDataAnalysisSettings();
+            
+            // 设置数据分析维度
+            document.getElementById('analysisByDepartment').checked = publishSettings.analysisByDepartment || false;
+            document.getElementById('analysisByTime').checked = publishSettings.analysisByTime || false;
+            document.getElementById('analysisByUser').checked = publishSettings.analysisByUser || false;
+        }
+        
+        // 切换定时发布设置显示
+        function toggleSchedulePublish() {
+            const scheduleGroup = document.getElementById('schedulePublishGroup');
+            
+            if (publishSettings.formStatus === 'scheduled') {
+                scheduleGroup.classList.remove('hidden');
+            } else {
+                scheduleGroup.classList.add('hidden');
+            }
+        }
+        
+        // 切换部门/用户/角色选择器显示
+        function toggleScopeSelectors() {
+            const departmentGroup = document.getElementById('departmentSelectorGroup');
+            const userGroup = document.getElementById('userSelectorGroup');
+            const roleGroup = document.getElementById('roleSelectorGroup');
+            
+            departmentGroup.classList.add('hidden');
+            userGroup.classList.add('hidden');
+            roleGroup.classList.add('hidden');
+            
+            if (publishSettings.formScope === 'department') {
+                departmentGroup.classList.remove('hidden');
+            } else if (publishSettings.formScope === 'user') {
+                userGroup.classList.remove('hidden');
+            } else if (publishSettings.formScope === 'role') {
+                roleGroup.classList.remove('hidden');
+            }
+        }
+        
+        // 切换有效时间范围显示
+        function toggleValidityRange() {
+            const validityGroup = document.getElementById('validityRangeGroup');
+            const submitLimitGroup = document.getElementById('submitLimitGroup');
+            
+            validityGroup.classList.add('hidden');
+            submitLimitGroup.classList.add('hidden');
+            
+            if (publishSettings.validityType === 'range') {
+                validityGroup.classList.remove('hidden');
+            } else if (publishSettings.validityType === 'number') {
+                submitLimitGroup.classList.remove('hidden');
+            }
+        }
+        
+        // 切换填写后操作选项显示
+        function toggleAfterSubmitOptions() {
+            const messageGroup = document.getElementById('submitMessageGroup');
+            const urlGroup = document.getElementById('redirectUrlGroup');
+            
+            messageGroup.classList.add('hidden');
+            urlGroup.classList.add('hidden');
+            
+            if (publishSettings.afterSubmitAction === 'message') {
+                messageGroup.classList.remove('hidden');
+            } else if (publishSettings.afterSubmitAction === 'redirect') {
+                urlGroup.classList.remove('hidden');
+            }
+        }
+        
+        // 切换通知设置显示
+        function toggleNotificationSettings() {
+            const notificationGroup = document.getElementById('notificationSettingsGroup');
+            const notificationContentGroup = document.getElementById('notificationContentGroup');
+            
+            notificationGroup.classList.add('hidden');
+            notificationContentGroup.classList.add('hidden');
+            
+            if (publishSettings.enableNotification) {
+                notificationGroup.classList.remove('hidden');
+                notificationContentGroup.classList.remove('hidden');
+                toggleCustomNotificationRecipients();
+            }
+        }
+        
+        // 切换自定义通知接收人显示
+        function toggleCustomNotificationRecipients() {
+            const customRecipientsGroup = document.getElementById('customNotificationRecipientsGroup');
+            
+            if (publishSettings.enableNotification && 
+                publishSettings.notificationRecipients && 
+                publishSettings.notificationRecipients.includes('custom')) {
+                customRecipientsGroup.classList.remove('hidden');
+            } else {
+                customRecipientsGroup.classList.add('hidden');
+            }
+        }
+        
+        // 切换修改有效期显示
+        function toggleModifyExpiry() {
+            const modifyExpiryGroup = document.getElementById('modifyExpiryGroup');
+            
+            if (publishSettings.allowModifyAfterSubmit) {
+                modifyExpiryGroup.classList.remove('hidden');
+                toggleCustomModifyDays();
+            } else {
+                modifyExpiryGroup.classList.add('hidden');
+                customModifyDaysGroup.classList.add('hidden');
+            }
+        }
+        
+        // 切换自定义修改天数显示
+        function toggleCustomModifyDays() {
+            const customModifyDaysGroup = document.getElementById('customModifyDaysGroup');
+            
+            if (publishSettings.allowModifyAfterSubmit && publishSettings.modifyExpiry === 'custom') {
+                customModifyDaysGroup.classList.remove('hidden');
+            } else {
+                customModifyDaysGroup.classList.add('hidden');
+            }
+        }
+        
+        // 切换防止重复提交设置显示
+        function toggleAntiDuplicationSettings() {
+            const antiDuplicationSettingsGroup = document.getElementById('antiDuplicationSettingsGroup');
+            
+            if (publishSettings.enableAntiDuplication) {
+                antiDuplicationSettingsGroup.classList.remove('hidden');
+            } else {
+                antiDuplicationSettingsGroup.classList.add('hidden');
+            }
+        }
+        
+        // 切换数据分析设置显示
+        function toggleDataAnalysisSettings() {
+            const dataAnalysisSettingsGroup = document.getElementById('dataAnalysisSettingsGroup');
+            
+            if (publishSettings.enableDataAnalysis) {
+                dataAnalysisSettingsGroup.classList.remove('hidden');
+            } else {
+                dataAnalysisSettingsGroup.classList.add('hidden');
+            }
+        }
+        
+        // 更新数据到父页面
+        function updateParentData() {
+            window.parent.postMessage({
+                type: 'update_data',
+                section: 'publishSettings',
+                data: publishSettings
+            }, '*');
+        }
+        
+        // 验证当前步骤
+        function validateStep() {
+            let isValid = true;
+            let errorMessage = '';
+            
+            // 验证定时发布
+            if (publishSettings.formStatus === 'scheduled') {
+                if (!publishSettings.schedulePublishTime) {
+                    isValid = false;
+                    errorMessage = '请设置发布时间';
+                } else if (new Date(publishSettings.schedulePublishTime) <= new Date()) {
+                    isValid = false;
+                    errorMessage = '发布时间必须晚于当前时间';
+                }
+            }
+            
+            // 验证表单状态为发布或定时发布时的必要条件
+            if ((publishSettings.formStatus === 'published' || publishSettings.formStatus === 'scheduled') && isValid) {
+                // 验证时间段设置
+                if (publishSettings.validityType === 'range') {
+                    if (!publishSettings.startTime) {
+                        isValid = false;
+                        errorMessage = '请设置开始时间';
+                    } else if (!publishSettings.endTime) {
+                        isValid = false;
+                        errorMessage = '请设置结束时间';
+                    } else if (new Date(publishSettings.startTime) >= new Date(publishSettings.endTime)) {
+                        isValid = false;
+                        errorMessage = '开始时间必须早于结束时间';
+                    }
+                } else if (publishSettings.validityType === 'number') {
+                    if (!publishSettings.submitLimit || publishSettings.submitLimit <= 0) {
+                        isValid = false;
+                        errorMessage = '请设置有效的填写次数限制';
+                    }
+                }
+                
+                // 验证跳转URL
+                if (isValid && publishSettings.afterSubmitAction === 'redirect' && !publishSettings.redirectUrl) {
+                    isValid = false;
+                    errorMessage = '请设置跳转URL';
+                }
+                
+                // 验证自定义修改天数
+                if (isValid && 
+                    publishSettings.allowModifyAfterSubmit && 
+                    publishSettings.modifyExpiry === 'custom' && 
+                    (!publishSettings.customModifyDays || publishSettings.customModifyDays <= 0)) {
+                    isValid = false;
+                    errorMessage = '请设置有效的自定义修改天数';
+                }
+                
+                // 验证自定义通知接收人
+                if (isValid && 
+                    publishSettings.enableNotification && 
+                    publishSettings.notificationRecipients && 
+                    publishSettings.notificationRecipients.includes('custom') && 
+                    (!publishSettings.customNotificationRecipients || publishSettings.customNotificationRecipients.length === 0)) {
+                    isValid = false;
+                    errorMessage = '请选择自定义通知接收人';
+                }
+                
+                // 验证通知方式
+                if (isValid && 
+                    publishSettings.enableNotification && 
+                    !publishSettings.notifyByEmail && 
+                    !publishSettings.notifyBySystem && 
+                    !publishSettings.notifyBySMS) {
+                    isValid = false;
+                    errorMessage = '请至少选择一种通知方式';
+                }
+            }
+            
+            // 发送验证结果
+            window.parent.postMessage({
+                type: 'validation_result',
+                isValid: isValid,
+                errorMessage: errorMessage
+            }, '*');
+            
+            // 更新数据到父页面
+            updateParentData();
+        }
+        
+        // 监听父页面的验证请求
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'validate') {
+                validateStep();
+            }
+        });
+    </script>
+</body>
+</html>

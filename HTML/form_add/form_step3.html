@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表单内容设计 - OA系统</title>
+    <link rel="stylesheet" href="../../CSS/common.css">
+    <link rel="stylesheet" href="../../CSS/main.css">
+    <link rel="stylesheet" href="form_step3.css">
+    <script src="../../JS/common.js"></script>
+</head>
+<body>
+    <div class="design-layout">
+        <!-- 左侧控件区域 -->
+        <div class="controls-panel">
+            <div class="panel-title">表单控件</div>
+            <div class="controls-content">
+                <div class="controls-category">
+                    <div class="category-title" onclick="toggleCategory(this)">
+                        <span class="category-toggle-icon">▼</span>
+                        基础控件
+                    </div>
+                    <div class="category-content">
+                        <div class="control-item" draggable="true" data-control="text">单行文本</div>
+                        <div class="control-item" draggable="true" data-control="textarea">多行文本</div>
+                        <div class="control-item" draggable="true" data-control="number">数字输入</div>
+                        <div class="control-item" draggable="true" data-control="date">日期选择</div>
+                        <div class="control-item" draggable="true" data-control="time">时间选择</div>
+                        <div class="control-item" draggable="true" data-control="select">下拉选择</div>
+                        <div class="control-item" draggable="true" data-control="radio">单选框组</div>
+                        <div class="control-item" draggable="true" data-control="checkbox">复选框组</div>
+                        <div class="control-item" draggable="true" data-control="switch">开关按钮</div>
+                        <div class="control-item" draggable="true" data-control="file">文件上传</div>
+                        <div class="control-item" draggable="true" data-control="image">图片上传</div>
+                        <div class="control-item" draggable="true" data-control="table">表格</div>
+                        <div class="control-item" draggable="true" data-control="divider">分割线</div>
+                        <div class="control-item" draggable="true" data-control="subform">子表单</div>
+                    </div>
+                </div>
+                <div class="controls-category">
+                    <div class="category-title" onclick="toggleCategory(this)">
+                        <span class="category-toggle-icon">▼</span>
+                        高级控件
+                    </div>
+                    <div class="category-content">
+                        <div class="control-item" draggable="true" data-control="qrcode">二维码</div>
+                        <div class="control-item" draggable="true" data-control="sms">短信验证</div>
+                        <div class="control-item" draggable="true" data-control="ai">AI助手</div>
+                        <div class="control-item" draggable="true" data-control="camera">摄像头</div>
+                        <div class="control-item" draggable="true" data-control="ocr">文字识别(OCR)</div>
+                        <div class="control-item" draggable="true" data-control="signature">电子签名</div>
+                        <div class="control-item" draggable="true" data-control="map">地图选择</div>
+                        <div class="control-item" draggable="true" data-control="barcode">条形码</div>
+                        <div class="control-item" draggable="true" data-control="video">视频播放</div>
+                        <div class="control-item" draggable="true" data-control="audio">音频播放</div>
+                        <div class="control-item" draggable="true" data-control="digital_sign">数字签名</div>
+                        <div class="control-item" draggable="true" data-control="biometric">生物识别</div>
+                    </div>
+                </div>
+                <div class="controls-category">
+                    <div class="category-title" onclick="toggleCategory(this)">
+                        <span class="category-toggle-icon">▼</span>
+                        套件分类
+                    </div>
+                    <div class="category-content">
+                        <div class="control-item" draggable="true" data-control="recruitment">招聘申请</div>
+                        <div class="control-item" draggable="true" data-control="attendance">考勤记录</div>
+                        <div class="control-item" draggable="true" data-control="leave">请假申请</div>
+                        <div class="control-item" draggable="true" data-control="expense">费用报销</div>
+                        <div class="control-item" draggable="true" data-control="purchase">物品采购</div>
+                        <div class="control-item" draggable="true" data-control="meeting">会议申请</div>
+                        <div class="control-item" draggable="true" data-control="travel">出差申请</div>
+                        <div class="control-item" draggable="true" data-control="performance">绩效考核</div>
+                        <div class="control-item" draggable="true" data-control="training">培训申请</div>
+                        <div class="control-item" draggable="true" data-control="equipment">设备领用</div>
+                        <div class="control-item" draggable="true" data-control="visitor">访客登记</div>
+                        <div class="control-item" draggable="true" data-control="contract">合同审批</div>
+                        <div class="control-item" draggable="true" data-control="project">项目立项</div>
+                        <div class="control-item" draggable="true" data-control="assessment">员工评估</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中间设计区域 -->
+        <div class="design-canvas">
+            <div class="canvas-header">表单设计区域</div>
+            <div class="canvas-content" id="formDesignCanvas">
+                <!-- 拖拽放置区域，初始为空 -->
+                <div class="placeholder-text">请从左侧拖拽控件到此处开始设计表单</div>
+            </div>
+            <div class="canvas-footer">
+                <button class="btn btn-default" id="clearFormBtn">清空表单</button>
+                <button class="btn btn-primary" id="saveDesignBtn">保存设计</button>
+            </div>
+        </div>
+
+        <!-- 右侧属性设置区域 -->
+        <div class="properties-panel">
+            <div class="panel-title">属性设置</div>
+            <div class="properties-content">
+                <div id="noControlSelected">
+                    <p>请选择一个控件进行属性设置</p>
+                </div>
+                
+                <!-- 基本设置容器 - 所有控件共享的基本属性 -->
+                <div id="basicProperties" class="hidden">
+                    <div class="property-group">
+                        <label class="form-label">控件名称</label>
+                        <input type="text" class="form-control" id="controlName">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">控件标签</label>
+                        <input type="text" class="form-control" id="controlLabel">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">字段名</label>
+                        <input type="text" class="form-control" id="controlField">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否必填</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="controlRequired">
+                            必填项
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">初始值</label>
+                        <input type="text" class="form-control" id="controlDefaultValue">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">帮助文本</label>
+                        <textarea class="form-control" id="controlHelpText" rows="2"></textarea>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">宽度</label>
+                        <input type="range" min="10" max="100" value="100" class="form-control" id="controlWidth">
+                        <span id="widthValue">100%</span>
+                    </div>
+                </div>
+                
+                <!-- 单行文本特有属性 -->
+                <div id="textProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">占位文本</label>
+                        <input type="text" class="form-control" id="textPlaceholder">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">最大长度</label>
+                        <input type="number" class="form-control" id="textMaxLength" min="0" value="100">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">验证规则</label>
+                        <select class="form-control" id="textValidation">
+                            <option value="">无验证</option>
+                            <option value="email">邮箱格式</option>
+                            <option value="phone">手机号码</option>
+                            <option value="url">URL地址</option>
+                            <option value="number">数字格式</option>
+                            <option value="idcard">身份证号</option>
+                            <option value="regex">正则表达式</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 正则表达式输入框（初始隐藏） -->
+                    <div id="regexInputGroup" class="property-group hidden">
+                        <label class="form-label">正则表达式</label>
+                        <input type="text" class="form-control" id="textRegex" placeholder="请输入正则表达式，如：^\d{6}$">
+                    </div>
+                    
+                    <!-- 正则表达式测试区域（初始隐藏） -->
+                    <div id="regexTestGroup" class="property-group hidden">
+                        <label class="form-label">测试正则</label>
+                        <div class="test-input-container">
+                            <input type="text" class="form-control" id="textRegexTest" placeholder="请输入测试内容">
+                            <button class="btn btn-primary" id="testRegexBtn">测试</button>
+                        </div>
+                        <div id="regexTestResult" class="test-result hidden"></div>
+                    </div>
+                    
+                    <style>
+                        .test-input-container {
+                            display: flex;
+                            gap: 10px;
+                            align-items: flex-end;
+                        }
+                        
+                        .test-input-container .form-control {
+                            flex: 1;
+                        }
+                        
+                        .test-result {
+                            margin-top: 10px;
+                            padding: 8px 12px;
+                            border-radius: 4px;
+                            font-size: 14px;
+                            transition: all 0.3s ease;
+                        }
+                        
+                        .test-result.success {
+                            background-color: #f0f9eb;
+                            border: 1px solid #b7eb8f;
+                            color: #52c41a;
+                        }
+                        
+                        .test-result.error {
+                            background-color: #fff2f0;
+                            border: 1px solid #ffccc7;
+                            color: #ff4d4f;
+                        }
+                    </style>
+                </div>
+                
+                <!-- 多行文本特有属性 -->
+                <div id="textareaProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">占位文本</label>
+                        <input type="text" class="form-control" id="textareaPlaceholder">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">最大长度</label>
+                        <input type="number" class="form-control" id="textareaMaxLength" min="0" value="500">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">行数</label>
+                        <input type="number" class="form-control" id="textareaRows" min="1" max="20" value="4">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否支持富文本</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="textareaRichText">
+                            启用富文本编辑
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 数字输入特有属性 -->
+                <div id="numberProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">最小值</label>
+                        <input type="number" class="form-control" id="numberMin">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">最大值</label>
+                        <input type="number" class="form-control" id="numberMax">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">步长</label>
+                        <input type="number" class="form-control" id="numberStep" min="0.01" step="0.01" value="1">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">小数位数</label>
+                        <input type="number" class="form-control" id="numberDecimals" min="0" max="10" value="0">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">单位</label>
+                        <input type="text" class="form-control" id="numberUnit">
+                    </div>
+                </div>
+                
+                <!-- 日期选择特有属性 -->
+                <div id="dateProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">日期格式</label>
+                        <select class="form-control" id="dateFormat">
+                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                            <option value="YYYY年MM月DD日">YYYY年MM月DD日</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">最小可选日期</label>
+                        <input type="date" class="form-control" id="dateMin">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">最大可选日期</label>
+                        <input type="date" class="form-control" id="dateMax">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否包含时间</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="dateIncludeTime">
+                            包含时分秒
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 时间选择特有属性 -->
+                <div id="timeProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">时间格式</label>
+                        <select class="form-control" id="timeFormat">
+                            <option value="HH:mm">HH:mm</option>
+                            <option value="HH:mm:ss">HH:mm:ss</option>
+                            <option value="h:mm A">h:mm A</option>
+                            <option value="HH时mm分">HH时mm分</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">最小可选时间</label>
+                        <input type="time" class="form-control" id="timeMin">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">最大可选时间</label>
+                        <input type="time" class="form-control" id="timeMax">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">步长(分钟)</label>
+                        <input type="number" class="form-control" id="timeStep" min="1" max="60" value="5">
+                    </div>
+                </div>
+                
+                <!-- 下拉选择特有属性 -->
+                <div id="selectProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">选项配置</label>
+                        <div id="selectOptionsContainer">
+                            <div class="option-item">
+                                <input type="text" class="form-control option-value" placeholder="值">
+                                <input type="text" class="form-control option-label" placeholder="显示文本">
+                                <button class="btn btn-danger remove-option">删除</button>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary add-option">添加选项</button>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否多选</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="selectMultiple">
+                            允许多选
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否可搜索</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="selectSearchable">
+                            启用搜索功能
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 单选框组特有属性 -->
+                <div id="radioProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">选项配置</label>
+                        <div id="radioOptionsContainer">
+                            <div class="option-item">
+                                <input type="text" class="form-control option-value" placeholder="值">
+                                <input type="text" class="form-control option-label" placeholder="显示文本">
+                                <button class="btn btn-danger remove-option">删除</button>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary add-option">添加选项</button>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">布局方式</label>
+                        <select class="form-control" id="radioLayout">
+                            <option value="horizontal">水平排列</option>
+                            <option value="vertical">垂直排列</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 复选框组特有属性 -->
+                <div id="checkboxProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">选项配置</label>
+                        <div id="checkboxOptionsContainer">
+                            <div class="option-item">
+                                <input type="text" class="form-control option-value" placeholder="值">
+                                <input type="text" class="form-control option-label" placeholder="显示文本">
+                                <button class="btn btn-danger remove-option">删除</button>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary add-option">添加选项</button>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">布局方式</label>
+                        <select class="form-control" id="checkboxLayout">
+                            <option value="horizontal">水平排列</option>
+                            <option value="vertical">垂直排列</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 开关按钮特有属性 -->
+                <div id="switchProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">开启文本</label>
+                        <input type="text" class="form-control" id="switchOnText" value="开启">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">关闭文本</label>
+                        <input type="text" class="form-control" id="switchOffText" value="关闭">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">默认状态</label>
+                        <select class="form-control" id="switchDefault">
+                            <option value="false">关闭</option>
+                            <option value="true">开启</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 文件上传特有属性 -->
+                <div id="fileProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">允许的文件类型</label>
+                        <input type="text" class="form-control" id="fileTypes" placeholder="如：doc,docx,pdf">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">最大文件大小(MB)</label>
+                        <input type="number" class="form-control" id="fileMaxSize" min="1" value="10">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">最多上传数量</label>
+                        <input type="number" class="form-control" id="fileMaxCount" min="1" value="1">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否支持拖拽上传</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="fileDragDrop">
+                            启用拖拽上传
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 图片上传特有属性 -->
+                <div id="imageProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">允许的图片类型</label>
+                        <input type="text" class="form-control" id="imageTypes" value="jpg,jpeg,png,gif">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">最大文件大小(MB)</label>
+                        <input type="number" class="form-control" id="imageMaxSize" min="1" value="5">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">最多上传数量</label>
+                        <input type="number" class="form-control" id="imageMaxCount" min="1" value="1">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否支持裁剪</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="imageCrop">
+                            启用裁剪功能
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">裁剪比例</label>
+                        <select class="form-control" id="imageAspectRatio">
+                            <option value="">自由裁剪</option>
+                            <option value="1:1">1:1 (正方形)</option>
+                            <option value="4:3">4:3</option>
+                            <option value="16:9">16:9</option>
+                            <option value="3:4">3:4</option>
+                            <option value="9:16">9:16</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">展示样式</label>
+                        <select class="form-control" id="imageDisplayStyle">
+                            <option value="default">默认按钮</option>
+                            <option value="drag-drop">拖拽上传</option>
+                            <option value="image-preview">预览卡片</option>
+                            <option value="avatar">头像上传</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">按钮文本</label>
+                        <input type="text" class="form-control" id="imageButtonText" value="选择图片">
+                    </div>
+                </div>
+                
+                <!-- 表格特有属性 -->
+                <div id="tableProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">列数</label>
+                        <input type="number" class="form-control" id="tableColumns" min="1" value="3">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">行数</label>
+                        <input type="number" class="form-control" id="tableRows" min="1" value="5">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否可编辑</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="tableEditable">
+                            启用表格编辑
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否可添加行</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="tableAddRows">
+                            允许添加新行
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否支持排序</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="tableSortable">
+                            启用列排序
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 分割线特有属性 -->
+                <div id="dividerProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">分割线文本</label>
+                        <input type="text" class="form-control" id="dividerText">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">对齐方式</label>
+                        <select class="form-control" id="dividerAlign">
+                            <option value="left">左对齐</option>
+                            <option value="center">居中对齐</option>
+                            <option value="right">右对齐</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">样式</label>
+                        <select class="form-control" id="dividerStyle">
+                            <option value="solid">实线</option>
+                            <option value="dashed">虚线</option>
+                            <option value="dotted">点线</option>
+                            <option value="double">双线</option>
+                            <option value="groove">凹槽</option>
+                            <option value="ridge">凸槽</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">颜色</label>
+                        <div class="color-picker-group">
+                            <input type="color" class="form-control color-picker" id="dividerColor" value="#d9d9d9">
+                            <input type="text" class="form-control color-value" id="dividerColorText" value="#d9d9d9">
+                        </div>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">厚度(px)</label>
+                        <input type="range" min="1" max="10" value="1" class="form-control" id="dividerThicknessRange">
+                        <span id="dividerThicknessValue">1</span>
+                        <input type="hidden" id="dividerThickness" value="1">
+                    </div>
+                </div>
+                
+                <!-- 子表单特有属性 -->
+                <div id="subformProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">关联子表单</label>
+                        <select class="form-control" id="subformSelect">
+                            <option value="">请选择子表单</option>
+                            <option value="form1">基础信息表单</option>
+                            <option value="form2">联系方式表单</option>
+                            <option value="form3">项目明细表单</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">展示方式</label>
+                        <select class="form-control" id="subformDisplay">
+                            <option value="inline">内联展示</option>
+                            <option value="modal">弹窗展示</option>
+                            <option value="drawer">抽屉展示</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否可重复</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="subformRepeatable">
+                            允许添加多条记录
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 高级控件属性设置 -->
+                <!-- 二维码特有属性 -->
+                <div id="qrcodeProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">二维码内容</label>
+                        <input type="text" class="form-control" id="qrcodeContent" placeholder="输入二维码内容">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">二维码尺寸</label>
+                        <input type="number" class="form-control" id="qrcodeSize" min="100" max="500" value="200">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">容错级别</label>
+                        <select class="form-control" id="qrcodeErrorLevel">
+                            <option value="L">低 (7%)</option>
+                            <option value="M">中 (15%)</option>
+                            <option value="Q">较高 (25%)</option>
+                            <option value="H">高 (30%)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 短信验证特有属性 -->
+                <div id="smsProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">手机号字段</label>
+                        <input type="text" class="form-control" id="smsPhoneField" placeholder="关联的手机号字段名">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">验证码长度</label>
+                        <input type="number" class="form-control" id="smsCodeLength" min="4" max="8" value="6">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">有效期(分钟)</label>
+                        <input type="number" class="form-control" id="smsExpireTime" min="1" max="60" value="5">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">发送间隔(秒)</label>
+                        <input type="number" class="form-control" id="smsInterval" min="10" max="300" value="60">
+                    </div>
+                </div>
+                
+                <!-- AI助手特有属性 -->
+                <div id="aiProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">提示词模板</label>
+                        <textarea class="form-control" id="aiPromptTemplate" rows="3" placeholder="输入提示词模板"></textarea>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">关联字段</label>
+                        <input type="text" class="form-control" id="aiRelatedFields" placeholder="如：field1,field2">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">最大响应字数</label>
+                        <input type="number" class="form-control" id="aiMaxTokens" min="100" max="2000" value="500">
+                    </div>
+                </div>
+                
+                <!-- 摄像头特有属性 -->
+                <div id="cameraProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">视频宽度</label>
+                        <input type="number" class="form-control" id="cameraWidth" min="320" max="1920" value="640">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">视频高度</label>
+                        <input type="number" class="form-control" id="cameraHeight" min="240" max="1080" value="480">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否自动开启</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="cameraAutoStart">
+                            页面加载后自动开启
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">图片格式</label>
+                        <select class="form-control" id="cameraImageFormat">
+                            <option value="jpeg">JPEG</option>
+                            <option value="png">PNG</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 文字识别(OCR)特有属性 -->
+                <div id="ocrProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">识别语言</label>
+                        <select class="form-control" id="ocrLanguage">
+                            <option value="zh">中文</option>
+                            <option value="en">英文</option>
+                            <option value="zh_en">中英文混合</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">识别精度</label>
+                        <select class="form-control" id="ocrAccuracy">
+                            <option value="standard">标准</option>
+                            <option value="high">高精度</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">关联字段</label>
+                        <input type="text" class="form-control" id="ocrTargetField" placeholder="识别结果填充到的字段名">
+                    </div>
+                </div>
+                
+                <!-- 电子签名特有属性 -->
+                <div id="signatureProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">签名区域宽度</label>
+                        <input type="number" class="form-control" id="signatureWidth" min="200" max="800" value="400">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">签名区域高度</label>
+                        <input type="number" class="form-control" id="signatureHeight" min="100" max="400" value="150">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">笔画颜色</label>
+                        <input type="color" class="form-control" id="signatureColor" value="#000000">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否需要手写</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="signatureRequireHandwritten">
+                            强制手写输入
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 地图选择特有属性 -->
+                <div id="mapProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">地图宽度</label>
+                        <input type="number" class="form-control" id="mapWidth" min="300" max="1000" value="600">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">地图高度</label>
+                        <input type="number" class="form-control" id="mapHeight" min="200" max="800" value="400">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">默认中心点</label>
+                        <input type="text" class="form-control" id="mapCenter" placeholder="如：北京市">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">默认缩放级别</label>
+                        <input type="number" class="form-control" id="mapZoom" min="1" max="18" value="12">
+                    </div>
+                </div>
+                
+                <!-- 条形码特有属性 -->
+                <div id="barcodeProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">条形码内容</label>
+                        <input type="text" class="form-control" id="barcodeContent" placeholder="输入条形码内容">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">条形码类型</label>
+                        <select class="form-control" id="barcodeType">
+                            <option value="CODE128">CODE128</option>
+                            <option value="EAN13">EAN13</option>
+                            <option value="UPC">UPC</option>
+                            <option value="CODE39">CODE39</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">条形码宽度</label>
+                        <input type="number" class="form-control" id="barcodeWidth" min="100" max="500" value="200">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">条形码高度</label>
+                        <input type="number" class="form-control" id="barcodeHeight" min="50" max="200" value="80">
+                    </div>
+                </div>
+                
+                <!-- 视频播放特有属性 -->
+                <div id="videoProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">视频URL</label>
+                        <input type="text" class="form-control" id="videoUrl" placeholder="输入视频文件URL">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">视频宽度</label>
+                        <input type="number" class="form-control" id="videoWidth" min="300" max="1200" value="640">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">视频高度</label>
+                        <input type="number" class="form-control" id="videoHeight" min="200" max="800" value="360">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否自动播放</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="videoAutoPlay">
+                            自动播放
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否循环播放</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="videoLoop">
+                            循环播放
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 音频播放特有属性 -->
+                <div id="audioProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">音频URL</label>
+                        <input type="text" class="form-control" id="audioUrl" placeholder="输入音频文件URL">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否自动播放</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="audioAutoPlay">
+                            自动播放
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否循环播放</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="audioLoop">
+                            循环播放
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否显示控制条</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="audioControls" checked>
+                            显示控制条
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 数字签名特有属性 -->
+                <div id="digital_signProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">签名算法</label>
+                        <select class="form-control" id="digitalSignAlgorithm">
+                            <option value="RSA">RSA</option>
+                            <option value="DSA">DSA</option>
+                            <option value="ECDSA">ECDSA</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">密钥长度(位)</label>
+                        <input type="number" class="form-control" id="digitalSignKeyLength" min="1024" max="4096" value="2048">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">关联文档字段</label>
+                        <input type="text" class="form-control" id="digitalSignDocumentField" placeholder="要签名的文档字段名">
+                    </div>
+                </div>
+                
+                <!-- 生物识别特有属性 -->
+                <div id="biometricProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">识别类型</label>
+                        <select class="form-control" id="biometricType">
+                            <option value="fingerprint">指纹识别</option>
+                            <option value="face">人脸识别</option>
+                            <option value="iris">虹膜识别</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">识别阈值</label>
+                        <input type="number" class="form-control" id="biometricThreshold" min="0" max="100" value="80">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">最大尝试次数</label>
+                        <input type="number" class="form-control" id="biometricMaxAttempts" min="1" max="10" value="3">
+                    </div>
+                </div>
+                
+                <!-- 套件分类属性设置 -->
+                <!-- 招聘申请特有属性 -->
+                <div id="recruitmentProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">招聘类型</label>
+                        <select class="form-control" id="recruitmentType">
+                            <option value="fulltime">全职</option>
+                            <option value="parttime">兼职</option>
+                            <option value="intern">实习</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">招聘人数</label>
+                        <input type="number" class="form-control" id="recruitmentCount" min="1" value="1">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">期望到岗日期</label>
+                        <input type="date" class="form-control" id="recruitmentExpectedDate">
+                    </div>
+                </div>
+                
+                <!-- 考勤记录特有属性 -->
+                <div id="attendanceProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">考勤类型</label>
+                        <select class="form-control" id="attendanceType">
+                            <option value="normal">正常考勤</option>
+                            <option value="overtime">加班记录</option>
+                            <option value="business">出差考勤</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">考勤周期</label>
+                        <select class="form-control" id="attendanceCycle">
+                            <option value="day">按天</option>
+                            <option value="week">按周</option>
+                            <option value="month">按月</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">关联考勤规则</label>
+                        <input type="text" class="form-control" id="attendanceRule" placeholder="关联的考勤规则名称">
+                    </div>
+                </div>
+                
+                <!-- 请假申请特有属性 -->
+                <div id="leaveProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">请假类型</label>
+                        <select class="form-control" id="leaveType">
+                            <option value="annual">年假</option>
+                            <option value="sick">病假</option>
+                            <option value="personal">事假</option>
+                            <option value="marriage">婚假</option>
+                            <option value="maternity">产假</option>
+                            <option value="paternity">陪产假</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否按小时请假</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="leaveByHour">
+                            支持按小时请假
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">关联考勤系统</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="leaveLinkAttendance" checked>
+                            自动关联考勤系统
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 费用报销特有属性 -->
+                <div id="expenseProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">报销类型</label>
+                        <select class="form-control" id="expenseType">
+                            <option value="travel">差旅费</option>
+                            <option value="office">办公费</option>
+                            <option value="meals">餐饮费</option>
+                            <option value="transport">交通费</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否需要明细</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="expenseNeedDetails" checked>
+                            启用费用明细
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">报销货币</label>
+                        <select class="form-control" id="expenseCurrency">
+                            <option value="CNY">人民币 (¥)</option>
+                            <option value="USD">美元 ($)</option>
+                            <option value="EUR">欧元 (€)</option>
+                            <option value="GBP">英镑 (£)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 物品采购特有属性 -->
+                <div id="purchaseProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">采购类型</label>
+                        <select class="form-control" id="purchaseType">
+                            <option value="office">办公用品</option>
+                            <option value="it">IT设备</option>
+                            <option value="marketing">市场物料</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否需要预算审批</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="purchaseNeedBudget" checked>
+                            关联预算审批
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">采购紧急程度</label>
+                        <select class="form-control" id="purchaseUrgency">
+                            <option value="normal">普通</option>
+                            <option value="urgent">紧急</option>
+                            <option value="very_urgent">非常紧急</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 会议申请特有属性 -->
+                <div id="meetingProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">会议类型</label>
+                        <select class="form-control" id="meetingType">
+                            <option value="regular">例会</option>
+                            <option value="project">项目会议</option>
+                            <option value="training">培训会议</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否需要会议室</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="meetingNeedRoom" checked>
+                            关联会议室预订
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否需要设备</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="meetingNeedEquipment">
+                            需要设备支持
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 出差申请特有属性 -->
+                <div id="travelProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">出差类型</label>
+                        <select class="form-control" id="travelType">
+                            <option value="business">商务出差</option>
+                            <option value="training">培训出差</option>
+                            <option value="conference">会议出差</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否需要预订交通</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="travelNeedTransport">
+                            预订机票/火车票
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否需要预订住宿</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="travelNeedHotel">
+                            预订酒店
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 绩效考核特有属性 -->
+                <div id="performanceProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">考核周期</label>
+                        <select class="form-control" id="performanceCycle">
+                            <option value="quarterly">季度考核</option>
+                            <option value="semiannual">半年度考核</option>
+                            <option value="annual">年度考核</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">考核模板</label>
+                        <select class="form-control" id="performanceTemplate">
+                            <option value="">请选择考核模板</option>
+                            <option value="manager">管理人员模板</option>
+                            <option value="developer">开发人员模板</option>
+                            <option value="designer">设计人员模板</option>
+                            <option value="sales">销售人员模板</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否需要自评</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="performanceNeedSelf" checked>
+                            包含员工自评
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 培训申请特有属性 -->
+                <div id="trainingProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">培训类型</label>
+                        <select class="form-control" id="trainingType">
+                            <option value="internal">内部培训</option>
+                            <option value="external">外部培训</option>
+                            <option value="online">在线培训</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">培训预算</label>
+                        <input type="number" class="form-control" id="trainingBudget" min="0" value="0">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否需要考试</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="trainingNeedExam">
+                            培训后考试
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 设备领用特有属性 -->
+                <div id="equipmentProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">设备类型</label>
+                        <select class="form-control" id="equipmentType">
+                            <option value="laptop">笔记本电脑</option>
+                            <option value="desktop">台式电脑</option>
+                            <option value="phone">手机</option>
+                            <option value="tablet">平板电脑</option>
+                            <option value="other">其他设备</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否需要归还</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="equipmentNeedReturn" checked>
+                            需要归还
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">预计使用时长(天)</label>
+                        <input type="number" class="form-control" id="equipmentUseDays" min="1" value="7">
+                    </div>
+                </div>
+                
+                <!-- 访客登记特有属性 -->
+                <div id="visitorProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">访客类型</label>
+                        <select class="form-control" id="visitorType">
+                            <option value="business">商务访客</option>
+                            <option value="interview">面试者</option>
+                            <option value="personal">私人访客</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否需要拍照</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="visitorNeedPhoto">
+                            拍摄访客照片
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否需要登记证件</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="visitorNeedID" checked>
+                            登记身份证件
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 合同审批特有属性 -->
+                <div id="contractProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">合同类型</label>
+                        <select class="form-control" id="contractType">
+                            <option value="sales">销售合同</option>
+                            <option value="purchase">采购合同</option>
+                            <option value="service">服务合同</option>
+                            <option value="employment">劳动合同</option>
+                            <option value="other">其他合同</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">合同金额</label>
+                        <input type="number" class="form-control" id="contractAmount" min="0" step="0.01" value="0">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否需要法务审核</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="contractNeedLegal" checked>
+                            提交法务审核
+                        </label>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">是否需要财务审核</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="contractNeedFinance" checked>
+                            提交财务审核
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 项目立项特有属性 -->
+                <div id="projectProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">项目类型</label>
+                        <select class="form-control" id="projectType">
+                            <option value="development">开发项目</option>
+                            <option value="marketing">市场项目</option>
+                            <option value="internal">内部项目</option>
+                            <option value="other">其他项目</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">项目预算</label>
+                        <input type="number" class="form-control" id="projectBudget" min="0" step="0.01" value="0">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">项目负责人</label>
+                        <input type="text" class="form-control" id="projectManager" placeholder="输入项目负责人姓名">
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">项目周期</label>
+                        <input type="text" class="form-control" id="projectDuration" placeholder="如：3个月">
+                    </div>
+                </div>
+                
+                <!-- 员工评估特有属性 -->
+                <div id="assessmentProperties" class="hidden control-specific-properties">
+                    <div class="property-group">
+                        <label class="form-label">评估类型</label>
+                        <select class="form-control" id="assessmentType">
+                            <option value="probation">试用期评估</option>
+                            <option value="promotion">晋升评估</option>
+                            <option value="regular">定期评估</option>
+                            <option value="other">其他评估</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">评估模板</label>
+                        <select class="form-control" id="assessmentTemplate">
+                            <option value="">请选择评估模板</option>
+                            <option value="technical">技术岗位模板</option>
+                            <option value="managerial">管理岗位模板</option>
+                            <option value="general">通用模板</option>
+                        </select>
+                    </div>
+                    <div class="property-group">
+                        <label class="form-label">评估委员会成员</label>
+                        <textarea class="form-control" id="assessmentCommittee" rows="2" placeholder="输入评估委员会成员，用逗号分隔"></textarea>
+                    </div>
+                </div>
+                
+                <!-- 控件操作按钮 -->
+                <div class="property-actions">
+                    <button class="btn btn-danger" id="deleteControlBtn">删除控件</button>
+                    <button class="btn btn-default" id="copyControlBtn">复制控件</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="form_step3.js"></script>
+</body>
+</html>

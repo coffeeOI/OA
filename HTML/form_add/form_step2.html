@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>色彩风格设置 - OA系统</title>
+    <link rel="stylesheet" href="../../CSS/common.css">
+    <link rel="stylesheet" href="../../CSS/main.css">
+    <link rel="stylesheet" href="form_add.css">
+    <script src="../../JS/common.js"></script>
+</head>
+<body>
+    <div class="card">
+        <div style="position: absolute; top: 15px; right: 20px;">
+            <button class="btn btn-primary" style="cursor: not-allowed; opacity: 0.7;">保存</button>
+        </div>
+        <div class="form-group">
+            <label class="form-label">选择风格模板</label>
+            <div class="style-templates">
+                <div class="template-item active" data-template="default">
+                    <div class="template-preview default-style"></div>
+                    <div class="template-name">默认风格</div>
+                </div>
+                <div class="template-item" data-template="blue">
+                    <div class="template-preview blue-style"></div>
+                    <div class="template-name">蓝色主题</div>
+                </div>
+                <div class="template-item" data-template="green">
+                    <div class="template-preview green-style"></div>
+                    <div class="template-name">绿色主题</div>
+                </div>
+                <div class="template-item" data-template="purple">
+                    <div class="template-preview purple-style"></div>
+                    <div class="template-name">紫色主题</div>
+                </div>
+                <div class="template-item" data-template="custom">
+                    <div class="template-preview custom-style">
+                        <span>自定义</span>
+                    </div>
+                    <div class="template-name">自定义风格</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="customStylePanel" class="hidden">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">主题色</label>
+                    <input type="color" class="form-control color-picker" id="primaryColor" value="#1890ff">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">文字颜色</label>
+                    <input type="color" class="form-control color-picker" id="textColor" value="#333333">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">背景颜色</label>
+                    <input type="color" class="form-control color-picker" id="backgroundColor" value="#ffffff">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">边框颜色</label>
+                    <input type="color" class="form-control color-picker" id="borderColor" value="#d9d9d9">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">按钮颜色</label>
+                    <input type="color" class="form-control color-picker" id="buttonColor" value="#1890ff">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">强调色</label>
+                    <input type="color" class="form-control color-picker" id="accentColor" value="#52c41a">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">字体选择</label>
+                <select class="form-control" id="fontFamily">
+                    <option value="Microsoft YaHei, Arial, sans-serif">默认字体</option>
+                    <option value="SimSun, serif">宋体</option>
+                    <option value="SimHei, sans-serif">黑体</option>
+                    <option value="KaiTi, serif">楷体</option>
+                    <option value="FangSong, serif">仿宋</option>
+                </select>
+            </div>
+        </div>
+    </div>
+<script>
+    // 步骤2的页面逻辑
+    document.addEventListener('DOMContentLoaded', function() {
+        // 请求父页面发送数据
+        window.parent.postMessage({ type: 'get_data' }, '*');
+        
+        // 监听父页面消息
+        window.addEventListener('message', handleParentMessage);
+        
+        // 选择模板事件
+        const templateItems = document.querySelectorAll('.template-item');
+        templateItems.forEach(item => {
+            item.addEventListener('click', function() {
+                // 移除所有选中状态
+                templateItems.forEach(t => t.classList.remove('active'));
+                // 添加当前选中状态
+                this.classList.add('active');
+                
+                // 更新模板选择
+                const template = this.dataset.template;
+                
+                // 显示或隐藏自定义样式面板
+                const customStylePanel = document.getElementById('customStylePanel');
+                if (template === 'custom') {
+                    customStylePanel.classList.remove('hidden');
+                } else {
+                    customStylePanel.classList.add('hidden');
+                    
+                    // 根据模板设置预设颜色
+                    setPresetColors(template);
+                }
+                
+                // 实时更新数据到父页面
+                updateParentData();
+            });
+        });
+        
+        // 自定义颜色变更事件
+        const colorInputs = document.querySelectorAll('#customStylePanel input[type="color"]');
+        colorInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                updateParentData();
+            });
+        });
+        
+        // 字体变更事件
+        const fontFamilySelect = document.getElementById('fontFamily');
+        fontFamilySelect.addEventListener('change', function() {
+            updateParentData();
+        });
+    });
+    
+    // 处理父页面消息
+    function handleParentMessage(event) {
+        const data = event.data;
+        
+        if (data.type === 'form_data') {
+            // 填充表单数据
+            const formData = data.data;
+            
+            // 确保formData和formData.style存在
+            if (formData && formData.style) {
+                // 设置模板选中状态
+                const templateItems = document.querySelectorAll('.template-item');
+                templateItems.forEach(item => {
+                    if (item.dataset.template === formData.style.template) {
+                        item.click();
+                    }
+                });
+                
+                // 如果是自定义模板，设置颜色和字体
+                if (formData.style.template === 'custom') {
+                    document.getElementById('primaryColor').value = formData.style.primaryColor;
+                    document.getElementById('textColor').value = formData.style.textColor;
+                    document.getElementById('backgroundColor').value = formData.style.backgroundColor;
+                    document.getElementById('borderColor').value = formData.style.borderColor;
+                    document.getElementById('buttonColor').value = formData.style.buttonColor;
+                    document.getElementById('accentColor').value = formData.style.accentColor;
+                    document.getElementById('fontFamily').value = formData.style.fontFamily;
+                }
+            }
+        }
+    }
+    
+    // 设置预设颜色
+    function setPresetColors(template) {
+        const colorPresets = {
+            default: {
+                primaryColor: '#1890ff',
+                textColor: '#333333',
+                backgroundColor: '#ffffff',
+                borderColor: '#d9d9d9',
+                buttonColor: '#1890ff',
+                accentColor: '#52c41a',
+                fontFamily: 'Microsoft YaHei, Arial, sans-serif'
+            },
+            blue: {
+                primaryColor: '#1890ff',
+                textColor: '#333333',
+                backgroundColor: '#f0f2f5',
+                borderColor: '#d9d9d9',
+                buttonColor: '#1890ff',
+                accentColor: '#40a9ff',
+                fontFamily: 'Microsoft YaHei, Arial, sans-serif'
+            },
+            green: {
+                primaryColor: '#52c41a',
+                textColor: '#333333',
+                backgroundColor: '#ffffff',
+                borderColor: '#d9d9d9',
+                buttonColor: '#52c41a',
+                accentColor: '#73d13d',
+                fontFamily: 'Microsoft YaHei, Arial, sans-serif'
+            },
+            purple: {
+                primaryColor: '#722ed1',
+                textColor: '#333333',
+                backgroundColor: '#ffffff',
+                borderColor: '#d9d9d9',
+                buttonColor: '#722ed1',
+                accentColor: '#9254de',
+                fontFamily: 'Microsoft YaHei, Arial, sans-serif'
+            }
+        };
+    }
+    
+    // 更新数据到父页面
+    function updateParentData() {
+        // 获取选中的模板
+        const selectedTemplate = document.querySelector('.template-item.active').dataset.template;
+        
+        let styleData = {
+            template: selectedTemplate
+        };
+        
+        // 如果是自定义模板，获取颜色和字体
+        if (selectedTemplate === 'custom') {
+            styleData = {
+                ...styleData,
+                primaryColor: document.getElementById('primaryColor').value,
+                textColor: document.getElementById('textColor').value,
+                backgroundColor: document.getElementById('backgroundColor').value,
+                borderColor: document.getElementById('borderColor').value,
+                buttonColor: document.getElementById('buttonColor').value,
+                accentColor: document.getElementById('accentColor').value,
+                fontFamily: document.getElementById('fontFamily').value
+            };
+        }
+        
+        window.parent.postMessage({
+            type: 'update_data',
+            section: 'style',
+            data: styleData
+        }, '*');
+    }
+    
+    // 验证当前步骤
+    function validateStep() {
+        // 步骤2不需要特殊验证，直接通过
+        window.parent.postMessage({
+            type: 'validation_result',
+            isValid: true
+        }, '*');
+        
+        // 更新数据到父页面
+        updateParentData();
+    }
+    
+    // 监听父页面的验证请求
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'validate') {
+            validateStep();
+        }
+    });
+</script>
+</body>
+</html>

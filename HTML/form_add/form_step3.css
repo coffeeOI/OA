@@ -1,0 +1,747 @@
+/* 全局样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+    background-color: #f0f2f5;
+}
+
+/* 设计布局样式 */
+.design-layout {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* 左侧控件面板 */
+.controls-panel {
+    width: 250px;
+    background-color: #fff;
+    border-right: 1px solid #e8e8e8;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-title {
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 500;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.controls-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+.controls-category {
+    margin-bottom: 16px;
+}
+
+.category-title {
+    padding: 8px 12px;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    user-select: none;
+}
+
+.category-toggle-icon {
+    display: inline-block;
+    width: 20px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.category-content {
+    padding: 8px 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+/* 控件分类标题保持一行一列 */
+.controls-category {
+    margin-bottom: 16px;
+}
+
+.control-item {
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    background-color: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    cursor: move;
+    transition: all 0.2s;
+}
+
+.control-item:hover {
+    border-color: #40a9ff;
+    background-color: #f0f7ff;
+}
+
+.control-item.dragging {
+    opacity: 0.5;
+}
+
+/* 中间设计画布 */
+.design-canvas {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #fafafa;
+}
+
+.canvas-header {
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 500;
+    border-bottom: 1px solid #e8e8e8;
+    background-color: #fff;
+}
+
+.canvas-content {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    background-color: #fafafa;
+}
+
+.canvas-content.drag-over {
+    background-color: #e6f7ff;
+}
+
+.canvas-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e8e8e8;
+    background-color: #fff;
+    text-align: right;
+}
+
+/* 右侧属性面板 */
+.properties-panel {
+    width: 300px;
+    background-color: #fff;
+    border-left: 1px solid #e8e8e8;
+    display: flex;
+    flex-direction: column;
+}
+
+.properties-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.property-group {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.form-control {
+    width: 100%;
+    padding: 6px 11px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #40a9ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.checkbox-label,
+.radio-label {
+    display: inline-block;
+    margin-right: 16px;
+    cursor: pointer;
+}
+
+/* 表单布局容器 - 支持多列布局 */
+.form-layout-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+/* 表单控件样式 */
+.form-control-item {
+    background-color: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 0;
+    position: relative;
+    transition: all 0.3s;
+    box-sizing: border-box;
+}
+
+.form-control-item:hover {
+    border-color: #40a9ff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-control-item.selected {
+    border-color: #40a9ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.form-control-item.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+}
+
+.form-control-item.drag-over {
+    border-color: #52c41a;
+}
+
+.control-header {
+    margin-bottom: 8px;
+}
+
+.control-header label {
+    font-weight: 500;
+}
+
+.required {
+    color: #f5222d;
+    margin-left: 4px;
+}
+
+.control-body {
+    margin-bottom: 8px;
+}
+
+.control-body input[type="text"],
+.control-body input[type="number"],
+.control-body input[type="date"],
+.control-body input[type="time"],
+.control-body textarea,
+.control-body select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.control-body input[type="text"]:focus,
+.control-body input[type="number"]:focus,
+.control-body input[type="date"]:focus,
+.control-body input[type="time"]:focus,
+.control-body textarea:focus,
+.control-body select:focus {
+    outline: none;
+    border-color: #40a9ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.control-body textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.radio-group,
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.radio-group label,
+.checkbox-group label {
+    margin-right: 24px;
+    margin-bottom: 8px;
+}
+
+/* 开关按钮样式 */
+.switch-label {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 22px;
+}
+
+.switch-label input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 22px;
+}
+
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .switch-slider {
+    background-color: #1890ff;
+}
+
+input:focus + .switch-slider {
+    box-shadow: 0 0 1px #1890ff;
+}
+
+input:checked + .switch-slider:before {
+    transform: translateX(22px);
+}
+
+.control-help {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.5;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    transition: all 0.3s ease;
+}
+
+.divider-line {
+    flex: 1;
+    height: 1px;
+    background-color: #e8e8e8;
+    position: relative;
+}
+
+.divider-line::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to right, transparent, #d9d9d9, transparent);
+    opacity: 0.7;
+}
+
+.divider-text {
+    padding: 0 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    position: relative;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+/* 颜色选择器组样式 */
+.color-picker-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.color-picker {
+    width: 40px;
+    height: 30px;
+    padding: 2px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.color-value {
+    flex: 1;
+    width: 100%;
+}
+
+/* 滑块样式 */
+input[type="range"] {
+    width: 100%;
+    margin: 8px 0;
+    cursor: pointer;
+}
+
+/* 对齐方式样式 */
+.divider.align-left {
+    justify-content: flex-start;
+}
+
+.divider.align-right {
+    justify-content: flex-end;
+}
+
+/* 图片上传控件样式 */
+
+/* 默认按钮样式 */
+.image-upload-default .image-upload-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: #1890ff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.image-upload-default .image-upload-btn:hover {
+    background-color: #40a9ff;
+}
+
+.image-upload-default .image-upload-btn input[type="file"] {
+    display: none;
+}
+
+/* 拖拽上传样式 */
+.image-upload-dragdrop .dragdrop-area {
+    border: 2px dashed #d9d9d9;
+    border-radius: 4px;
+    padding: 30px 20px;
+    text-align: center;
+    background-color: #fafafa;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.image-upload-dragdrop .dragdrop-area:hover {
+    border-color: #40a9ff;
+    background-color: #f0f7ff;
+}
+
+.image-upload-dragdrop .dragdrop-area.drag-over {
+    border-color: #52c41a;
+    background-color: #f6ffed;
+}
+
+.image-upload-dragdrop .dragdrop-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.image-upload-dragdrop .dragdrop-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: #666;
+}
+
+.image-upload-dragdrop .dragdrop-hint {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+}
+
+.image-upload-dragdrop .dragdrop-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* 预览卡片样式 */
+.image-upload-preview {
+    position: relative;
+}
+
+.image-upload-preview .preview-placeholder {
+    width: 120px;
+    height: 120px;
+    border: 2px dashed #d9d9d9;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #fafafa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.image-upload-preview .preview-placeholder:hover {
+    border-color: #40a9ff;
+    background-color: #f0f7ff;
+}
+
+.image-upload-preview .placeholder-icon {
+    font-size: 32px;
+    color: #d9d9d9;
+    margin-bottom: 8px;
+}
+
+.image-upload-preview .placeholder-text {
+    font-size: 12px;
+    color: #999;
+    text-align: center;
+}
+
+.image-upload-preview .preview-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 120px;
+    height: 120px;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* 头像上传样式 */
+.image-upload-avatar {
+    text-align: center;
+}
+
+.image-upload-avatar .avatar-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+.image-upload-avatar .avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    border: 2px solid #d9d9d9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.image-upload-avatar .avatar-placeholder:hover {
+    border-color: #40a9ff;
+    background-color: #e6f7ff;
+}
+
+.image-upload-avatar .avatar-icon {
+    font-size: 32px;
+    color: #999;
+}
+
+.image-upload-avatar .avatar-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.image-upload-avatar .avatar-hint {
+    font-size: 12px;
+    color: #999;
+}
+.divider.align-right {
+    justify-content: flex-end;
+}
+
+.divider.align-left .divider-line:last-child,
+.divider.align-right .divider-line:first-child {
+    display: none;
+}
+
+/* 为有标签的分隔线添加特殊样式 */
+.divider:not(:empty) .divider-text {
+    color: #409EFF;
+}
+
+/* 悬停效果 */
+.divider:hover .divider-line {
+    background-color: #d9d9d9;
+}
+
+.divider:hover .divider-text {
+    color: #1890ff;
+    transform: translateY(-1px);
+}
+
+.placeholder-control {
+    padding: 12px;
+    background-color: #f5f5f5;
+    border: 1px dashed #d9d9d9;
+    border-radius: 4px;
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+}
+
+.placeholder-text {
+    text-align: center;
+    color: #999;
+    padding: 60px 20px;
+    font-size: 14px;
+}
+
+.hidden {
+    display: none;
+}
+
+/* 动画效果 */
+.category-content-animating {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+/* 按钮样式 */
+.btn {
+    display: inline-block;
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-size: 14px;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.btn-default {
+    color: #333;
+    background-color: #fff;
+    border-color: #d9d9d9;
+}
+
+.btn-default:hover {
+    color: #40a9ff;
+    border-color: #40a9ff;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1890ff;
+    border-color: #1890ff;
+    margin-left: 12px;
+}
+
+.btn-primary:hover {
+    background-color: #40a9ff;
+    border-color: #40a9ff;
+}
+
+.btn-danger {
+    color: #fff;
+    background-color: #f5222d;
+    border-color: #f5222d;
+    margin-right: 12px;
+}
+
+.btn-danger:hover {
+    background-color: #ff4d4f;
+    border-color: #ff4d4f;
+}
+
+/* 成功消息样式 */
+.success-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    background-color: #52c41a;
+    color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* 套件表单样式 */
+.form-kit-section {
+    background-color: #fafafa;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.form-kit-section h4 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #262626;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.form-kit-section label {
+    display: inline-block;
+    margin-bottom: 4px;
+    color: #595959;
+    font-size: 12px;
+}
+
+/* 评分组件样式 */
+.rating {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.rating input[type="radio"] {
+    display: none;
+}
+
+.rating input[type="radio"] + span {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    text-align: center;
+    line-height: 24px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #fff;
+    color: #595959;
+    font-size: 12px;
+}
+
+.rating input[type="radio"]:checked + span {
+    background-color: #1890ff;
+    border-color: #1890ff;
+    color: #fff;
+}
+
+.rating input[type="radio"]:hover + span {
+    border-color: #1890ff;
+    color: #1890ff;
+}
