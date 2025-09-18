@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>菜单测试 - OA系统</title>
+    <link rel="stylesheet" href="CSS/common.css">
+    <link rel="stylesheet" href="CSS/main.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+        .test-container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-sidebar {
+            width: 240px;
+            background-color: #fff;
+            box-shadow: 1px 0 4px rgba(0, 0, 0, 0.1);
+        }
+        .test-result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
+        .test-success {
+            color: #52c41a;
+        }
+        .test-error {
+            color: #f5222d;
+        }
+        .test-info {
+            color: #1890ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2>菜单点击功能测试</h2>
+        
+        <div class="test-sidebar" id="testSidebar">
+            <!-- 复制自main.html的菜单结构 -->
+            <div class="menu-item" onclick="testToggleSubMenu(this)">
+                <span class="menu-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <path d="M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </span>
+                <span class="menu-text">自定义表单</span>
+            </div>
+            <div class="sub-menu">
+                <div class="sub-menu-item"><a href="#" style="text-decoration: none; color: inherit;">表单设计</a></div>
+                <div class="sub-menu-item"><a href="#" style="text-decoration: none; color: inherit;">表单字段</a></div>
+                <div class="sub-menu-item"><a href="#" style="text-decoration: none; color: inherit;">表单校验</a></div>
+            </div>
+        </div>
+        
+        <div class="test-result" id="testResult">
+            <p class="test-info">请点击上方的"自定义表单"菜单项测试子菜单显示功能</p>
+        </div>
+    </div>
+
+    <script>
+        // 模拟main.js中的toggleSubMenu函数，但添加了日志输出
+        function toggleSubMenu(element) {
+            console.log('toggleSubMenu called with:', element);
+            
+            // 确保element是DOM元素
+            if (!element || !(element instanceof HTMLElement)) {
+                console.error('toggleSubMenu: element is not a valid DOM element');
+                showTestResult('错误: toggleSubMenu接收到的参数不是有效的DOM元素', 'error');
+                return;
+            }
+            
+            const subMenu = element.nextElementSibling;
+            if (subMenu && subMenu.classList.contains('sub-menu')) {
+                // 先隐藏所有其他子菜单
+                document.querySelectorAll('.sub-menu').forEach(menu => {
+                    if (menu !== subMenu) {
+                        menu.classList.remove('show');
+                    }
+                });
+                
+                // 切换当前子菜单显示状态
+                const wasVisible = subMenu.classList.contains('show');
+                subMenu.classList.toggle('show');
+                const isVisible = subMenu.classList.contains('show');
+                
+                console.log('子菜单显示状态变更:', wasVisible ? '隐藏' : '显示');
+                showTestResult(`子菜单${isVisible ? '显示' : '隐藏'}成功`, 'success');
+                
+                // 如果是在移动设备上，点击主菜单项后自动滚动到子菜单
+                if (window.innerWidth <= 768) {
+                    setTimeout(() => {
+                        subMenu.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                }
+            } else {
+                console.error('toggleSubMenu: 没有找到匹配的子菜单');
+                showTestResult('错误: 没有找到匹配的子菜单', 'error');
+            }
+        }
+        
+        // 测试函数，添加了日志记录
+        function testToggleSubMenu(element) {
+            console.log('菜单项被点击:', element);
+            showTestResult('菜单项被点击，正在执行toggleSubMenu...', 'info');
+            toggleSubMenu(element);
+        }
+        
+        // 显示测试结果
+        function showTestResult(message, type = 'info') {
+            const resultElement = document.getElementById('testResult');
+            resultElement.innerHTML = `<p class="test-${type}">${message}</p>`;
+            
+            // 添加当前时间戳
+            const timestamp = new Date().toLocaleTimeString();
+            resultElement.innerHTML += `<p style="font-size: 12px; color: #999; margin-top: 5px;">${timestamp}</p>`;
+            
+            // 添加日志到控制台
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('菜单测试页面加载完成');
+            showTestResult('页面加载完成，请点击菜单项进行测试', 'info');
+        });
+    </script>
+</body>
+</html>

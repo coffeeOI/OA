@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OA系统 - 登录</title>
+    <style>
+        /* 重置样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* 基础样式 */
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+        
+        /* 登录容器 */
+        .login-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        /* 登录头部 */
+        .login-header {
+            background-color: #1890ff;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .login-header h2 {
+            font-size: 24px;
+            font-weight: 500;
+        }
+        
+        /* 登录表单 */
+        .login-form {
+            padding: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        
+        /* 验证码输入 */
+        .captcha-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .captcha-group input {
+            flex: 1;
+        }
+        
+        .captcha-image {
+            width: 100px;
+            height: 40px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #666;
+            user-select: none;
+        }
+        
+        /* 记住密码和忘记密码 */
+        .login-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .remember-password {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .remember-password input[type="checkbox"] {
+            width: auto;
+        }
+        
+        .forgot-password {
+            color: #1890ff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+        
+        /* 登录按钮 */
+        .login-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #1890ff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .login-btn:hover {
+            background-color: #40a9ff;
+        }
+        
+        .login-btn:active {
+            background-color: #096dd9;
+        }
+        
+        /* 错误提示 */
+        .error-message {
+            background-color: #fff2f0;
+            border: 1px solid #ffccc7;
+            color: #f5222d;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        /* 动画 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .login-container {
+                width: 90%;
+                margin: 0 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h2>OA系统登录</h2>
+        </div>
+        <div class="login-form">
+            <div class="error-message" id="errorMsg"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" name="username" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" placeholder="请输入密码" required>
+                </div>
+                <div class="form-group captcha-group">
+                    <div style="flex: 1;">
+                        <label for="captcha">验证码</label>
+                        <input type="text" id="captcha" name="captcha" placeholder="请输入验证码" required>
+                    </div>
+                    <div style="margin-top: 28px;">
+                        <div class="captcha-image" id="captchaImage" onclick="refreshCaptcha()">
+                            ABCD
+                        </div>
+                    </div>
+                </div>
+                <div class="login-options">
+                    <div class="remember-password">
+                        <input type="checkbox" id="remember" name="remember">
+                        <label for="remember">记住密码</label>
+                    </div>
+                    <a href="#" class="forgot-password" onclick="showForgotPassword()">忘记密码？</a>
+                </div>
+                <button type="submit" class="login-btn">登录</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 忘记密码弹窗 -->
+    <div id="forgotPasswordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background-color: #fff; border-radius: 8px; width: 400px; padding: 30px;">
+            <h3 style="margin-bottom: 20px; text-align: center;">忘记密码</h3>
+            <div class="error-message" id="forgotErrorMsg"></div>
+            <form id="forgotPasswordForm">
+                <div class="form-group">
+                    <label for="forgotUsername">用户名</label>
+                    <input type="text" id="forgotUsername" name="username" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">邮箱</label>
+                    <input type="email" id="email" name="email" placeholder="请输入注册邮箱" required>
+                </div>
+                <div class="form-group captcha-group">
+                    <div style="flex: 1;">
+                        <label for="forgotCaptcha">验证码</label>
+                        <input type="text" id="forgotCaptcha" name="captcha" placeholder="请输入验证码" required>
+                    </div>
+                    <div style="margin-top: 28px;">
+                        <div class="captcha-image" id="forgotCaptchaImage" onclick="refreshForgotCaptcha()">
+                            1234
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="login-btn">发送重置链接</button>
+            </form>
+            <button style="margin-top: 10px; width: 100%; padding: 10px; background-color: #f5f5f5; border: none; border-radius: 4px; cursor: pointer;" onclick="closeForgotPassword()">取消</button>
+        </div>
+    </div>
+
+    <script>
+        // 登录表单提交
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const captcha = document.getElementById('captcha').value;
+            
+            // 简单的前端验证
+            if (!username || !password || !captcha) {
+                showError('请填写所有必填字段');
+                return;
+            }
+            
+            // 模拟登录验证
+            if (username === 'admin' && password === 'admin123' && captcha === 'ABCD') {
+                // 登录成功，跳转到主页面
+                window.location.href = 'main.html';
+            } else {
+                showError('用户名或密码错误，请重试');
+                refreshCaptcha();
+            }
+        });
+        
+        // 忘记密码表单提交
+        document.getElementById('forgotPasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('forgotUsername').value;
+            const email = document.getElementById('email').value;
+            const captcha = document.getElementById('forgotCaptcha').value;
+            
+            // 简单的前端验证
+            if (!username || !email || !captcha) {
+                document.getElementById('forgotErrorMsg').textContent = '请填写所有必填字段';
+                document.getElementById('forgotErrorMsg').style.display = 'block';
+                return;
+            }
+            
+            // 模拟发送重置链接
+            alert('重置密码链接已发送到您的邮箱，请查收');
+            closeForgotPassword();
+        });
+        
+        // 刷新验证码
+        function refreshCaptcha() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let captcha = '';
+            for (let i = 0; i < 4; i++) {
+                captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('captchaImage').textContent = captcha;
+        }
+        
+        // 刷新忘记密码的验证码
+        function refreshForgotCaptcha() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let captcha = '';
+            for (let i = 0; i < 4; i++) {
+                captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('forgotCaptchaImage').textContent = captcha;
+        }
+        
+        // 显示忘记密码弹窗
+        function showForgotPassword() {
+            document.getElementById('forgotPasswordModal').style.display = 'flex';
+        }
+        
+        // 关闭忘记密码弹窗
+        function closeForgotPassword() {
+            document.getElementById('forgotPasswordModal').style.display = 'none';
+            document.getElementById('forgotErrorMsg').style.display = 'none';
+            document.getElementById('forgotPasswordForm').reset();
+        }
+        
+        // 显示错误信息
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(function() {
+                errorMsg.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 页面加载时自动刷新验证码
+        window.onload = function() {
+            refreshCaptcha();
+            refreshForgotCaptcha();
+        };
+    </script>
+</body>
+</html>

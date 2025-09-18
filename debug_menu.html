@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>菜单调试 - 直接测试</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        .menu-item {
+            padding: 10px 15px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        .menu-item:hover {
+            background-color: #e6f7ff;
+            border-color: #1890ff;
+        }
+        .sub-menu {
+            display: none; /* 默认隐藏 */
+            margin-left: 20px;
+            margin-top: 5px;
+            border-left: 3px solid #1890ff;
+            padding-left: 15px;
+        }
+        .sub-menu.show {
+            display: block; /* 显示状态 */
+        }
+        .sub-menu-item {
+            padding: 8px;
+            background-color: #fff;
+            border: 1px solid #eee;
+            margin-bottom: 3px;
+            border-radius: 4px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .btn {
+            padding: 8px 16px;
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn:hover {
+            background-color: #40a9ff;
+        }
+        .step {
+            margin-bottom: 20px;
+        }
+        .success {
+            color: #52c41a;
+        }
+        .error {
+            color: #f5222d;
+        }
+        .info {
+            color: #1890ff;
+        }
+    </style>
+</head>
+<body>
+    <h1>菜单功能调试工具</h1>
+    
+    <div class="test-section">
+        <h2>测试步骤</h2>
+        <div class="step">
+            <p>1. 点击下面的"自定义表单"菜单项</p>
+            <p>2. 观察右侧结果区域的输出</p>
+            <p>3. 检查子菜单是否显示</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>测试菜单</h2>
+        <div id="testMenu">
+            <div class="menu-item" onclick="testMenuClick(this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+                <span>自定义表单</span>
+            </div>
+            <div class="sub-menu">
+                <div class="sub-menu-item">表单设计</div>
+                <div class="sub-menu-item">表单字段</div>
+                <div class="sub-menu-item">表单校验</div>
+                <div class="sub-menu-item">表单控件管理</div>
+                <div class="sub-menu-item">表单管理</div>
+                <div class="sub-menu-item">表单数据</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>测试结果</h2>
+        <div class="result" id="testResult">
+            等待测试开始...
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>测试控制</h2>
+        <button class="btn" onclick="resetTest()">重置测试</button>
+        <button class="btn" onclick="directTestToggleSubMenu()">直接测试toggleSubMenu函数</button>
+        <button class="btn" onclick="testDOMStructure()">测试DOM结构</button>
+    </div>
+    
+    <script>
+        // 存储测试日志
+        let testLog = [];
+        
+        // 添加日志并显示
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] [${type.toUpperCase()}] ${message}`;
+            testLog.push(logEntry);
+            
+            // 更新显示
+            const resultElement = document.getElementById('testResult');
+            resultElement.innerHTML = testLog.join('\n');
+            
+            // 滚动到底部
+            resultElement.scrollTop = resultElement.scrollHeight;
+            
+            // 也输出到控制台，方便调试
+            console.log(logEntry);
+        }
+        
+        // 重置测试
+        function resetTest() {
+            testLog = [];
+            document.querySelectorAll('.sub-menu').forEach(menu => {
+                menu.classList.remove('show');
+            });
+            addLog('测试已重置，请点击菜单项开始测试', 'info');
+        }
+        
+        // 菜单项点击处理函数
+        function testMenuClick(element) {
+            addLog('菜单项被点击，正在执行测试...', 'info');
+            addLog(`点击的元素: ${element.textContent.trim()}`, 'info');
+            addLog(`元素类名: ${element.className}`, 'info');
+            
+            // 调用模拟的toggleSubMenu函数
+            toggleSubMenu(element);
+        }
+        
+        // 模拟的toggleSubMenu函数，与main.js中的实现类似
+        function toggleSubMenu(element) {
+            addLog('toggleSubMenu函数开始执行', 'info');
+            
+            // 检查element参数
+            if (!element || !(element instanceof HTMLElement)) {
+                addLog('错误: element不是有效的DOM元素', 'error');
+                return;
+            }
+            
+            addLog('成功: element是有效的DOM元素', 'success');
+            
+            // 获取下一个元素作为子菜单
+            const subMenu = element.nextElementSibling;
+            addLog(`子菜单元素: ${subMenu ? '存在' : '不存在'}`, 'info');
+            
+            if (subMenu && subMenu.classList.contains('sub-menu')) {
+                addLog('成功: 找到子菜单元素', 'success');
+                
+                // 先隐藏所有其他子菜单
+                document.querySelectorAll('.sub-menu').forEach(menu => {
+                    if (menu !== subMenu) {
+                        menu.classList.remove('show');
+                    }
+                });
+                
+                // 切换当前子菜单显示状态
+                const wasVisible = subMenu.classList.contains('show');
+                subMenu.classList.toggle('show');
+                const isVisible = subMenu.classList.contains('show');
+                
+                addLog(`子菜单显示状态: ${isVisible ? '显示' : '隐藏'}`, 'success');
+                addLog(`子菜单类名: ${subMenu.className}`, 'info');
+                
+                // 测试子菜单是否真的可见
+                const computedStyle = window.getComputedStyle(subMenu);
+                addLog(`子菜单计算样式display: ${computedStyle.display}`, 'info');
+                addLog(`子菜单计算样式visibility: ${computedStyle.visibility}`, 'info');
+            } else {
+                addLog('错误: 没有找到匹配的子菜单或子菜单元素不是sub-menu类', 'error');
+                if (subMenu) {
+                    addLog(`下一个元素存在但类名是: ${subMenu.className}`, 'error');
+                }
+            }
+            
+            addLog('toggleSubMenu函数执行结束', 'info');
+        }
+        
+        // 直接测试toggleSubMenu函数
+        function directTestToggleSubMenu() {
+            addLog('\n开始直接测试toggleSubMenu函数...', 'info');
+            
+            const menuItem = document.querySelector('.menu-item');
+            if (menuItem) {
+                addLog('找到菜单元素，开始测试...', 'info');
+                toggleSubMenu(menuItem);
+            } else {
+                addLog('错误: 没有找到菜单元素', 'error');
+            }
+        }
+        
+        // 测试DOM结构
+        function testDOMStructure() {
+            addLog('\n开始测试DOM结构...', 'info');
+            
+            // 查找菜单元素
+            const menuItems = document.querySelectorAll('.menu-item');
+            addLog(`找到${menuItems.length}个菜单项元素`, 'info');
+            
+            // 检查每个菜单项
+            menuItems.forEach((item, index) => {
+                addLog(`菜单项${index + 1}: ${item.textContent.trim()}`, 'info');
+                addLog(`菜单项${index + 1}类名: ${item.className}`, 'info');
+                addLog(`菜单项${index + 1}onclick属性: ${item.getAttribute('onclick')}`, 'info');
+                
+                // 检查下一个元素
+                const nextElement = item.nextElementSibling;
+                if (nextElement) {
+                    addLog(`菜单项${index + 1}的下一个元素: ${nextElement.className}`, 'info');
+                    addLog(`是子菜单: ${nextElement.classList.contains('sub-menu')}`, 'info');
+                } else {
+                    addLog(`菜单项${index + 1}没有下一个元素`, 'info');
+                }
+            });
+            
+            // 检查子菜单
+            const subMenus = document.querySelectorAll('.sub-menu');
+            addLog(`\n找到${subMenus.length}个子菜单元素`, 'info');
+            
+            subMenus.forEach((subMenu, index) => {
+                addLog(`子菜单${index + 1}类名: ${subMenu.className}`, 'info');
+                addLog(`子菜单${index + 1}显示状态: ${subMenu.classList.contains('show')}`, 'info');
+                
+                // 检查子菜单项数量
+                const subMenuItems = subMenu.querySelectorAll('.sub-menu-item');
+                addLog(`子菜单${index + 1}包含${subMenuItems.length}个子菜单项`, 'info');
+            });
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            addLog('页面加载完成，可以开始测试', 'info');
+        });
+    </script>
+</body>
+</html>
