@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公告统计 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <style>
+        .announcement-statistics-container {
+            padding: 20px;
+        }
+        
+        .announcement-statistics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .announcement-statistics-header h1 {
+            margin: 0;
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .btn:hover {
+            color: #409EFF;
+            border-color: #409EFF;
+        }
+        
+        .btn-primary {
+            background-color: #409EFF;
+            color: white;
+            border-color: #409EFF;
+        }
+        
+        .btn-primary:hover {
+            background-color: #66b1ff;
+            color: white;
+            border-color: #66b1ff;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .date-range-selector {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .date-option {
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .date-option:hover {
+            color: #409EFF;
+            border-color: #409EFF;
+        }
+        
+        .date-option.active {
+            background-color: #409EFF;
+            color: white;
+            border-color: #409EFF;
+        }
+        
+        .custom-date-range {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .date-input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+        }
+        
+        .date-input:focus {
+            outline: none;
+            border-color: #409EFF;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+        
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 500;
+            color: #409EFF;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #606266;
+        }
+        
+        .stat-change {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        
+        .stat-change.positive {
+            color: #52c41a;
+        }
+        
+        .stat-change.negative {
+            color: #f5222d;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-card {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+        
+        .chart-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 16px;
+        }
+        
+        .chart-content {
+            height: 300px;
+        }
+        
+        .detail-stats {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #ebeef5;
+        }
+        
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .detail-table th,
+        .detail-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #ebeef5;
+        }
+        
+        .detail-table th {
+            background-color: #f5f7fa;
+            font-weight: 500;
+            color: #606266;
+            font-size: 14px;
+        }
+        
+        .detail-table td {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .detail-table tr:hover {
+            background-color: #f5f7fa;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 20px;
+            gap: 8px;
+        }
+        
+        .pagination-info {
+            font-size: 14px;
+            color: #606266;
+        }
+        
+        .pagination-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            color: #409EFF;
+            border-color: #409EFF;
+        }
+        
+        .pagination-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        .pagination-btn.active {
+            background-color: #409EFF;
+            color: white;
+            border-color: #409EFF;
+        }
+        
+        .export-btn {
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        @media (max-width: 1200px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .announcement-statistics-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+            }
+            
+            .date-range-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .date-option {
+                text-align: center;
+            }
+            
+            .custom-date-range {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .date-input {
+                width: 100%;
+            }
+            
+            .stats-summary {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .detail-table {
+                font-size: 12px;
+            }
+            
+            .detail-table th,
+            .detail-table td {
+                padding: 8px 12px;
+            }
+            
+            .pagination {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .export-btn {
+                margin-right: 0;
+                margin-bottom: 12px;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="announcement-statistics-container">
+        <div class="announcement-statistics-header">
+            <h1>公告统计</h1>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="export-report-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    导出报表
+                </button>
+                <a href="announcement_list.html" class="btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    返回公告列表
+                </a>
+            </div>
+        </div>
+        
+        <!-- 日期范围选择器 -->
+        <div class="date-range-selector">
+            <button class="date-option active" data-range="today">今日</button>
+            <button class="date-option" data-range="yesterday">昨日</button>
+            <button class="date-option" data-range="7days">近7天</button>
+            <button class="date-option" data-range="30days">近30天</button>
+            <button class="date-option" data-range="month">本月</button>
+            <button class="date-option" data-range="lastmonth">上月</button>
+            <div class="custom-date-range">
+                <input type="date" class="date-input" id="start-date">
+                <span>至</span>
+                <input type="date" class="date-input" id="end-date">
+                <button class="btn btn-primary" id="custom-date-btn">确定</button>
+            </div>
+        </div>
+        
+        <!-- 统计概览 -->
+        <div class="stats-summary">
+            <div class="stat-card">
+                <div class="stat-value">24</div>
+                <div class="stat-label">总发布公告</div>
+                <div class="stat-change positive">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 13L10 16L17 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>较上月 +3</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">12</div>
+                <div class="stat-label">活跃公告</div>
+                <div class="stat-change positive">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 13L10 16L17 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>较上月 +2</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">546</div>
+                <div class="stat-label">总阅读量</div>
+                <div class="stat-change positive">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 13L10 16L17 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>较上月 +120</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">96%</div>
+                <div class="stat-label">平均阅读率</div>
+                <div class="stat-change negative">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 9L10 6L17 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>较上月 -2%</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 图表区域 -->
+        <div class="charts-container">
+            <div class="chart-card">
+                <div class="chart-title">公告阅读趋势</div>
+                <div class="chart-content">
+                    <canvas id="readTrendChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">公告类型分布</div>
+                <div class="chart-content">
+                    <canvas id="typeDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 详细统计数据 -->
+        <div class="detail-stats">
+            <div class="detail-title">公告阅读明细</div>
+            <table class="detail-table">
+                <thead>
+                    <tr>
+                        <th>公告标题</th>
+                        <th>发布日期</th>
+                        <th>发布部门</th>
+                        <th>阅读量</th>
+                        <th>已读人数</th>
+                        <th>未读人数</th>
+                        <th>阅读率</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>五一劳动节放假通知</td>
+                        <td>2023-04-28</td>
+                        <td>行政部</td>
+                        <td>128</td>
+                        <td>128</td>
+                        <td>0</td>
+                        <td>100%</td>
+                    </tr>
+                    <tr>
+                        <td>关于新员工入职培训的通知</td>
+                        <td>2023-04-25</td>
+                        <td>人力资源部</td>
+                        <td>86</td>
+                        <td>82</td>
+                        <td>4</td>
+                        <td>95%</td>
+                    </tr>
+                    <tr>
+                        <td>系统升级维护通知</td>
+                        <td>2023-04-20</td>
+                        <td>技术部</td>
+                        <td>92</td>
+                        <td>88</td>
+                        <td>4</td>
+                        <td>96%</td>
+                    </tr>
+                    <tr>
+                        <td>第二季度工作目标调整通知</td>
+                        <td>2023-04-15</td>
+                        <td>管理层</td>
+                        <td>118</td>
+                        <td>112</td>
+                        <td>6</td>
+                        <td>95%</td>
+                    </tr>
+                    <tr>
+                        <td>关于开展安全培训的通知</td>
+                        <td>2023-04-10</td>
+                        <td>行政部</td>
+                        <td>122</td>
+                        <td>116</td>
+                        <td>6</td>
+                        <td>95%</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- 分页控件 -->
+            <div class="pagination">
+                <button class="btn export-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    导出明细数据
+                </button>
+                
+                <span class="pagination-info">共 5 页 / 24 条</span>
+                <button class="pagination-btn" id="prev-page" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="pagination-btn active">1</button>
+                <button class="pagination-btn">2</button>
+                <button class="pagination-btn">3</button>
+                <button class="pagination-btn">4</button>
+                <button class="pagination-btn">5</button>
+                <button class="pagination-btn" id="next-page">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../JS/common.js"></script>
+    <script src="../JS/main.js"></script>
+    <!-- 引入Chart.js库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 日期范围选择器点击事件
+            document.querySelectorAll('.date-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.date-option').forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    const range = this.getAttribute('data-range');
+                    showMessage(`已选择时间范围: ${this.textContent}`, 'info');
+                    // 在实际应用中，这里应该根据选择的时间范围更新统计数据
+                });
+            });
+            
+            // 自定义日期按钮点击事件
+            document.getElementById('custom-date-btn').addEventListener('click', function() {
+                const startDate = document.getElementById('start-date').value;
+                const endDate = document.getElementById('end-date').value;
+                
+                if (!startDate || !endDate) {
+                    showMessage('请选择开始日期和结束日期', 'error');
+                    return;
+                }
+                
+                if (new Date(startDate) > new Date(endDate)) {
+                    showMessage('开始日期不能晚于结束日期', 'error');
+                    return;
+                }
+                
+                // 移除所有预设选项的活跃状态
+                document.querySelectorAll('.date-option').forEach(opt => opt.classList.remove('active'));
+                showMessage(`已选择自定义时间范围: ${startDate} 至 ${endDate}`, 'info');
+                // 在实际应用中，这里应该根据选择的时间范围更新统计数据
+            });
+            
+            // 导出报表按钮点击事件
+            document.getElementById('export-report-btn').addEventListener('click', function() {
+                showMessage('导出公告统计报表功能尚未实现', 'info');
+            });
+            
+            // 导出明细数据按钮点击事件
+            document.querySelector('.export-btn').addEventListener('click', function() {
+                showMessage('导出公告阅读明细数据功能尚未实现', 'info');
+            });
+            
+            // 分页按钮点击事件
+            document.querySelectorAll('.pagination-btn:not(#prev-page):not(#next-page)').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.pagination-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    showMessage(`切换到第 ${this.textContent} 页`, 'info');
+                    // 在实际应用中，这里应该根据选择的页码更新表格数据
+                });
+            });
+            
+            // 上一页按钮点击事件
+            document.getElementById('prev-page').addEventListener('click', function() {
+                const activePage = document.querySelector('.pagination-btn.active');
+                const prevPage = activePage.previousElementSibling;
+                
+                if (prevPage && !prevPage.id) {
+                    activePage.classList.remove('active');
+                    prevPage.classList.add('active');
+                    showMessage(`切换到第 ${prevPage.textContent} 页`, 'info');
+                    // 在实际应用中，这里应该根据选择的页码更新表格数据
+                }
+            });
+            
+            // 下一页按钮点击事件
+            document.getElementById('next-page').addEventListener('click', function() {
+                const activePage = document.querySelector('.pagination-btn.active');
+                const nextPage = activePage.nextElementSibling;
+                
+                if (nextPage && !nextPage.id) {
+                    activePage.classList.remove('active');
+                    nextPage.classList.add('active');
+                    showMessage(`切换到第 ${nextPage.textContent} 页`, 'info');
+                    // 在实际应用中，这里应该根据选择的页码更新表格数据
+                }
+            });
+            
+            // 初始化阅读趋势图
+            const readTrendCtx = document.getElementById('readTrendChart').getContext('2d');
+            new Chart(readTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['4/26', '4/27', '4/28', '4/29', '4/30', '5/1', '5/2', '5/3', '5/4', '5/5'],
+                    datasets: [{
+                        label: '阅读量',
+                        data: [32, 45, 128, 105, 86, 68, 54, 72, 68, 56],
+                        borderColor: '#409EFF',
+                        backgroundColor: 'rgba(64, 158, 255, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 初始化公告类型分布图
+            const typeDistributionCtx = document.getElementById('typeDistributionChart').getContext('2d');
+            new Chart(typeDistributionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['通知公告', '放假安排', '会议通知', '活动安排', '其他'],
+                    datasets: [{
+                        data: [12, 5, 4, 2, 1],
+                        backgroundColor: [
+                            '#409EFF',
+                            '#67C23A',
+                            '#E6A23C',
+                            '#F56C6C',
+                            '#909399'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+        });
+    </script>
+</body>
+</html>

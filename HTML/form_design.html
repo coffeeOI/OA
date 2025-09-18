@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OA系统 - 自定义表单列表</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <script src="../JS/common.js"></script>
+    <style>
+        /* 表单列表页面专用样式 */
+        .form-list-container {
+            padding: 20px;
+        }
+        
+        /* 页面标题区域 */
+        .page-header {
+            margin-bottom: 20px;
+        }
+        
+        .page-header h1 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .page-header p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* 搜索筛选区域 */
+        .search-filter {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+        
+        .search-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+        
+        .filter-item {
+            min-width: 180px;
+        }
+        
+        /* 表单状态筛选器的特定宽度 */
+        #statusFilterContainer {
+            min-width: 220px;
+            width: 220px;
+        }
+        
+        .search-btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* 状态标签样式 */
+        .status-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-draft {
+            background-color: #e6f7ff;
+            color: #1890ff;
+        }
+        
+        .status-published {
+            background-color: #f6ffed;
+            color: #52c41a;
+        }
+        
+        .status-disabled {
+            background-color: #f5f5f5;
+            color: #999;
+        }
+        
+        /* 操作按钮组样式 */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 4px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            min-width: 60px;
+        }
+        
+        .action-btn:hover {
+            opacity: 0.8;
+        }
+        
+        /* 操作按钮类型样式 */
+        .btn-edit {
+            background-color: #1890ff;
+            color: #fff;
+        }
+        
+        .btn-preview {
+            background-color: #faad14;
+            color: #fff;
+        }
+        
+        .btn-delete {
+            background-color: #f5222d;
+            color: #fff;
+        }
+        
+        .btn-history {
+            background-color: #fff;
+            color: #666;
+            border: 1px solid #000;
+        }
+        
+        .btn-copy {
+            background-color: #52c41a;
+            color: #fff;
+        }
+        
+        /* 表格列宽设置 */
+        .table-form-name {
+            width: 15%;
+        }
+        
+        .table-type {
+            width: 10%;
+        }
+        
+        .table-create-time {
+            width: 12%;
+        }
+        
+        .table-creator {
+            width: 10%;
+        }
+        
+        .table-version {
+            width: 8%;
+        }
+        
+        .table-status {
+            width: 10%;
+        }
+        
+        .table-actions {
+            width: 35%;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .search-filter {
+                flex-direction: column;
+                flex-wrap: wrap;
+                align-items: stretch;
+            }
+            
+            .search-group,
+            .filter-group,
+            .search-btn-group {
+                width: 100%;
+            }
+            
+            .filter-group {
+                margin-top: 16px;
+            }
+            
+            .search-btn-group {
+                justify-content: flex-start;
+                margin-top: 16px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .action-buttons {
+                gap: 4px;
+            }
+            
+            .action-btn {
+                padding: 4px 8px;
+                font-size: 11px;
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-list-container">
+        <!-- 页面标题 -->
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1>自定义表单列表</h1>
+                <p>管理和维护系统中的自定义表单</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-default" title="验证设置">
+                    验证设置（延期）
+                </button>
+                <button class="btn btn-default" title="字段设置">
+                    字段设置（延期）
+                </button>
+                <button class="btn btn-default" title="控件设置">
+                    控件设置（延期）
+                </button>
+            </div>
+        </div>
+        
+        <!-- 搜索和筛选区域 -->
+        <div class="search-filter">
+            <div class="search-group">
+                <div style="display: flex; align-items: flex-end; gap: 16px;">
+                    <div style="min-width: 180px;">
+                        <label class="form-label">表单名称</label>
+                        <input type="text" class="form-control" id="formNameSearch" placeholder="请输入表单名称进行搜索">
+                    </div>
+                    <div style="min-width: 220px;">
+                        <label class="form-label">表单状态</label>
+                        <select class="form-control" id="formStatusFilter">
+                            <option value="all">全部状态</option>
+                            <option value="draft">草稿</option>
+                            <option value="published">已发布</option>
+                            <option value="disabled">已禁用</option>
+                        </select>
+                    </div>
+                    <div style="min-width: 180px;">
+                        <label class="form-label">创建时间</label>
+                        <input type="date" class="form-control" id="createTimeFilter">
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" id="searchBtn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px;">
+                                <path d="M21 21L16.65 16.65M19 10.5C19 15.1944 15.1944 19 10.5 19C5.80558 19 2 15.1944 2 10.5C2 5.80558 5.80558 2 10.5 2C15.1944 2 19 5.80558 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            搜索
+                        </button>
+                        <button class="btn btn-default" id="resetBtn">重置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 表格头部操作区 -->
+        <div class="table-header">
+            <div class="table-title">表单列表</div>
+            <div>
+                <button class="btn btn-primary" id="addFormBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px;">
+                        <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    新增表单
+                </button>
+            </div>
+        </div>
+        
+        <!-- 表单列表表格 -->
+        <div class="table-container">
+            <div class="table-wrapper">
+                <table class="table-hover">
+                    <thead>
+                        <tr>
+                            <th class="table-form-name">表单名称</th>
+                            <th class="table-type">类型</th>
+                            <th class="table-create-time">创建时间</th>
+                            <th class="table-creator">创建人</th>
+                            <th class="table-version">版本</th>
+                            <th class="table-status">状态</th>
+                            <th class="table-actions">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 表单数据行 -->
+                        <!-- 表单数据行 -->
+                        <tr data-form-id="1">
+                            <td>员工请假申请表</td>
+                            <td>流程</td>
+                            <td>2023-06-15 14:30</td>
+                            <td>张三</td>
+                            <td class="table-version">v2.3</td>
+                            <td><span class="status-tag status-published">已发布</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="form_design.html" class="action-btn btn-edit" title="编辑表单">编辑</a>
+                                    <button class="action-btn btn-preview" title="预览表单">预览</button>
+                                    <button class="action-btn btn-history" title="查看表单历史版本">历史</button>
+                                    <button class="action-btn btn-copy" title="复制表单">复制</button>
+                                    <button class="action-btn btn-warning" title="禁用表单">禁用</button>
+                                    <button class="action-btn btn-delete" title="删除表单">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-form-id="2">
+                            <td>报销申请单</td>
+                            <td>流程</td>
+                            <td>2023-06-12 09:15</td>
+                            <td>李四</td>
+                            <td class="table-version">v1.8</td>
+                            <td><span class="status-tag status-published">已发布</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="form_design.html" class="action-btn btn-edit" title="编辑表单">编辑</a>
+                                    <button class="action-btn btn-preview" title="预览表单">预览</button>
+                                    <button class="action-btn btn-history" title="查看表单历史版本">历史</button>
+                                    <button class="action-btn btn-copy" title="复制表单">复制</button>
+                                    <button class="action-btn btn-warning" title="禁用表单">禁用</button>
+                                    <button class="action-btn btn-delete" title="删除表单">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-form-id="3">
+                            <td>办公用品申请表</td>
+                            <td>流程</td>
+                            <td>2023-06-10 16:45</td>
+                            <td>王五</td>
+                            <td class="table-version">v0.5</td>
+                            <td><span class="status-tag status-draft">草稿</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="form_design.html" class="action-btn btn-edit" title="编辑表单">编辑</a>
+                                    <button class="action-btn btn-preview" title="预览表单">预览</button>
+                                    <button class="action-btn btn-history" title="查看表单历史版本">历史</button>
+                                    <button class="action-btn btn-copy" title="复制表单">复制</button>
+                                    <button class="action-btn btn-success" title="发布表单">发布</button>
+                                    <button class="action-btn btn-delete" title="删除表单">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-form-id="4">
+                            <td>会议室预订申请表</td>
+                            <td>流程</td>
+                            <td>2023-06-08 11:20</td>
+                            <td>赵六</td>
+                            <td class="table-version">v3.1</td>
+                            <td><span class="status-tag status-published">已发布</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="form_design.html" class="action-btn btn-edit" title="编辑表单">编辑</a>
+                                    <button class="action-btn btn-preview" title="预览表单">预览</button>
+                                    <button class="action-btn btn-history" title="查看表单历史版本">历史</button>
+                                    <button class="action-btn btn-copy" title="复制表单">复制</button>
+                                    <button class="action-btn btn-warning" title="禁用表单">禁用</button>
+                                    <button class="action-btn btn-delete" title="删除表单">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-form-id="5">
+                            <td>员工转正申请表</td>
+                            <td>流程</td>
+                            <td>2023-06-05 15:30</td>
+                            <td>孙七</td>
+                            <td class="table-version">v1.2</td>
+                            <td><span class="status-tag status-disabled">已禁用</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="form_design.html" class="action-btn btn-edit" title="编辑表单">编辑</a>
+                                    <button class="action-btn btn-preview" title="预览表单">预览</button>
+                                    <button class="action-btn btn-history" title="查看表单历史版本">历史</button>
+                                    <button class="action-btn btn-copy" title="复制表单">复制</button>
+                                    <button class="action-btn btn-success" title="启用表单">启用</button>
+                                    <button class="action-btn btn-delete" title="删除表单">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 分页控件 -->
+            <div class="pagination">
+                <div class="page-info">
+                    显示 1-5 条，共 23 条
+                </div>
+                <div class="page-control">
+                    <button class="page-btn" disabled>上一页</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn">4</button>
+                    <button class="page-btn">5</button>
+                    <button class="page-btn">下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化搜索功能
+            initSearchFunction();
+            
+            // 初始化表格操作功能
+            initTableActions();
+            
+            // 初始化分页功能
+            initPagination();
+        });
+        
+        // 初始化搜索功能
+        function initSearchFunction() {
+            // 搜索按钮事件
+            document.getElementById('searchBtn').addEventListener('click', function() {
+                const formName = document.getElementById('formNameSearch').value;
+                const formStatus = document.getElementById('formStatusFilter').value;
+                const createTime = document.getElementById('createTimeFilter').value;
+                
+                // 这里可以添加搜索逻辑
+                console.log('搜索条件:', { formName, formStatus, createTime });
+                // 模拟搜索结果刷新
+                showMessage('搜索成功，共找到符合条件的表单 X 条', 'success');
+            });
+            
+            // 重置按钮事件
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                document.getElementById('formNameSearch').value = '';
+                document.getElementById('formStatusFilter').value = 'all';
+                document.getElementById('createTimeFilter').value = '';
+            });
+            
+            // 新增表单按钮事件
+            document.getElementById('addFormBtn').addEventListener('click', function() {
+                // 创建并显示表单名称输入对话框
+                showFormNameDialog();
+            });
+            
+            // 验证设置按钮事件
+            const validationSettingBtn = document.querySelector('.page-header button[title="验证设置"]');
+            if (validationSettingBtn) {
+                validationSettingBtn.addEventListener('click', function() {
+                    // 验证设置功能
+                    console.log('验证设置按钮被点击，跳转到验证设置页面');
+                    window.location.href = 'form_validation.html';
+                });
+            }
+            
+            // 字段设置按钮事件
+            const fieldSettingBtn = document.querySelector('.page-header button[title="字段设置"]');
+            if (fieldSettingBtn) {
+                fieldSettingBtn.addEventListener('click', function() {
+                    // 字段设置功能
+                    console.log('字段设置按钮被点击，跳转到字段设置页面');
+                    window.location.href = 'form_fields.html';
+                });
+            }
+            
+            // 控件设置按钮事件
+            const controlSettingBtn = document.querySelector('.page-header button[title="控件设置"]');
+            if (controlSettingBtn) {
+                controlSettingBtn.addEventListener('click', function() {
+                    // 控件设置功能
+                    console.log('控件设置按钮被点击，跳转到控件设置页面');
+                    window.location.href = 'form_controls.html';
+                });
+            }
+        }
+        
+        // 显示表单名称输入对话框
+        function showFormNameDialog() {
+            // 创建模态框容器
+            const dialogContainer = document.createElement('div');
+            dialogContainer.className = 'modal-overlay';
+            dialogContainer.style.position = 'fixed';
+            dialogContainer.style.top = '0';
+            dialogContainer.style.left = '0';
+            dialogContainer.style.width = '100%';
+            dialogContainer.style.height = '100%';
+            dialogContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            dialogContainer.style.display = 'flex';
+            dialogContainer.style.alignItems = 'center';
+            dialogContainer.style.justifyContent = 'center';
+            dialogContainer.style.zIndex = '1000';
+            
+            // 创建对话框内容
+            const dialogContent = document.createElement('div');
+            dialogContent.className = 'modal-dialog';
+            dialogContent.style.backgroundColor = 'white';
+            dialogContent.style.padding = '24px';
+            dialogContent.style.borderRadius = '8px';
+            dialogContent.style.width = '400px';
+            dialogContent.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+            
+            // 对话框标题
+            const dialogTitle = document.createElement('h3');
+            dialogTitle.textContent = '新建表单';
+            dialogTitle.style.margin = '0 0 16px 0';
+            dialogTitle.style.fontSize = '18px';
+            dialogTitle.style.fontWeight = '500';
+            
+            // 表单名称输入区域
+            const formNameGroup = document.createElement('div');
+            formNameGroup.style.marginBottom = '24px';
+            
+            const formNameLabel = document.createElement('label');
+            formNameLabel.textContent = '表单名称';
+            formNameLabel.style.display = 'block';
+            formNameLabel.style.marginBottom = '8px';
+            formNameLabel.style.fontSize = '14px';
+            formNameLabel.style.color = '#333';
+            
+            const formNameInput = document.createElement('input');
+            formNameInput.type = 'text';
+            formNameInput.className = 'form-control';
+            formNameInput.placeholder = '请输入表单名称';
+            formNameInput.style.width = '100%';
+            formNameInput.style.padding = '8px 12px';
+            formNameInput.style.border = '1px solid #d9d9d9';
+            formNameInput.style.borderRadius = '4px';
+            formNameInput.style.fontSize = '14px';
+            
+            // 按钮区域
+            const buttonGroup = document.createElement('div');
+            buttonGroup.style.display = 'flex';
+            buttonGroup.style.justifyContent = 'flex-end';
+            buttonGroup.style.gap = '12px';
+            
+            // 取消按钮
+            const cancelButton = document.createElement('button');
+            cancelButton.className = 'btn btn-default';
+            cancelButton.textContent = '取消';
+            cancelButton.style.padding = '8px 16px';
+            cancelButton.style.border = '1px solid #d9d9d9';
+            cancelButton.style.borderRadius = '4px';
+            cancelButton.style.backgroundColor = 'white';
+            cancelButton.style.color = '#333';
+            cancelButton.style.cursor = 'pointer';
+            
+            // 确定按钮
+            const confirmButton = document.createElement('button');
+            confirmButton.className = 'btn btn-primary';
+            confirmButton.textContent = '确定';
+            confirmButton.style.padding = '8px 16px';
+            confirmButton.style.border = 'none';
+            confirmButton.style.borderRadius = '4px';
+            confirmButton.style.backgroundColor = '#1890ff';
+            confirmButton.style.color = 'white';
+            confirmButton.style.cursor = 'pointer';
+            
+            // 组装对话框
+            formNameGroup.appendChild(formNameLabel);
+            formNameGroup.appendChild(formNameInput);
+            buttonGroup.appendChild(cancelButton);
+            buttonGroup.appendChild(confirmButton);
+            dialogContent.appendChild(dialogTitle);
+            dialogContent.appendChild(formNameGroup);
+            dialogContent.appendChild(buttonGroup);
+            dialogContainer.appendChild(dialogContent);
+            
+            // 添加到文档
+            document.body.appendChild(dialogContainer);
+            
+            // 聚焦输入框
+            formNameInput.focus();
+            
+            // 取消按钮点击事件
+            cancelButton.addEventListener('click', function() {
+                document.body.removeChild(dialogContainer);
+            });
+            
+            // 确定按钮点击事件
+            confirmButton.addEventListener('click', function() {
+                const formName = formNameInput.value.trim();
+                if (formName) {
+                    // 保存表单名称（实际应用中可能需要传递到下一个页面）
+                    localStorage.setItem('tempFormName', formName);
+                    // 跳转到表单添加页面
+                    window.location.href = 'form_add/form_add.html';
+                } else {
+                    // 显示错误提示
+                    alert('请输入表单名称');
+                    formNameInput.focus();
+                }
+            });
+            
+            // 点击模态框外部关闭
+            dialogContainer.addEventListener('click', function(e) {
+                if (e.target === dialogContainer) {
+                    document.body.removeChild(dialogContainer);
+                }
+            });
+            
+            // ESC键关闭
+            document.addEventListener('keydown', function handleEscKey(e) {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(dialogContainer);
+                    document.removeEventListener('keydown', handleEscKey);
+                }
+            });
+        }
+        
+        // 初始化表格操作功能
+        function initTableActions() {
+            // 预览按钮事件
+            const previewButtons = document.querySelectorAll('.btn-preview');
+            previewButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const formRow = this.closest('tr');
+                    const formName = formRow.querySelector('td:first-child').textContent;
+                    const formId = formRow.dataset.formId;
+                    
+                    // 模拟预览功能
+                    showMessage(`正在预览表单：${formName}`, 'info');
+                    console.log(`预览表单ID: ${formId}`);
+                    // 实际应用中可以打开预览模态框或新页面
+                });
+            });
+            
+            // 复制按钮事件
+            const copyButtons = document.querySelectorAll('.btn-copy');
+            copyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const formRow = this.closest('tr');
+                    const formName = formRow.querySelector('td:first-child').textContent;
+                    const formId = formRow.dataset.formId;
+                    
+                    // 模拟复制功能
+                    confirmDialog(
+                        `确定要复制表单"${formName}"吗？`,
+                        function() {
+                            showMessage(`表单"${formName}"复制成功`, 'success');
+                            console.log(`复制表单ID: ${formId}`);
+                            // 实际应用中可以实现表单复制的逻辑
+                        },
+                        null,
+                        '确认复制'
+                    );
+                });
+            });
+            
+            // 删除按钮事件
+            const deleteButtons = document.querySelectorAll('.btn-delete');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const formRow = this.closest('tr');
+                    const formName = formRow.querySelector('td:first-child').textContent;
+                    const formId = formRow.dataset.formId;
+                    
+                    // 确认删除
+                    confirmDialog(
+                        `确定要删除表单"${formName}"吗？删除后将无法恢复。`,
+                        function() {
+                            // 模拟删除操作
+                            formRow.remove();
+                            showMessage(`表单"${formName}"删除成功`, 'success');
+                            console.log(`删除表单ID: ${formId}`);
+                        },
+                        null,
+                        '确认删除'
+                    );
+                });
+            });
+            
+            // 查看历史按钮事件
+            const historyButtons = document.querySelectorAll('.btn-history');
+            historyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const formRow = this.closest('tr');
+                    const formName = formRow.querySelector('td:first-child').textContent;
+                    const formId = formRow.dataset.formId;
+                    
+                    // 模拟查看历史功能
+                    showMessage(`正在查看表单"${formName}"的历史版本`, 'info');
+                    console.log(`查看表单ID: ${formId}的历史版本`);
+                    // 实际应用中可以打开历史版本模态框
+                });
+            });
+            
+            // 启用/禁用/发布按钮事件
+            const statusButtons = document.querySelectorAll('.action-btn.btn-warning, .action-btn.btn-success');
+            statusButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const formRow = this.closest('tr');
+                    const formName = formRow.querySelector('td:first-child').textContent;
+                    const statusCell = formRow.querySelector('td:nth-child(5)');
+                    const actionText = this.textContent;
+                    const formId = formRow.dataset.formId;
+                    
+                    // 确认启用/禁用/发布
+                    confirmDialog(
+                        `确定要${actionText === '启用' ? '启用' : actionText === '发布' ? '发布' : '禁用'}表单"${formName}"吗？`,
+                        function() {
+                            // 模拟状态变更操作
+                            handleStatusChange(formRow, statusCell, button, actionText);
+                            console.log(`${actionText}表单ID: ${formId}`);
+                        },
+                        null,
+                        `确认${actionText}`
+                    );
+                });
+            });
+        }
+        
+        // 处理表单状态变更
+        function handleStatusChange(formRow, statusCell, button, actionText) {
+            if (actionText === '启用') {
+                statusCell.innerHTML = '<span class="status-tag status-published">已发布</span>';
+                button.textContent = '禁用';
+                button.className = 'action-btn btn-warning';
+                button.title = '禁用表单';
+                showMessage(`表单"${formRow.querySelector('td:first-child').textContent}"已启用`, 'success');
+            } else if (actionText === '禁用') {
+                statusCell.innerHTML = '<span class="status-tag status-disabled">已禁用</span>';
+                button.textContent = '启用';
+                button.className = 'action-btn btn-success';
+                button.title = '启用表单';
+                showMessage(`表单"${formRow.querySelector('td:first-child').textContent}"已禁用`, 'success');
+            } else if (actionText === '发布') {
+                statusCell.innerHTML = '<span class="status-tag status-published">已发布</span>';
+                button.textContent = '禁用';
+                button.className = 'action-btn btn-warning';
+                button.title = '禁用表单';
+                showMessage(`表单"${formRow.querySelector('td:first-child').textContent}"已发布`, 'success');
+            }
+        }
+        
+        // 初始化分页功能
+        function initPagination() {
+            // 分页按钮事件
+            const pageButtons = document.querySelectorAll('.page-btn');
+            pageButtons.forEach(button => {
+                if (!button.disabled && !button.classList.contains('active')) {
+                    button.addEventListener('click', function() {
+                        // 移除所有活动状态
+                        document.querySelectorAll('.page-btn').forEach(btn => {
+                            btn.classList.remove('active');
+                        });
+                        // 添加当前按钮活动状态
+                        this.classList.add('active');
+                        // 更新上一页/下一页按钮状态
+                        updatePaginationButtons();
+                        // 这里可以添加分页逻辑
+                        showMessage(`正在加载第 ${this.textContent} 页数据`, 'info');
+                    });
+                }
+            });
+        }
+        
+        // 更新分页按钮状态
+        function updatePaginationButtons() {
+            const activeButton = document.querySelector('.page-btn.active');
+            const allButtons = document.querySelectorAll('.page-btn');
+            const firstButton = allButtons[1]; // 第一个页码按钮
+            const lastButton = allButtons[allButtons.length - 2]; // 最后一个页码按钮
+            const prevButton = allButtons[0];
+            const nextButton = allButtons[allButtons.length - 1];
+            
+            // 更新上一页按钮状态
+            prevButton.disabled = activeButton === firstButton;
+            
+            // 更新下一页按钮状态
+            nextButton.disabled = activeButton === lastButton;
+        }
+        
+        // 消息提示函数
+        function showMessage(message, type = 'info') {
+            // 创建消息元素
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `alert alert-${type}`;
+            messageDiv.textContent = message;
+            
+            // 添加到页面顶部
+            document.body.insertBefore(messageDiv, document.body.firstChild);
+            
+            // 设置样式使消息居中显示
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '20px';
+            messageDiv.style.left = '50%';
+            messageDiv.style.transform = 'translateX(-50%)';
+            messageDiv.style.zIndex = '1000';
+            messageDiv.style.minWidth = '300px';
+            messageDiv.style.textAlign = 'center';
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                messageDiv.style.opacity = '0';
+                messageDiv.style.transition = 'opacity 0.3s';
+                setTimeout(() => {
+                    messageDiv.remove();
+                }, 300);
+            }, 3000);
+        }
+        
+        // 确认对话框函数
+        function confirmDialog(message, confirmCallback, cancelCallback, confirmText = '确定', cancelText = '取消') {
+            // 检查是否已存在确认框
+            let confirmModal = document.getElementById('confirmModal');
+            if (!confirmModal) {
+                // 创建模态框
+                confirmModal = document.createElement('div');
+                confirmModal.id = 'confirmModal';
+                confirmModal.className = 'modal';
+                confirmModal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div class="modal-title">确认操作</div>
+                            <button class="modal-close" id="confirmModalClose">&times;</button>
+                        </div>
+                        <div class="modal-body" id="confirmModalMessage">
+                            ${message}
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-default" id="confirmModalCancel">${cancelText}</button>
+                            <button class="btn btn-primary" id="confirmModalConfirm">${confirmText}</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(confirmModal);
+                
+                // 添加事件监听
+                document.getElementById('confirmModalClose').addEventListener('click', function() {
+                    confirmModal.style.display = 'none';
+                });
+                document.getElementById('confirmModalCancel').addEventListener('click', function() {
+                    confirmModal.style.display = 'none';
+                    if (typeof cancelCallback === 'function') {
+                        cancelCallback();
+                    }
+                });
+            }
+            
+            // 更新消息
+            document.getElementById('confirmModalMessage').textContent = message;
+            document.getElementById('confirmModalConfirm').textContent = confirmText;
+            document.getElementById('confirmModalCancel').textContent = cancelText;
+            
+            // 重新添加确认按钮事件（避免多次绑定）
+            const confirmBtn = document.getElementById('confirmModalConfirm');
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            newConfirmBtn.addEventListener('click', function() {
+                confirmModal.style.display = 'none';
+                if (typeof confirmCallback === 'function') {
+                    confirmCallback();
+                }
+            });
+            
+            // 显示模态框
+            confirmModal.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

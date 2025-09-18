@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>审批表单 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <script src="../JS/common.js"></script>
+    <style>
+        /* 全局样式重置和基础设置 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+            background-color: #f0f2f5;
+            line-height: 1.5;
+        }
+        
+        /* 容器样式 */
+        .approval-form-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+        }
+        
+        /* 页面头部 */
+        .approval-form-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .approval-form-header h2 {
+            margin: 0;
+            color: #1890ff;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+/* 表单内容容器 */
+        .approval-form-content {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            padding: 28px;
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .approval-form-content:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.09);
+        }
+        
+        /* 表单部分 */
+        .form-section {
+            margin-bottom: 32px;
+        }
+        
+        .form-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #262626;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            position: relative;
+        }
+        
+        .form-section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background-color: #1890ff;
+        }
+        
+        /* 表单类型选择区域 */
+        .form-type-section {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .form-type-item {
+            flex: 1;
+            min-width: 280px;
+        }
+        
+        /* 表单组和标签 */
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -12px 20px -12px;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 250px;
+            padding: 0 12px;
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #262626;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .form-label.required::after {
+            content: ' *';
+            color: #ff4d4f;
+        }
+        
+        /* 表单控件样式 */
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background-color: white;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        
+        .form-control:hover {
+            border-color: #40a9ff;
+        }
+        
+        .form-control:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+            line-height: 1.5;
+        }
+        
+        /* 表单切换样式 */
+        .approval-form {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .approval-form.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* 审批流程样式 */
+        .approval-flow {
+            background-color: #fafafa;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #f0f0f0;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+        
+        .flow-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #262626;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        /* 流程步骤容器 - 使用相对定位作为流程线的父容器 */
+        .flow-steps {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding: 0;
+            min-height: 100px;
+        }
+        
+        /* 单个流程步骤 - 垂直布局 */
+        .flow-step {
+            position: relative;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            z-index: 2;
+        }
+        
+        /* 步骤左侧内容 */
+        .flow-step-left {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 120px;
+            flex-shrink: 0;
+        }
+        
+        /* 步骤圆圈 */
+        .step-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #d9d9d9;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+            z-index: 2;
+        }
+        
+        .step-circle:hover {
+            transform: scale(1.1);
+        }
+        
+        .step-circle.active {
+            background-color: #1890ff;
+            box-shadow: 0 0 0 4px rgba(24, 144, 255, 0.2);
+        }
+        
+        .step-circle.passed {
+            background-color: #52c41a;
+            box-shadow: 0 0 0 4px rgba(82, 196, 26, 0.2);
+        }
+        
+        .step-circle.pending {
+            background-color: #d9d9d9;
+            box-shadow: 0 0 0 4px rgba(217, 217, 217, 0.2);
+        }
+        
+        .step-circle.rejected {
+            background-color: #ff4d4f;
+            box-shadow: 0 0 0 4px rgba(255, 77, 79, 0.2);
+        }
+        
+        /* 步骤名称 */
+        .step-name {
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            line-height: 1.4;
+            word-wrap: break-word;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        
+        .step-circle.active + .step-name {
+            color: #1890ff;
+        }
+        
+        .step-circle.passed + .step-name {
+            color: #52c41a;
+        }
+        
+        /* 步骤状态信息 */
+        .step-info {
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+            margin-top: 2px;
+        }
+        
+        /* 步骤右侧内容 */
+        .flow-step-right {
+            flex: 1;
+            margin-left: 24px;
+            padding: 16px;
+            background-color: white;
+            border-radius: 6px;
+            border: 1px solid #f0f0f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 活动步骤右侧内容高亮 */
+        .flow-step.active .flow-step-right {
+            border-color: #1890ff;
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+        }
+        
+        /* 已完成步骤右侧内容样式 */
+        .flow-step.passed .flow-step-right {
+            border-color: #52c41a;
+        }
+        
+        /* 处理人信息 */
+        .step-handler {
+            font-size: 14px;
+            color: #262626;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        /* 处理结果 */
+        .step-result {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        /* 处理意见 */
+        .step-comment {
+            font-size: 13px;
+            color: #333;
+            background-color: #fafafa;
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 3px solid #d9d9d9;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        /* 处理时间 */
+        .step-time {
+            font-size: 12px;
+            color: #999;
+            margin-top: auto;
+        }
+        
+        /* 流程连接线 - 垂直线 */
+        .flow-line {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            bottom: 0;
+            width: 2px;
+            background-color: #d9d9d9;
+            z-index: 1;
+        }
+        
+        /* 已通过步骤之间的连接线 */
+        .flow-steps.has-passed .flow-line {
+            background-image: linear-gradient(to bottom, #52c41a 0%, #52c41a 25%, #d9d9d9 25%, #d9d9d9 100%);
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+        }
+        
+        /* 最后一个步骤不需要连接线 */
+        .flow-step:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* 动态环节样式 - 默认隐藏 */
+        .dynamic-step {
+            display: none;
+        }
+        
+        .dynamic-step.active {
+            display: block;
+        }
+        
+        /* 附加流程加号按钮样式 */
+        .addon-step .step-circle {
+            background-color: #1890ff;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .addon-step .step-circle:hover {
+            background-color: #40a9ff;
+            transform: scale(1.1);
+            box-shadow: 0 0 0 4px rgba(24, 144, 255, 0.2);
+        }
+        
+        .addon-step .step-name {
+            color: #1890ff;
+        }
+        
+        /* 附加流程内容样式 */
+        .addon-content {
+            background-color: rgba(24, 144, 255, 0.05);
+            border-left: 3px solid #1890ff;
+            padding: 12px;
+            margin-top: 8px;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .addon-content p {
+            margin: 0;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* 底部操作按钮 */
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            padding-top: 24px;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 32px;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary {
+            background-color: #1890ff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #40a9ff;
+        }
+        
+        .btn-primary:disabled {
+            background-color: #d9d9d9;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        .btn-default {
+            background-color: white;
+            color: #262626;
+            border: 1px solid #d9d9d9;
+        }
+        
+        .btn-default:hover {
+            border-color: #40a9ff;
+            color: #40a9ff;
+        }
+        
+        /* 文件上传样式 */
+        .file-upload-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            top: 0;
+            right: 0;
+            min-width: 100%;
+            min-height: 100%;
+            font-size: 100px;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .file-upload-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #fafafa;
+            border: 1px dashed #d9d9d9;
+            color: #666;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .file-upload-btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+            background-color: #e6f7ff;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .approval-form-container {
+                padding: 16px;
+            }
+            
+            .approval-form-content {
+                padding: 20px;
+            }
+            
+            .form-type-section {
+                gap: 20px;
+            }
+            
+            .form-type-item {
+                min-width: 100%;
+            }
+            
+            .form-group {
+                min-width: 100%;
+            }
+            
+            .form-row {
+                margin: 0 -8px 16px -8px;
+            }
+            
+            .form-group {
+                padding: 0 8px;
+            }
+            
+            .flow-steps {
+                padding: 0 10px;
+            }
+            
+            .step-name {
+                font-size: 12px;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+        
+        /* 错误提示样式 */
+        .error-message {
+            color: #ff4d4f;
+            font-size: 12px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .error-message::before {
+            content: "⚠️";
+            margin-right: 4px;
+        }
+        
+        /* 提示文本样式 */
+        .helper-text {
+            color: #999;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        
+        /* 表单组带有帮助文本的样式 */
+        .form-group-with-helper {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="approval-form-container">
+        <div class="approval-form-header">
+            <div>
+                <h2>审批表单</h2>
+            </div>
+        </div>
+        
+        <div class="approval-form-content">
+            <!-- 第一模块：审批分类和类型选择 -->
+            <div class="form-section">
+                <div class="form-section-title">基本信息</div>
+                <div class="form-type-section">
+                    <div class="form-type-item">
+                        <div class="form-group">
+                            <label class="form-label required" for="approval-category">审批分类</label>
+                            <select id="approval-category" class="form-control">
+                                <option value="administrative">行政审批</option>
+                                <option value="procurement">采购审批</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-type-item">
+                        <div class="form-group">
+                            <label class="form-label required" for="approval-type">审批类型</label>
+                            <select id="approval-type" class="form-control">
+                                <option value="leave">请假申请</option>
+                                <option value="business-trip">出差申请</option>
+                                <option value="compensatory">调休申请</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 第二模块：表单内容 -->
+            <div class="form-section">
+                <div class="form-section-title">表单内容</div>
+                
+                <!-- 请假申请表单 -->
+                <div id="leave-form" class="approval-form active">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required" for="leave-type">请假类型</label>
+                            <select id="leave-type" class="form-control">
+                                <option value="annual">年假</option>
+                                <option value="sick">病假</option>
+                                <option value="personal">事假</option>
+                                <option value="marriage">婚假</option>
+                                <option value="maternity">产假</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label required" for="leave-start">开始日期</label>
+                            <input type="date" id="leave-start" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required" for="leave-end">结束日期</label>
+                            <input type="date" id="leave-end" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label required" for="leave-days">请假天数</label>
+                            <input type="number" id="leave-days" class="form-control" placeholder="请输入请假天数">
+                            <span class="helper-text">系统会根据开始和结束日期自动计算</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required" for="leave-reason">请假原因</label>
+                            <textarea id="leave-reason" class="form-control" rows="3" placeholder="请详细描述请假原因"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="leave-attachments">附件上传</label>
+                            <div class="file-upload-wrapper">
+                                <input type="file" id="leave-attachments" multiple>
+                                <div class="file-upload-btn">
+                                    点击上传文件
+                                </div>
+                            </div>
+                            <span class="helper-text">支持PDF、Word、Excel等格式，单个文件不超过10MB</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 出差申请表单 -->
+                <div id="business-trip-form" class="approval-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required" for="trip-purpose">出差目的</label>
+                            <input type="text" id="trip-purpose" class="form-control" placeholder="请输入出差目的">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label required" for="trip-location">出差地点</label>
+                            <input type="text" id="trip-location" class="form-control" placeholder="请输入出差地点">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required" for="trip-start">开始日期</label>
+                            <input type="date" id="trip-start" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label required" for="trip-end">结束日期</label>
+                            <input type="date" id="trip-end" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label required" for="trip-days">出差天数</label>
+                            <input type="number" id="trip-days" class="form-control" placeholder="请输入出差天数">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required" for="trip-budget">预算金额</label>
+                            <input type="number" id="trip-budget" class="form-control" placeholder="请输入预算金额" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required" for="trip-description">出差说明</label>
+                            <textarea id="trip-description" class="form-control" rows="3" placeholder="请输入出差详细说明"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="trip-attachments">附件上传</label>
+                            <div class="file-upload-wrapper">
+                                <input type="file" id="trip-attachments" multiple>
+                                <div class="file-upload-btn">
+                                    点击上传文件
+                                </div>
+                            </div>
+                            <span class="helper-text">支持PDF、Word、Excel等格式，单个文件不超过10MB</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 调休申请表单 -->
+                <div id="compensatory-form" class="approval-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required" for="compensatory-type">调休类型</label>
+                            <select id="compensatory-type" class="form-control">
+                                <option value="overtime">加班调休</option>
+                                <option value="holiday">节假日调休</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label required" for="compensatory-date">调休日期</label>
+                            <input type="date" id="compensatory-date" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required" for="compensatory-hours">调休时长(小时)</label>
+                            <input type="number" id="compensatory-hours" class="form-control" placeholder="请输入调休时长" step="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label required" for="compensatory-reason">调休原因</label>
+                            <textarea id="compensatory-reason" class="form-control" rows="3" placeholder="请输入调休原因"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="compensatory-attachments">附件上传</label>
+                            <div class="file-upload-wrapper">
+                                <input type="file" id="compensatory-attachments" multiple>
+                                <div class="file-upload-btn">
+                                    点击上传文件
+                                </div>
+                            </div>
+                            <span class="helper-text">支持PDF、Word、Excel等格式，单个文件不超过10MB</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 第三模块：审批流程 -->
+            <div class="form-section">
+                <div class="approval-flow">
+                    <div class="flow-title">审批流程</div>
+                    <div class="flow-steps has-passed">
+                        <!-- 添加垂直线 -->
+                        <div class="flow-line"></div>
+                        
+                        <!-- 步骤1：申请人提交 -->
+                        <div class="flow-step passed">
+                            <div class="flow-step-left">
+                                <div class="step-circle passed" title="申请人提交 - 已完成">1</div>
+                                <div class="step-name">申请人提交</div>
+                                <div class="step-info">已完成</div>
+                            </div>
+                            <div class="flow-step-right">
+                                <div class="step-handler">处理人：张三 (申请人)</div>
+                                <div class="step-result">处理结果：已提交</div>
+                                <div class="step-comment">请假3天，处理日常事务交接。</div>
+                                <div class="step-time">处理时间：2023-10-15 09:30:45</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 步骤2：部门经理审批 -->
+                        <div class="flow-step active">
+                            <div class="flow-step-left">
+                                <div class="step-circle active" title="部门经理审批 - 处理中">2</div>
+                                <div class="step-name">部门经理审批</div>
+                                <div class="step-info">处理中</div>
+                            </div>
+                            <div class="flow-step-right">
+                                <div class="step-handler">处理人：李四 (技术部经理)</div>
+                                <div class="step-result">处理结果：待审批</div>
+                                <div class="step-comment">正在审核请假申请，预计今天内完成审批。</div>
+                                <div class="step-time">开始时间：2023-10-15 09:35:12</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 动态环节：根据审批类型显示不同内容 -->
+                        <div id="dynamic-step-leave" class="flow-step dynamic-step">
+                            <div class="flow-step-left">
+                                <div class="step-circle pending" title="表单填完加载 - 待选择">3</div>
+                                <div class="step-name">表单填完加载</div>
+                                <div class="step-info">待选择</div>
+                            </div>
+                        </div>
+                        
+                        <div id="dynamic-step-business-trip" class="flow-step dynamic-step">
+                            <div class="flow-step-left">
+                                <div class="step-circle pending" title="预算审核 - 待处理">3</div>
+                                <div class="step-name">预算审核</div>
+                                <div class="step-info">待处理</div>
+                            </div>
+                            <div class="flow-step-right">
+                                <div class="step-handler">处理人：财务部门</div>
+                                <div class="step-result">处理结果：待处理</div>
+                                <div class="step-comment">审核出差预算合理性。</div>
+                                <div class="step-time">预计处理时间：待定</div>
+                            </div>
+                        </div>
+                        
+                        <div id="dynamic-step-compensatory" class="flow-step dynamic-step">
+                            <div class="flow-step-left">
+                                <div class="step-circle pending" title="考勤确认 - 待处理">3</div>
+                                <div class="step-name">考勤确认</div>
+                                <div class="step-info">待处理</div>
+                            </div>
+                            <div class="flow-step-right">
+                                <div class="step-handler">处理人：王五 (人事专员)</div>
+                                <div class="step-result">处理结果：待处理</div>
+                                <div class="step-comment">确认调休时长与加班记录是否匹配。</div>
+                                <div class="step-time">预计处理时间：待定</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 步骤3：人事审核 -->
+                        <div class="flow-step">
+                            <div class="flow-step-left">
+                                <div class="step-circle pending" title="人事审核 - 待处理">3</div>
+                                <div class="step-name">人事审核</div>
+                                <div class="step-info">待处理</div>
+                            </div>
+                            <div class="flow-step-right">
+                                <div class="step-handler">处理人：王五 (人事专员)</div>
+                                <div class="step-result">处理结果：待处理</div>
+                                <div class="step-comment">等待部门经理审批后进行人事审核。</div>
+                                <div class="step-time">预计处理时间：待定</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 步骤4：总经理审批 -->
+                        <div class="flow-step">
+                            <div class="flow-step-left">
+                                <div class="step-circle pending" title="总经理审批 - 待处理">4</div>
+                                <div class="step-name">总经理审批</div>
+                                <div class="step-info">待处理</div>
+                            </div>
+                            <div class="flow-step-right">
+                                <div class="step-handler">处理人：赵六 (总经理)</div>
+                                <div class="step-result">处理结果：待处理</div>
+                                <div class="step-comment">等待人事审核后进行总经理审批。</div>
+                                <div class="step-time">预计处理时间：待定</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 附加流程环节 -->
+                        <div class="flow-step addon-step">
+                            <div class="flow-step-left">
+                                <div class="step-circle" title="添加附加流程">+</div>
+                                <div class="step-name">附加流程</div>
+                                <div class="step-info">可选</div>
+                            </div>
+                            <div class="flow-step-right">
+                                <div class="step-handler">处理人：手动选择</div>
+                                <div class="step-result">处理结果：未选择</div>
+                                <div class="step-comment">
+                                    <div class="addon-content">
+                                        <p>点击加号按钮可添加附加审批流程，例如：</p>
+                                        <p>• 财务特殊审核</p>
+                                        <p>• 技术方案评审</p>
+                                        <p>• 其他相关部门会签</p>
+                                    </div>
+                                </div>
+                                <div class="step-time">处理时间：根据选择而定</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 步骤5：审批完成 -->
+                        <div class="flow-step">
+                            <div class="flow-step-left">
+                                <div class="step-circle pending" title="审批完成 - 待处理">5</div>
+                                <div class="step-name">审批完成</div>
+                                <div class="step-info">待处理</div>
+                            </div>
+                            <div class="flow-step-right">
+                                <div class="step-handler">处理人：系统自动处理</div>
+                                <div class="step-result">处理结果：待处理</div>
+                                <div class="step-comment">所有审批流程完成后自动归档。</div>
+                                <div class="step-time">预计完成时间：待定</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 底部操作按钮 -->
+            <div class="form-actions">
+                <button id="cancel-btn" class="btn btn-default">取消</button>
+                <button id="save-btn" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 等待页面加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取相关元素
+            const approvalTypeSelect = document.getElementById('approval-type');
+            const forms = document.querySelectorAll('.approval-form');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const saveBtn = document.getElementById('save-btn');
+            
+            // 获取动态步骤元素
+                const dynamicSteps = {
+                    leave: document.getElementById('dynamic-step-leave'),
+                    'business-trip': document.getElementById('dynamic-step-business-trip'),
+                    compensatory: document.getElementById('dynamic-step-compensatory')
+                };
+            
+            // 监听审批类型变化，切换表单显示和动态步骤
+            approvalTypeSelect.addEventListener('change', function() {
+                const selectedType = this.value;
+                
+                // 隐藏所有表单
+                forms.forEach(form => {
+                    form.classList.remove('active');
+                });
+                
+                // 显示选中的表单
+                const selectedForm = document.getElementById(selectedType + '-form');
+                if (selectedForm) {
+                    selectedForm.classList.add('active');
+                }
+                
+                // 隐藏所有动态步骤
+                Object.values(dynamicSteps).forEach(step => {
+                    if (step) { // 添加检查，确保元素存在
+                        step.classList.remove('active');
+                    }
+                });
+                
+                // 显示与选中类型匹配的动态步骤
+                if (dynamicSteps[selectedType] && dynamicSteps[selectedType].classList) {
+                    dynamicSteps[selectedType].classList.add('active');
+                }
+                
+                // 重新编号步骤圆圈
+                updateStepNumbers();
+            });
+            
+            // 重新编号步骤圆圈的函数
+            function updateStepNumbers() {
+                let stepNumber = 1;
+                
+                // 遍历所有步骤
+                document.querySelectorAll('.flow-step').forEach(step => {
+                    // 检查步骤是否可见
+                    if (step.classList.contains('dynamic-step') && !step.classList.contains('active')) {
+                        return; // 跳过隐藏的动态步骤
+                    }
+                    
+                    // 更新步骤编号
+                    const stepCircle = step.querySelector('.step-circle');
+                    if (stepCircle && stepCircle.textContent !== '+') { // 不更新附加流程的加号
+                        stepCircle.textContent = stepNumber;
+                        stepNumber++;
+                    }
+                });
+            }
+            
+            // 取消按钮事件
+            cancelBtn.addEventListener('click', function() {
+                // 这里可以根据需求实现取消逻辑，比如返回上一页或清空表单
+                if (confirm('确定要取消当前操作吗？未保存的内容将丢失。')) {
+                    window.history.back();
+                }
+            });
+            
+            // 保存按钮事件
+            saveBtn.addEventListener('click', function() {
+                // 获取当前激活的表单
+                const activeForm = document.querySelector('.approval-form.active');
+                const formId = activeForm.id;
+                let formData = {};
+                
+                // 根据表单ID收集不同的数据
+                switch(formId) {
+                    case 'leave-form':
+                        formData = {
+                            type: 'leave',
+                            leaveType: document.getElementById('leave-type').value,
+                            startDate: document.getElementById('leave-start').value,
+                            endDate: document.getElementById('leave-end').value,
+                            days: document.getElementById('leave-days').value,
+                            reason: document.getElementById('leave-reason').value
+                            // 附件上传需要特殊处理，这里简化了
+                        };
+                        break;
+                    case 'business-trip-form':
+                        formData = {
+                            type: 'business-trip',
+                            purpose: document.getElementById('trip-purpose').value,
+                            location: document.getElementById('trip-location').value,
+                            startDate: document.getElementById('trip-start').value,
+                            endDate: document.getElementById('trip-end').value,
+                            days: document.getElementById('trip-days').value,
+                            budget: document.getElementById('trip-budget').value,
+                            description: document.getElementById('trip-description').value
+                            // 附件上传需要特殊处理，这里简化了
+                        };
+                        break;
+                    case 'compensatory-form':
+                        formData = {
+                            type: 'compensatory',
+                            compensatoryType: document.getElementById('compensatory-type').value,
+                            date: document.getElementById('compensatory-date').value,
+                            hours: document.getElementById('compensatory-hours').value,
+                            reason: document.getElementById('compensatory-reason').value
+                            // 附件上传需要特殊处理，这里简化了
+                        };
+                        break;
+                }
+                
+                // 表单验证逻辑
+                if (!validateForm(formData)) {
+                    return;
+                }
+                
+                // 模拟保存操作
+                console.log('保存表单数据:', formData);
+                showSuccessMessage('表单保存成功！');
+            });
+            
+            // 表单验证函数
+            function validateForm(formData) {
+                // 基本验证逻辑
+                for (let key in formData) {
+                    if (formData[key] === '' || formData[key] === null || formData[key] === undefined) {
+                        showErrorMessage(`请填写完整的表单信息`);
+                        return false;
+                    }
+                }
+                
+                // 根据不同表单类型进行特定验证
+                if (formData.type === 'leave') {
+                    const startDate = new Date(formData.startDate);
+                    const endDate = new Date(formData.endDate);
+                    
+                    if (startDate > endDate) {
+                        showErrorMessage('开始日期不能晚于结束日期');
+                        return false;
+                    }
+                    
+                    // 计算请假天数并验证
+                    const diffTime = Math.abs(endDate - startDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                    
+                    if (formData.days !== diffDays.toString()) {
+                        showErrorMessage(`请假天数计算错误，应为${diffDays}天`);
+                        return false;
+                    }
+                }
+                
+                return true;
+            }
+            
+            // 显示错误消息
+            function showErrorMessage(message) {
+                // 检查是否已存在错误消息元素
+                let errorElement = document.querySelector('.error-message');
+                
+                if (!errorElement) {
+                    errorElement = document.createElement('div');
+                    errorElement.className = 'error-message';
+                    document.querySelector('.form-actions').before(errorElement);
+                }
+                
+                errorElement.textContent = message;
+                
+                // 3秒后自动隐藏错误消息
+                setTimeout(() => {
+                    if (errorElement) {
+                        errorElement.remove();
+                    }
+                }, 3000);
+            }
+            
+            // 显示成功消息
+            function showSuccessMessage(message) {
+                // 创建成功消息元素
+                const successElement = document.createElement('div');
+                successElement.className = 'success-message';
+                successElement.style.position = 'fixed';
+                successElement.style.top = '20px';
+                successElement.style.right = '20px';
+                successElement.style.padding = '12px 24px';
+                successElement.style.backgroundColor = '#f6ffed';
+                successElement.style.border = '1px solid #b7eb8f';
+                successElement.style.borderRadius = '4px';
+                successElement.style.color = '#52c41a';
+                successElement.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                successElement.style.zIndex = '1000';
+                successElement.style.animation = 'slideIn 0.3s ease-out';
+                successElement.innerHTML = '✓ ' + message;
+                
+                document.body.appendChild(successElement);
+                
+                // 2秒后自动隐藏成功消息
+                setTimeout(() => {
+                    successElement.style.animation = 'slideOut 0.3s ease-in';
+                    setTimeout(() => {
+                        successElement.remove();
+                    }, 300);
+                }, 2000);
+            }
+            
+            // 触发一次审批类型变化事件，以便初始化显示
+            const event = new Event('change');
+            approvalTypeSelect.dispatchEvent(event);
+        });
+    </script>
+</body>
+</html>

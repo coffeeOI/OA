@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作流设计 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="workflow_from.css">
+    <script src="../JS/common.js"></script>
+</head>
+<body>
+    <div class="workflow-design-container">
+        <div class="workflow-design-header">
+            <h1 class="workflow-design-title">工作流设计</h1>
+            <div class="workflow-design-actions">
+                <button class="btn btn-default" onclick="goBack()">返回</button>
+                <button class="btn btn-primary" onclick="saveAndPublishWorkflow()">保存并发布</button>
+                <button class="btn btn-success" onclick="saveWorkflowAsDraft()">保存为草稿</button>
+            </div>
+        </div>
+
+        <!-- 基本信息表单 -->
+        <div class="workflow-basic-info">
+            <h2 style="font-size: 18px; margin-bottom: 16px; color: #333;">基本信息</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">工作流名称 *</label>
+                    <input type="text" id="workflow-name" class="form-control" placeholder="请输入工作流名称">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">工作流类型 *</label>
+                    <select id="workflow-type" class="form-control">
+                        <option value="">请选择工作流类型</option>
+                        <option value="leave">请假申请</option>
+                        <option value="expense">费用报销</option>
+                        <option value="purchase">采购申请</option>
+                        <option value="project">项目审批</option>
+                        <option value="other">其他流程</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">工作流状态</label>
+                    <select id="workflow-status" class="form-control">
+                        <option value="draft">草稿</option>
+                        <option value="active">已发布</option>
+                        <option value="inactive">已停用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">工作流描述</label>
+                    <textarea id="workflow-description" class="textarea-control" placeholder="请输入工作流描述"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 工作流设计区域 -->
+        <div class="workflow-content-design">
+            <h2 style="font-size: 18px; margin-bottom: 16px; color: #333;">工作流设计</h2>
+            
+            <!-- 节点工具栏 -->
+            <div class="node-toolbar">
+                <div class="node-toolbar-item" onclick="addNode('approval')">
+                    <div class="node-toolbar-item-icon">👨‍💼</div>
+                    <div class="node-toolbar-item-name">审批</div>
+                </div>
+                <div class="node-toolbar-item" onclick="addNode('task')">
+                    <div class="node-toolbar-item-icon">📝</div>
+                    <div class="node-toolbar-item-name">办理</div>
+                </div>
+                <div class="node-toolbar-item" onclick="addNode('cc')">
+                    <div class="node-toolbar-item-icon">📧</div>
+                    <div class="node-toolbar-item-name">抄送</div>
+                </div>
+                <div class="node-toolbar-item" onclick="addNode('branch')">
+                    <div class="node-toolbar-item-icon">↗️</div>
+                    <div class="node-toolbar-item-name">分支</div>
+                </div>
+                <div class="node-toolbar-item" onclick="addNode('merge')">
+                    <div class="node-toolbar-item-icon">↘️</div>
+                    <div class="node-toolbar-item-name">合并</div>
+                </div>
+                <div class="node-toolbar-item" onclick="addNode('business')">
+                    <div class="node-toolbar-item-icon">💼</div>
+                    <div class="node-toolbar-item-name">业务</div>
+                </div>
+                <div class="node-toolbar-item" onclick="addNode('ai')">
+                    <div class="node-toolbar-item-icon">🤖</div>
+                    <div class="node-toolbar-item-name">AI</div>
+                </div>
+                <!-- <div class="node-toolbar-item" onclick="addNode('data')">
+                    <div class="node-toolbar-item-icon">📊</div>
+                    <div class="node-toolbar-item-name">数据</div>
+                </div> -->
+                <!-- <div class="node-toolbar-item" onclick="addNode('macro')">
+                    <div class="node-toolbar-item-icon">🔄</div>
+                    <div class="node-toolbar-item-name">宏</div>
+                </div> -->
+                <div class="node-toolbar-item" onclick="addNode('end')">
+                    <div class="node-toolbar-item-icon">🏁</div>
+                    <div class="node-toolbar-item-name">结束</div>
+                </div>
+            </div>
+            
+            <!-- 工作流画布 -->
+            <div class="workflow-canvas-container">
+                <div id="workflow-canvas" class="workflow-canvas">
+                    <!-- 第一行：1个开始节点 -->
+                    <div class="workflow-node-container">
+                        <div class="branch-node-wrapper">
+                            <div class="workflow-node start-node" data-node-id="start-1" data-node-type="start" style="width: 200px; height: 120px;">
+                                <div class="node-header">
+                                    <span class="node-type">开始节点</span>
+                                    <div class="node-actions">
+                                        <button class="node-action-btn" onclick="showNodeProperties('start-1')">编辑</button>
+                                    </div>
+                                </div>
+                                <div class="node-title">发起人</div>
+                                <div style="font-size: 12px; color: #666;">开始流程</div>
+                            </div>
+                            <div class="branch-add-node" data-branch-id="start-1" data-branch-index="0" data-parent-node-id="start-1">
+                                <span class="add-node-icon">+</span>
+                                <span class="add-node-text">添加节点</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 第二行：1个审批节点 -->
+                    <div class="workflow-node-container">
+                        <div class="branch-node-wrapper">
+                            <div class="workflow-node approval-node" data-node-id="approval-1" data-node-type="approval" style="width: 200px; height: 120px;">
+                                <div class="node-header">
+                                    <span class="node-type">审批节点</span>
+                                    <div class="node-actions">
+                                        <button class="node-action-btn" onclick="showNodeProperties('approval-1')">编辑</button>
+                                        <button class="node-action-btn" onclick="deleteNode('approval-1')">删除</button>
+                                    </div>
+                                </div>
+                                <div class="node-title">部门经理审批</div>
+                                <div style="font-size: 12px; color: #666;">审批流程</div>
+                            </div>
+                            <div class="branch-add-node" data-branch-id="approval-1" data-branch-index="0" data-parent-node-id="approval-1">
+                                <span class="add-node-icon">+</span>
+                                <span class="add-node-text">添加节点</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 第三行：1个分支节点 -->
+                    <div class="workflow-branch-row" data-branch-id="branch-1">
+                        <div class="branch-node-wrapper">
+                            <div class="workflow-node branch-node" data-node-id="branch-1" data-node-type="branch" style="width: 200px; height: 120px;">
+                                <div class="node-header">
+                                    <span class="node-type">分支节点</span>
+                                    <div class="node-actions">
+                                        <button class="node-action-btn" onclick="showNodeProperties('branch-1')">编辑</button>
+                                        <button class="node-action-btn" onclick="deleteNode('branch-1')">删除</button>
+                                    </div>
+                                </div>
+                                <div class="node-title">费用分支</div>
+                                <div style="font-size: 12px; color: #666;">根据条件分支</div>
+                            </div>
+                            <!-- <div class="branch-add-node" data-branch-id="branch-1" data-branch-index="0" data-parent-node-id="branch-1">
+                                <span class="add-node-icon">+</span>
+                                <span class="add-node-text">添加节点</span>
+                            </div> -->
+                        </div>
+                    </div>
+                    
+                    <!-- 第四行：2个审批节点（分支） -->
+                    <div class="workflow-branch-row" data-parent-branch-id="branch-1">
+                        <div class="branch-node-wrapper">
+                            <div class="workflow-node condition-node" data-node-id="condition-1" data-node-type="condition" data-branch-index="0" data-parent-branch-id="branch-1" style="width: 200px; height: 120px;">
+                                <div class="node-header">
+                                    <span class="node-type">分支条件节点</span>
+                                </div>
+                                <div class="node-title">总监审批</div>
+                                <div style="font-size: 12px; color: #666;">金额大于1000元</div>
+                            </div>
+                            <div class="branch-add-node" data-branch-id="branch-1" data-branch-index="0" data-parent-node-id="condition-1">
+                                <span class="add-node-icon">+</span>
+                                <span class="add-node-text">添加节点</span>
+                            </div>
+                        </div>
+                        <div class="branch-node-wrapper">
+                            <div class="workflow-node condition-node" data-node-id="condition-2" data-node-type="condition" data-branch-index="1" data-parent-branch-id="branch-1" style="width: 200px; height: 120px;">
+                                <div class="node-header">
+                                    <span class="node-type">分支条件节点</span>
+                                </div>
+                                <div class="node-title">其他情况</div>
+                                <div style="font-size: 12px; color: #666;">金额小于等于1000元</div>
+                            </div>
+                            <div class="branch-add-node" data-branch-id="branch-1" data-branch-index="1" data-parent-node-id="condition-2">
+                                <span class="add-node-icon">+</span>
+                                <span class="add-node-text">添加节点</span>
+                            </div>
+                        </div>
+                        <div class="branch-node-wrapper">
+                            <div class="workflow-node condition-node" data-node-id="condition-3" data-node-type="condition" data-branch-index="2" data-parent-branch-id="branch-1" style="width: 200px; height: 120px;">
+                                <div class="node-header">
+                                    <span class="node-type">分支条件节点</span>
+                                </div>
+                                <div class="node-title">特殊情况</div>
+                                <div style="font-size: 12px; color: #666;">VIP客户处理</div>
+                            </div>
+                            <div class="branch-add-node" data-branch-id="branch-1" data-branch-index="2" data-parent-node-id="condition-3">
+                                <span class="add-node-icon">+</span>
+                                <span class="add-node-text">添加节点</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 第五行：1个合并节点 -->
+                    <div class="workflow-node-container">
+                        <div class="branch-node-wrapper">
+                            <div class="workflow-node merge-node" data-node-id="merge-1" data-node-type="merge" style="width: 200px; height: 120px;">
+                                <div class="node-header">
+                                    <span class="node-type">合并节点</span>
+                                    <div class="node-actions">
+                                        <button class="node-action-btn" onclick="showNodeProperties('merge-1')">编辑</button>
+                                        <button class="node-action-btn" onclick="deleteNode('merge-1')">删除</button>
+                                    </div>
+                                </div>
+                                <div class="node-title">合并节点</div>
+                                <div style="font-size: 12px; color: #666;">合并多个分支</div>
+                            </div>
+                            <div class="branch-add-node" data-branch-id="merge-1" data-branch-index="0" data-parent-node-id="merge-1">
+                                <span class="add-node-icon">+</span>
+                                <span class="add-node-text">添加节点</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 第六行：1个抄送节点 -->
+                    <div class="workflow-node-container">
+                        <div class="branch-node-wrapper">
+                            <div class="workflow-node cc-node" data-node-id="cc-1" data-node-type="cc" style="width: 200px; height: 120px;">
+                                <div class="node-header">
+                                    <span class="node-type">抄送节点</span>
+                                    <div class="node-actions">
+                                        <button class="node-action-btn" onclick="showNodeProperties('cc-1')">编辑</button>
+                                        <button class="node-action-btn" onclick="deleteNode('cc-1')">删除</button>
+                                    </div>
+                                </div>
+                                <div class="node-title">抄送节点</div>
+                                <div style="font-size: 12px; color: #666;">通知相关人员</div>
+                            </div>
+                            <div class="branch-add-node" data-branch-id="cc-1" data-branch-index="0" data-parent-node-id="cc-1">
+                                <span class="add-node-icon">+</span>
+                                <span class="add-node-text">添加节点</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 第七行：1个办理节点 -->
+                    <div class="workflow-node-container">
+                        <div class="branch-node-wrapper">
+                            <div class="workflow-node task-node" data-node-id="task-1" data-node-type="task" style="width: 200px; height: 120px;">
+                                <div class="node-header">
+                                    <span class="node-type">办理节点</span>
+                                    <div class="node-actions">
+                                        <button class="node-action-btn" onclick="showNodeProperties('task-1')">编辑</button>
+                                        <button class="node-action-btn" onclick="deleteNode('task-1')">删除</button>
+                                    </div>
+                                </div>
+                                <div class="node-title">财务办理</div>
+                                <div style="font-size: 12px; color: #666;">处理财务流程</div>
+                            </div>
+                            <div class="branch-add-node" data-branch-id="task-1" data-branch-index="0" data-parent-node-id="task-1">
+                                <span class="add-node-icon">+</span>
+                                <span class="add-node-text">添加节点</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 新增：业务节点（在办理节点和AI节点之间） -->
+                    <div class="workflow-node-container">
+                        <div class="branch-node-wrapper">
+                            <div class="workflow-node business-node" data-node-id="business-1" data-node-type="business" style="width: 200px; height: 120px;">
+                                <div class="node-header">
+                                    <span class="node-type">业务节点</span>
+                                    <div class="node-actions">
+                                        <button class="node-action-btn" onclick="showNodeProperties('business-1')">编辑</button>
+                                        <button class="node-action-btn" onclick="deleteNode('business-1')">删除</button>
+                                    </div>
+                                </div>
+                                <div class="node-title">业务处理</div>
+                                <div style="font-size: 12px; color: #666;">业务逻辑处理</div>
+                            </div>
+                            <div class="branch-add-node" data-branch-id="business-1" data-branch-index="0" data-parent-node-id="business-1">
+                                <span class="add-node-icon">+</span>
+                                <span class="add-node-text">添加节点</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 第八行：1个AI节点 -->
+                    <div class="workflow-node-container">
+                        <div class="branch-node-wrapper">
+                            <div class="workflow-node ai-node" data-node-id="ai-1" data-node-type="ai" style="width: 200px; height: 120px;">
+                                <div class="node-header">
+                                    <span class="node-type">AI节点</span>
+                                    <div class="node-actions">
+                                        <button class="node-action-btn" onclick="showNodeProperties('ai-1')">编辑</button>
+                                        <button class="node-action-btn" onclick="deleteNode('ai-1')">删除</button>
+                                    </div>
+                                </div>
+                                <div class="node-title">AI节点</div>
+                                <div style="font-size: 12px; color: #666;">AI分析处理</div>
+                            </div>
+                            <div class="branch-add-node" data-branch-id="ai-1" data-branch-index="0" data-parent-node-id="ai-1">
+                                <span class="add-node-icon">+</span>
+                                <span class="add-node-text">添加节点</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 新添加：一行分支节点 -->
+                    <div class="workflow-node-container">
+                        <div class="branch-node-wrapper">
+                            <div class="workflow-node branch-node" data-node-id="branch-2" data-node-type="branch" style="width: 200px; height: 120px;">
+                                <div class="node-header">
+                                    <span class="node-type">分支节点</span>
+                                    <div class="node-actions">
+                                        <button class="node-action-btn" onclick="showNodeProperties('branch-2')">编辑</button>
+                                        <button class="node-action-btn" onclick="deleteNode('branch-2')">删除</button>
+                                    </div>
+                                </div>
+                                <div class="node-title">分支决策</div>
+                                <div style="font-size: 12px; color: #666;">根据条件分支处理</div>
+                            </div>
+                            <!-- <div class="branch-add-node" data-branch-id="branch-2" data-branch-index="0" data-parent-node-id="branch-2">
+                                <span class="add-node-icon">+</span>
+                                <span class="add-node-text">添加节点</span>
+                            </div> -->
+                        </div>
+                    </div>
+                    
+                    <!-- 新添加：一行两个分支条件节点 -->
+                    <div class="workflow-branch-row" data-parent-branch-id="branch-2">
+                        <div class="branch-node-wrapper">
+                            <div class="workflow-node condition-node" data-node-id="condition-4" data-node-type="condition" data-branch-index="0" data-parent-branch-id="branch-2" style="width: 200px; height: 120px;">
+                                <div class="node-header">
+                                    <span class="node-type">分支条件节点</span>
+                                </div>
+                                <div class="node-title">条件一</div>
+                                <div style="font-size: 12px; color: #666;">优先处理</div>
+                            </div>
+                            <div class="branch-add-node" data-branch-id="branch-2" data-branch-index="0" data-parent-node-id="condition-4" >
+                                <span class="add-node-icon">+</span>
+                                <span class="add-node-text">添加节点</span>
+                            </div>
+                        </div>
+                        <div class="branch-node-wrapper">
+                            <div class="workflow-node condition-node" data-node-id="condition-5" data-node-type="condition" data-branch-index="1" data-parent-branch-id="branch-2" style="width: 200px; height: 120px;">
+                                <div class="node-header">
+                                    <span class="node-type">分支条件节点</span>
+                                </div>
+                                <div class="node-title">条件二</div>
+                                <div style="font-size: 12px; color: #666;">标准处理</div>
+                            </div>
+                            <div class="branch-add-node" data-branch-id="branch-2" data-branch-index="1" data-parent-node-id="condition-5">
+                                <span class="add-node-icon">+</span>
+                                <span class="add-node-text">添加节点</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 第九行：1个结束节点 + 1个空节点 -->
+                    <div class="workflow-node-container">
+                        <div class="workflow-node end-node" data-node-id="end-1" data-node-type="end" style="width: 200px; height: 120px;">
+                            <div class="node-header">
+                                <span class="node-type">结束节点</span>
+                                <div class="node-actions">
+                                    <button class="node-action-btn" onclick="showNodeProperties('end-1')">编辑</button>
+                                    <button class="node-action-btn" onclick="deleteNode('end-1')">删除</button>
+                                </div>
+                            </div>
+                            <div class="node-title">结束节点</div>
+                            <div style="font-size: 12px; color: #666;">流程结束</div>
+                        </div>
+                        <!-- 空节点 -->
+                        <div class="workflow-node empty-node" data-node-id="empty-1" data-node-type="empty" style="width: 200px; height: 120px; border: none; box-shadow: none;">
+                            <!-- 空节点不显示任何内容 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 添加节点按钮 -->
+                    <div class="workflow-node-container">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 节点类型选择面板 -->
+    <div id="node-type-panel" class="node-type-panel">
+        <div class="node-type-item" data-node-type="approval">
+            <span>👨‍💼</span> 审批
+        </div>
+        <div class="node-type-item" data-node-type="task">
+            <span>📝</span> 办理
+        </div>
+        <div class="node-type-item" data-node-type="cc">
+            <span>📧</span> 抄送
+        </div>
+        <div class="node-type-item" data-node-type="branch">
+            <span>↗️</span> 分支
+        </div>
+        <div class="node-type-item" data-node-type="merge">
+            <span>↘️</span> 合并
+        </div>
+        <div class="node-type-item" data-node-type="business">
+            <span>💼</span> 业务
+        </div>
+        <div class="node-type-item" data-node-type="ai">
+            <span>🤖</span> AI
+        </div>
+        <div class="node-type-item" data-node-type="data">
+            <span>📊</span> 数据
+        </div>
+        <div class="node-type-item" data-node-type="macro">
+            <span>🔄</span> 宏
+        </div>
+        <div class="node-type-item" data-node-type="end">
+            <span>🏁</span> 结束
+        </div>
+    </div>
+
+    <!-- 节点属性面板 -->
+    <div id="node-properties-panel" class="node-properties-panel">
+        <div class="node-properties-header">
+            <h3 id="node-properties-title">节点属性</h3>
+            <button class="close-properties-btn" onclick="hideNodeProperties()">×</button>
+        </div>
+        
+        <div id="node-properties-content">
+            <!-- 节点属性内容将通过JavaScript动态生成 -->
+        </div>
+    </div>
+
+    <!-- 指定人员面板 -->
+    <div id="specified-persons-panel" class="specified-persons-panel" style="display: none;">
+        <div class="specified-persons-header">
+            <h3>选择人员</h3>
+            <button class="close-btn" onclick="hideSpecifiedPersonsPanel()">×</button>
+        </div>
+        <div class="specified-persons-content">
+            <div class="search-box">
+                <input type="text" placeholder="搜索人员" class="search-input">
+                <button class="search-btn">🔍</button>
+            </div>
+            <div class="persons-list">
+                <div class="person-item">
+                    <input type="checkbox" id="person-1">
+                    <label for="person-1">张三 (zhangsan@example.com)</label>
+                </div>
+                <div class="person-item">
+                    <input type="checkbox" id="person-2">
+                    <label for="person-2">李四 (lisi@example.com)</label>
+                </div>
+                <div class="person-item">
+                    <input type="checkbox" id="person-3">
+                    <label for="person-3">王五 (wangwu@example.com)</label>
+                </div>
+                <div class="person-item">
+                    <input type="checkbox" id="person-4">
+                    <label for="person-4">赵六 (zhaoliu@example.com)</label>
+                </div>
+                <div class="person-item">
+                    <input type="checkbox" id="person-5">
+                    <label for="person-5">钱七 (qianqi@example.com)</label>
+                </div>
+            </div>
+        </div>
+        <div class="specified-persons-footer">
+            <button class="btn btn-default" onclick="hideSpecifiedPersonsPanel()">取消</button>
+            <button class="btn btn-primary" onclick="confirmSpecifiedPersons()">确定</button>
+        </div>
+    </div>
+
+    <!-- 组织结构面板 -->
+    <div id="org-structure-panel" class="org-structure-panel" style="display: none;">
+        <div class="org-structure-header">
+            <h3>选择部门</h3>
+            <button class="close-btn" onclick="hideOrgStructurePanel()">×</button>
+        </div>
+        <div class="org-structure-content">
+            <div class="org-tree">
+                <div class="org-node">
+                    <input type="checkbox" id="org-1">
+                    <label for="org-1">技术部</label>
+                    <div class="org-children">
+                        <div class="org-node">
+                            <input type="checkbox" id="org-1-1">
+                            <label for="org-1-1">前端组</label>
+                        </div>
+                        <div class="org-node">
+                            <input type="checkbox" id="org-1-2">
+                            <label for="org-1-2">后端组</label>
+                        </div>
+                        <div class="org-node">
+                            <input type="checkbox" id="org-1-3">
+                            <label for="org-1-3">测试组</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="org-node">
+                    <input type="checkbox" id="org-2">
+                    <label for="org-2">产品部</label>
+                </div>
+                <div class="org-node">
+                    <input type="checkbox" id="org-3">
+                    <label for="org-3">市场部</label>
+                </div>
+                <div class="org-node">
+                    <input type="checkbox" id="org-4">
+                    <label for="org-4">财务部</label>
+                </div>
+            </div>
+        </div>
+        <div class="org-structure-footer">
+            <button class="btn btn-default" onclick="hideOrgStructurePanel()">取消</button>
+            <button class="btn btn-primary" onclick="confirmOrgStructure()">确定</button>
+        </div>
+    </div>
+
+    <!-- 角色面板 -->
+    <div id="role-panel" class="role-panel" style="display: none;">
+        <div class="role-header">
+            <h3>选择角色</h3>
+            <button class="close-btn" onclick="hideRolePanel()">×</button>
+        </div>
+        <div class="role-content">
+            <div class="role-list">
+                <div class="role-item">
+                    <input type="checkbox" id="role-1">
+                    <label for="role-1">管理员</label>
+                </div>
+                <div class="role-item">
+                    <input type="checkbox" id="role-2">
+                    <label for="role-2">普通员工</label>
+                </div>
+                <div class="role-item">
+                    <input type="checkbox" id="role-3">
+                    <label for="role-3">部门经理</label>
+                </div>
+                <div class="role-item">
+                    <input type="checkbox" id="role-4">
+                    <label for="role-4">财务人员</label>
+                </div>
+                <div class="role-item">
+                    <input type="checkbox" id="role-5">
+                    <label for="role-5">人力资源</label>
+                </div>
+            </div>
+        </div>
+        <div class="role-footer">
+            <button class="btn btn-default" onclick="hideRolePanel()">取消</button>
+            <button class="btn btn-primary" onclick="confirmRoles()">确定</button>
+        </div>
+    </div>
+
+    <!-- 业务结构面板 -->
+    <div id="business-structure-panel" class="business-structure-panel" style="display: none;">
+        <div class="business-structure-header">
+            <h3>选择业务结构</h3>
+            <button class="close-btn" onclick="hideBusinessStructurePanel()">×</button>
+        </div>
+        <div class="business-structure-content">
+            <div class="business-tree" id="business-tree-panel">
+                <div class="business-tree-node">
+                    <input type="checkbox" id="business-1">
+                    <label for="business-1">项目A</label>
+                    <div class="business-children">
+                        <div class="business-tree-node">
+                            <input type="checkbox" id="business-1-1">
+                            <label for="business-1-1">需求阶段</label>
+                        </div>
+                        <div class="business-tree-node">
+                            <input type="checkbox" id="business-1-2">
+                            <label for="business-1-2">开发阶段</label>
+                        </div>
+                        <div class="business-tree-node">
+                            <input type="checkbox" id="business-1-3">
+                            <label for="business-1-3">测试阶段</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="business-tree-node">
+                    <input type="checkbox" id="business-2">
+                    <label for="business-2">项目B</label>
+                </div>
+            </div>
+        </div>
+        <div class="business-structure-footer">
+            <button class="btn btn-default" onclick="hideBusinessStructurePanel()">取消</button>
+            <button class="btn btn-primary" onclick="confirmBusinessStructure()">确定</button>
+        </div>
+    </div>
+
+    <!-- 消息提示框 -->
+    <div id="message" class="message" style="display: none;"></div>
+    
+    <!-- 节点属性面板 -->
+    <div id="node-properties-panel" class="node-properties-panel" style="display: none;">
+        <div class="node-properties-header">
+            <h3 class="node-properties-title">节点属性</h3>
+            <button class="close-properties-btn" onclick="hideNodeProperties()">×</button>
+        </div>
+        <div id="node-properties-content">
+            <!-- 节点属性内容将通过JavaScript动态生成 -->
+        </div>
+    </div>
+
+    <!-- 引入JavaScript -->
+    <script src="workflow_from.js"></script>
+    
+    <!-- 初始化保存和发布按钮 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const saveButton = document.querySelector('#save-workflow');
+            const publishButton = document.querySelector('#publish-workflow');
+            const backButton = document.querySelector('#back-btn');
+            
+            if (saveButton) {
+                saveButton.addEventListener('click', function() {
+                    saveWorkflowAsDraft();
+                });
+            }
+            
+            if (publishButton) {
+                publishButton.addEventListener('click', function() {
+                    saveAndPublishWorkflow();
+                });
+            }
+            
+            if (backButton) {
+                backButton.addEventListener('click', function() {
+                    goBack();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

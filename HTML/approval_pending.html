@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>待我审批 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* 容器样式 */
+        .approval-pending-container {
+            padding: 20px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* 第一行：页面名称和操作按钮 */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 0;
+        }
+        
+        .page-header h2 {
+            font-size: 24px;
+            font-weight: 500;
+            color: #1f2937;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background-color: #409eff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #66b1ff;
+        }
+        
+        .btn-default {
+            background-color: #ffffff;
+            border: 1px solid #dcdfe6;
+            color: #606266;
+        }
+        
+        .btn-default:hover {
+            border-color: #409eff;
+            color: #409eff;
+        }
+        
+        /* 第二行：页签和查询条件 */
+        .tabs-and-search {
+            background-color: white;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e4e7ed;
+            margin-bottom: 16px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #606266;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            color: #409eff;
+            border-bottom-color: #409eff;
+            font-weight: 500;
+        }
+        
+        .search-filter-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            flex: 1;
+            max-width: 300px;
+            padding: 8px 16px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .filter-label {
+            font-size: 14px;
+            color: #606266;
+            white-space: nowrap;
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .date-range {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .date-input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        /* 第三行：统计数据 */
+        .statistics-section {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            position: relative;
+        }
+        
+        /* 扁平化图标样式 */
+        .flat-icon {
+            position: relative;
+            width: 24px;
+            height: 24px;
+        }
+        
+        /* 图表图标 */
+        .chart-icon::before, .chart-icon::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            background-color: currentColor;
+        }
+        
+        .chart-icon::before {
+            width: 4px;
+            height: 12px;
+            left: 2px;
+            border-radius: 2px;
+        }
+        
+        .chart-icon::after {
+            width: 4px;
+            height: 20px;
+            left: 10px;
+            border-radius: 2px;
+        }
+        
+        .chart-icon span {
+            position: absolute;
+            width: 4px;
+            height: 16px;
+            background-color: currentColor;
+            bottom: 0;
+            right: 2px;
+            border-radius: 2px;
+        }
+        
+        /* 紧急图标 */
+        .urgent-icon {
+            width: 16px;
+            height: 20px;
+            position: relative;
+        }
+        
+        .urgent-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 12px solid currentColor;
+        }
+        
+        .urgent-icon::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background-color: currentColor;
+            border-radius: 2px;
+        }
+        
+        /* 普通图标 */
+        .normal-icon {
+            width: 20px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-radius: 2px;
+        }
+        
+        /* 完成图标 */
+        .finished-icon {
+            position: relative;
+            width: 20px;
+            height: 12px;
+        }
+        
+        .finished-icon::before, .finished-icon::after {
+            content: '';
+            position: absolute;
+            background-color: currentColor;
+        }
+        
+        .finished-icon::before {
+            width: 2px;
+            height: 12px;
+            left: 3px;
+            transform: rotate(-45deg);
+            transform-origin: bottom left;
+        }
+        
+        .finished-icon::after {
+            width: 2px;
+            height: 6px;
+            right: 3px;
+            transform: rotate(45deg);
+            transform-origin: bottom right;
+        }
+        
+        .stat-icon-all {
+            background-color: #409eff;
+        }
+        
+        .stat-icon-urgent {
+            background-color: #f56c6c;
+        }
+        
+        .stat-icon-normal {
+            background-color: #67c23a;
+        }
+        
+        .stat-icon-finished {
+            background-color: #909399;
+        }
+        
+        .stat-content h4 {
+            font-size: 14px;
+            color: #606266;
+            margin-bottom: 4px;
+            font-weight: normal;
+        }
+        
+        .stat-content .stat-number {
+            font-size: 24px;
+            font-weight: 500;
+            color: #1f2937;
+        }
+        
+        /* 第四行：内容页签 */
+        .content-tabs {
+            background-color: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .content-tabs-header {
+            display: flex;
+            border-bottom: 1px solid #e4e7ed;
+            background-color: #fafafa;
+        }
+        
+        .content-tab {
+            padding: 14px 24px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #606266;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .content-tab.active {
+            color: #409eff;
+            border-bottom-color: #409eff;
+            background-color: white;
+            font-weight: 500;
+        }
+        
+        /* 明细内容 */
+        .content-tab-panel {
+            padding: 0;
+        }
+        
+        .approval-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .approval-table th,
+        .approval-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #ebeef5;
+        }
+        
+        .approval-table th {
+            background-color: #fafafa;
+            font-weight: 500;
+            color: #606266;
+            font-size: 14px;
+        }
+        
+        .approval-table tr {
+            transition: background-color 0.3s ease;
+        }
+        
+        .approval-table tr:hover {
+            background-color: #f5f7fa;
+        }
+        
+        .approval-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* 优先级标签 */
+        .priority-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .priority-urgent {
+            background-color: #fef0f0;
+            color: #f56c6c;
+        }
+        
+        .priority-normal {
+            background-color: #f0f9ff;
+            color: #096dd9;
+        }
+        
+        /* 操作按钮组 */
+        .approval-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-action {
+            padding: 4px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: default;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .btn-approve {
+            background-color: #67c23a;
+            color: white;
+        }
+        
+        .btn-approve:hover {
+            background-color: #85ce61;
+        }
+        
+        .btn-reject {
+            background-color: #f56c6c;
+            color: white;
+        }
+        
+        .btn-reject:hover {
+            background-color: #f78989;
+        }
+        
+        .btn-detail {
+            background-color: #409eff;
+            color: white;
+        }
+        
+        .btn-detail:hover {
+            background-color: #66b1ff;
+        }
+        
+        /* 分页 */
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 20px;
+            gap: 8px;
+            background-color: white;
+            border-top: 1px solid #ebeef5;
+        }
+        
+        .pagination-info {
+            color: #606266;
+            font-size: 14px;
+            margin-right: auto;
+        }
+        
+        .pagination-btn {
+            padding: 6px 12px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            color: #409eff;
+            border-color: #c6e2ff;
+        }
+        
+        .pagination-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        .pagination-btn.active {
+            background-color: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+        
+        /* 图表和报告内容 */
+        .chart-content,
+        .report-content {
+            padding: 24px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #909399;
+            flex-direction: column;
+        }
+        
+        .chart-placeholder,
+        .report-placeholder {
+            text-align: center;
+        }
+        
+        .chart-placeholder i,
+        .report-placeholder i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .statistics-section {
+                flex-wrap: wrap;
+            }
+            
+            .stat-card {
+                flex: 1 1 calc(50% - 8px);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .approval-pending-container {
+                padding: 10px;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .action-buttons {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
+            .search-filter-area {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-input {
+                max-width: none;
+            }
+            
+            .filter-group {
+                justify-content: space-between;
+            }
+            
+            .stat-card {
+                flex: 1 1 100%;
+            }
+            
+            .approval-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="approval-pending-container">
+        <!-- 第一行：页面名称和操作按钮 -->
+        <div class="page-header">
+            <h2>待我审批</h2>
+            <div class="action-buttons">
+                <button class="btn btn-default">批量操作</button>
+                <button class="btn btn-primary">刷新列表</button>
+            </div>
+        </div>
+        
+        <!-- 第二行：页签和查询条件 -->
+        <div class="tabs-and-search">
+            <div class="tabs">
+                <div class="tab active">全部</div>
+                <div class="tab">紧急审批</div>
+                <div class="tab">普通审批</div>
+                <div class="tab">已处理</div>
+            </div>
+            
+            <div class="search-filter-area">
+                <input type="text" class="search-input" placeholder="搜索审批标题、申请人">
+                <div class="filter-group">
+                    <span class="filter-label">审批类型：</span>
+                    <select class="filter-select">
+                        <option value="all">全部类型</option>
+                        <option value="personnel">人事审批</option>
+                        <option value="finance">财务审批</option>
+                        <option value="material">物资审批</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">时间范围：</span>
+                    <div class="date-range">
+                        <input type="date" class="date-input">
+                        <span>至</span>
+                        <input type="date" class="date-input">
+                    </div>
+                </div>
+                <button class="btn btn-primary">查询</button>
+                <button class="btn btn-default">重置</button>
+            </div>
+        </div>
+        
+        <!-- 第三行：统计数据 -->
+        <div class="statistics-section">
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-all">
+                        <div class="flat-icon chart-icon">
+                            <span></span>
+                        </div>
+                    </div>
+                <div class="stat-content">
+                    <h4>待办审批总数</h4>
+                    <div class="stat-number">15</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-urgent">
+                        <div class="flat-icon urgent-icon"></div>
+                    </div>
+                <div class="stat-content">
+                    <h4>紧急审批</h4>
+                    <div class="stat-number">7</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-normal">
+                        <div class="flat-icon normal-icon"></div>
+                    </div>
+                <div class="stat-content">
+                    <h4>普通审批</h4>
+                    <div class="stat-number">8</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-finished">
+                        <div class="flat-icon finished-icon"></div>
+                    </div>
+                <div class="stat-content">
+                    <h4>今日已处理</h4>
+                    <div class="stat-number">3</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 第四行：内容页签 -->
+        <div class="content-tabs">
+            <div class="content-tabs-header">
+                <div class="content-tab active" data-tab="details">明细</div>
+                <div class="content-tab" data-tab="chart">图表</div>
+                <div class="content-tab" data-tab="report">报告</div>
+            </div>
+            
+            <!-- 明细内容 -->
+            <div class="content-tab-panel" id="details-panel">
+                <table class="approval-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"><input type="checkbox"></th>
+                            <th>审批标题</th>
+                            <th>申请人</th>
+                            <th>申请时间</th>
+                            <th>优先级</th>
+                            <th>审批类型</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>请假申请 - 3天年假</td>
+                            <td>张三</td>
+                            <td>2023-06-15 10:30</td>
+                            <td><span class="priority-badge priority-normal">普通</span></td>
+                            <td>人事审批</td>
+                            <td class="approval-actions">
+                                <button class="btn-action btn-approve">同意</button>
+                                <button class="btn-action btn-reject">驳回</button>
+                                <button class="btn-action btn-detail">详情</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>报销申请 - 客户拜访费用</td>
+                            <td>李四</td>
+                            <td>2023-06-14 14:15</td>
+                            <td><span class="priority-badge priority-urgent">紧急</span></td>
+                            <td>财务审批</td>
+                            <td class="approval-actions">
+                                <button class="btn-action btn-approve">同意</button>
+                                <button class="btn-action btn-reject">驳回</button>
+                                <button class="btn-action btn-detail">详情</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>采购申请 - 办公设备更新</td>
+                            <td>王五</td>
+                            <td>2023-06-13 09:45</td>
+                            <td><span class="priority-badge priority-normal">普通</span></td>
+                            <td>物资审批</td>
+                            <td class="approval-actions">
+                                <button class="btn-action btn-approve">同意</button>
+                                <button class="btn-action btn-reject">驳回</button>
+                                <button class="btn-action btn-detail">详情</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>出差申请 - 北京项目调研</td>
+                            <td>赵六</td>
+                            <td>2023-06-12 16:20</td>
+                            <td><span class="priority-badge priority-urgent">紧急</span></td>
+                            <td>人事审批</td>
+                            <td class="approval-actions">
+                                <button class="btn-action btn-approve">同意</button>
+                                <button class="btn-action btn-reject">驳回</button>
+                                <button class="btn-action btn-detail">详情</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>调休申请 - 端午节补班</td>
+                            <td>孙七</td>
+                            <td>2023-06-11 11:30</td>
+                            <td><span class="priority-badge priority-normal">普通</span></td>
+                            <td>人事审批</td>
+                            <td class="approval-actions">
+                                <button class="btn-action btn-approve">同意</button>
+                                <button class="btn-action btn-reject">驳回</button>
+                                <button class="btn-action btn-detail">详情</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="pagination">
+                    <span class="pagination-info">共 15 条记录，每页显示 10 条</span>
+                    <button class="pagination-btn" disabled>上一页</button>
+                    <button class="pagination-btn active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn">下一页</button>
+                </div>
+            </div>
+            
+            <!-- 图表内容 -->
+            <div class="content-tab-panel" id="chart-panel" style="display: none;">
+                <div class="chart-content">
+                    <div class="chart-placeholder">
+                            <div class="flat-icon chart-icon" style="width: 40px; height: 40px; font-size: 40px;">
+                                <span></span>
+                            </div>
+                            <p>审批数据统计图</p>
+                            <p style="font-size: 14px; margin-top: 8px;">点击查看不同类型审批的统计图表</p>
+                        </div>
+                </div>
+            </div>
+            
+            <!-- 报告内容 -->
+            <div class="content-tab-panel" id="report-panel" style="display: none;">
+                <div class="report-content">
+                    <div class="report-placeholder">
+                            <div class="flat-icon normal-icon" style="width: 40px; height: 32px; font-size: 40px;"></div>
+                            <p>审批统计报告</p>
+                            <p style="font-size: 14px; margin-top: 8px;">点击生成审批统计报告</p>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../JS/common.js"></script>
+    <script src="../JS/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 状态筛选页签切换
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    // 这里可以添加筛选逻辑
+                    showMessage(`已切换到${this.textContent}视图`, 'info');
+                });
+            });
+            
+            // 搜索功能
+            const searchInput = document.querySelector('.search-input');
+            searchInput.addEventListener('input', function() {
+                // 搜索功能逻辑可以在这里实现
+            });
+            
+            // 查询按钮点击事件
+            const searchButton = document.querySelector('.btn-primary');
+            searchButton.addEventListener('click', function() {
+                showMessage('查询功能已触发', 'info');
+            });
+            
+            // 重置按钮点击事件
+            const resetButton = document.querySelector('.btn-default:last-child');
+            resetButton.addEventListener('click', function() {
+                searchInput.value = '';
+                document.querySelectorAll('.filter-select').forEach(select => {
+                    select.value = 'all';
+                });
+                document.querySelectorAll('.date-input').forEach(input => {
+                    input.value = '';
+                });
+                showMessage('筛选条件已重置', 'info');
+            });
+            
+            // 批量操作按钮点击事件
+            const batchButton = document.querySelector('.action-buttons .btn-default');
+            batchButton.addEventListener('click', function() {
+                const checkedBoxes = document.querySelectorAll('tbody input[type="checkbox"]:checked');
+                if (checkedBoxes.length === 0) {
+                    showMessage('请先选择要操作的审批项', 'warning');
+                } else {
+                    showMessage(`已选择${checkedBoxes.length}项进行批量操作`, 'info');
+                }
+            });
+            
+            // 刷新列表按钮点击事件
+            const refreshButton = document.querySelector('.action-buttons .btn-primary');
+            refreshButton.addEventListener('click', function() {
+                showMessage('列表已刷新', 'success');
+            });
+            
+            // 按钮交互功能已移除
+            
+            // 分页按钮点击事件
+            document.querySelectorAll('.pagination-btn:not(:disabled)').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (this.textContent === '上一页' || this.textContent === '下一页') {
+                        showMessage('分页功能尚未实现', 'info');
+                    } else {
+                        document.querySelectorAll('.pagination-btn').forEach(b => {
+                            b.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                    }
+                });
+            });
+            
+            // 内容页签切换
+            const contentTabs = document.querySelectorAll('.content-tab');
+            contentTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // 切换页签样式
+                    contentTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 切换内容显示
+                    document.querySelectorAll('.content-tab-panel').forEach(panel => {
+                        panel.style.display = 'none';
+                    });
+                    document.getElementById(`${tabId}-panel`).style.display = 'block';
+                    
+                    // 如果是图表或报告页签，可以在这里加载相应内容
+                    if (tabId === 'chart' || tabId === 'report') {
+                        showMessage(`已切换到${this.textContent}视图`, 'info');
+                    }
+                });
+            });
+            
+            // 全选/取消全选功能
+            const headerCheckbox = document.querySelector('thead input[type="checkbox"]');
+            const bodyCheckboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+            
+            headerCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                bodyCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+            });
+            
+            // 统计卡片点击事件
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const statName = this.querySelector('h4').textContent;
+                    showMessage(`已查看${statName}详情`, 'info');
+                });
+            });
+        });
+        
+        // 消息提示函数（如果common.js中没有提供）
+        function showMessage(message, type = 'info') {
+            // 创建消息元素
+            const msgElement = document.createElement('div');
+            msgElement.className = `message message-${type}`;
+            msgElement.textContent = message;
+            
+            // 添加到页面
+            document.body.appendChild(msgElement);
+            
+            // 设置样式
+            msgElement.style.position = 'fixed';
+            msgElement.style.top = '20px';
+            msgElement.style.right = '20px';
+            msgElement.style.padding = '12px 20px';
+            msgElement.style.borderRadius = '4px';
+            msgElement.style.color = 'white';
+            msgElement.style.zIndex = '9999';
+            msgElement.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+            msgElement.style.transition = 'all 0.3s ease';
+            msgElement.style.opacity = '0';
+            msgElement.style.transform = 'translateY(-20px)';
+            
+            // 根据类型设置背景色
+            switch(type) {
+                case 'success':
+                    msgElement.style.backgroundColor = '#67c23a';
+                    break;
+                case 'warning':
+                    msgElement.style.backgroundColor = '#e6a23c';
+                    break;
+                case 'error':
+                    msgElement.style.backgroundColor = '#f56c6c';
+                    break;
+                default:
+                    msgElement.style.backgroundColor = '#409eff';
+            }
+            
+            // 显示消息
+            setTimeout(() => {
+                msgElement.style.opacity = '1';
+                msgElement.style.transform = 'translateY(0)';
+            }, 10);
+            
+            // 3秒后隐藏消息
+            setTimeout(() => {
+                msgElement.style.opacity = '0';
+                msgElement.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    document.body.removeChild(msgElement);
+                }, 300);
+            }, 3000);
+        }
+        
+        // 确认对话框函数（如果common.js中没有提供）
+        function showConfirm(message, confirmCallback) {
+            if (window.confirm(message)) {
+                if (typeof confirmCallback === 'function') {
+                    confirmCallback();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

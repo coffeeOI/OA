@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发布公告 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <style>
+        .publish-container {
+            padding: 20px;
+        }
+        
+        .publish-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .publish-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 20px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn-primary {
+            background-color: #409EFF;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-primary:hover {
+            background-color: #66b1ff;
+        }
+        
+        .btn-secondary {
+            padding: 8px 16px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-secondary:hover {
+            border-color: #409EFF;
+            color: #409EFF;
+        }
+        
+        .publish-form {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+        }
+        
+        .form-section {
+            margin-bottom: 24px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .form-section h3 {
+            margin: 0 0 16px 0;
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0;
+        }
+        
+        .form-item {
+            flex: 1;
+            min-width: 200px;
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .form-item.full-width {
+            flex: 100%;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #606266;
+            font-weight: 500;
+        }
+        
+        .form-label.required::after {
+            content: '*';
+            color: #f56c6c;
+            margin-left: 4px;
+        }
+        
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #409EFF;
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .checkbox-group,
+        .radio-group {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .checkbox-item,
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #606266;
+        }
+        
+        .checkbox-item input[type="checkbox"],
+        .radio-item input[type="radio"] {
+            cursor: pointer;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 0;
+            border-top: 1px solid #ebeef5;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .tag.important {
+            background-color: #fef0f0;
+            color: #f56c6c;
+        }
+        
+        .tag.top {
+            background-color: #fdf6ec;
+            color: #e6a23c;
+        }
+        
+        /* 附件上传区域样式优化 */
+        .upload-wrapper {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .upload-placeholder {
+            /* 使用border-image替代传统dashed边框，解决显示问题 */
+            border: 1px solid transparent;
+            border-radius: 8px;
+            border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' fill='none'%3E%3Cpath stroke='%23dcdfe6' stroke-width='3' d='M0 2h4M2 0v4'/%3E%3C/svg%3E") 1;
+            padding: 30px 20px;
+            text-align: center;
+            background-color: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
+            display: block;
+        }
+        
+        .upload-placeholder:hover {
+            border-color: #409EFF;
+            background-color: #f0f9ff;
+            box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
+        }
+        
+        .upload-placeholder.dragover {
+            border-color: #67c23a;
+            background-color: #f0f9ff;
+        }
+        
+        .form-item.full-width {
+            flex: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .upload-area:hover {
+            border-color: #409EFF;
+            background-color: #f0f9ff;
+            box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
+        }
+        
+        .upload-area.dragover {
+            border-color: #67c23a;
+            background-color: #f0f9ff;
+        }
+        
+        .upload-area input[type="file"] {
+            display: none;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: #c0c4cc;
+            margin-bottom: 12px;
+            transition: color 0.3s ease;
+        }
+        
+        .upload-area:hover .upload-icon {
+            color: #409EFF;
+        }
+        
+        .upload-text {
+            font-size: 14px;
+            color: #909399;
+            line-height: 1.6;
+        }
+        
+        .upload-text strong {
+            color: #409EFF;
+        }
+        
+        .upload-files {
+            margin-top: 16px;
+        }
+        
+        .upload-file {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background-color: #f5f7fa;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border: 1px solid #ebeef5;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-file:hover {
+            border-color: #dcdfe6;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #409EFF;
+            margin-right: 12px;
+            background-color: white;
+            border-radius: 4px;
+            border: 1px solid #ebeef5;
+        }
+        
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .file-name {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .file-size {
+            font-size: 12px;
+            color: #909399;
+            margin-bottom: 4px;
+        }
+        
+        .file-progress {
+            width: 100%;
+            height: 4px;
+            background-color: #ebeef5;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .file-progress-bar {
+            height: 100%;
+            background-color: #409EFF;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: 12px;
+        }
+        
+        .file-action-btn {
+            padding: 6px 10px;
+            border: none;
+            background-color: #f5f7fa;
+            cursor: pointer;
+            font-size: 12px;
+            color: #909399;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            min-width: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .file-action-btn:hover {
+            background-color: #409EFF;
+            color: white;
+        }
+        
+        .file-action-btn.danger:hover {
+            background-color: #f56c6c;
+        }
+        
+        .form-tips {
+            font-size: 12px;
+            color: #909399;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="publish-container">
+        <div class="publish-header">
+            <h2>发布公告</h2>
+            <div class="header-actions">
+                <button class="btn-secondary">保存草稿</button>
+                <button class="btn-primary">发布</button>
+            </div>
+        </div>
+        
+        <form class="publish-form">
+            <!-- 基本信息 -->
+            <div class="form-section">
+                <h3>基本信息</h3>
+                
+                <div class="form-row">
+                    <div class="form-item">
+                        <label class="form-label required" for="announcement-type">公告类型</label>
+                        <select id="announcement-type" class="form-select">
+                            <option value="">请选择公告类型</option>
+                            <option value="system">系统公告</option>
+                            <option value="company">公司公告</option>
+                            <option value="department">部门公告</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-item">
+                        <label class="form-label required" for="announcement-scope">公告范围</label>
+                        <select id="announcement-scope" class="form-select">
+                            <option value="">请选择公告范围</option>
+                            <option value="all">全体员工</option>
+                            <option value="department">部门</option>
+                            <option value="position">职位</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-item full-width">
+                        <label class="form-label required" for="announcement-title">公告标题</label>
+                        <input type="text" id="announcement-title" class="form-input" placeholder="请输入公告标题">
+                        <div class="form-tips">标题长度建议控制在50字以内</div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-item">
+                        <label class="form-label" for="effective-date">生效日期</label>
+                        <input type="date" id="effective-date" class="form-input">
+                    </div>
+                    
+                    <div class="form-item">
+                        <label class="form-label" for="expire-date">过期日期</label>
+                        <input type="date" id="expire-date" class="form-input">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-item">
+                        <label class="form-label">公告标签</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tag-important" name="tags">
+                                <label for="tag-important">重要</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tag-top" name="tags">
+                                <label for="tag-top">置顶</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 公告内容 -->
+            <div class="form-section">
+                <h3>公告内容</h3>
+                
+                <div class="form-row">
+                    <div class="form-item full-width">
+                        <label class="form-label required" for="announcement-content">内容</label>
+                        <textarea id="announcement-content" class="form-textarea" placeholder="请输入公告内容"></textarea>
+                        <div class="form-tips">支持常用HTML标签，内容长度建议控制在5000字以内</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 附件上传 -->
+            <div class="form-section">
+                <h3>附件上传</h3>
+                
+                <div class="form-row">
+                    <div class="form-item full-width">
+                        <label class="form-label">上传附件</label>
+                        <div class="upload-wrapper">
+                            <input type="file" id="file-upload" multiple style="display: none;">
+                            <div id="upload-area" class="upload-placeholder">
+                                <div class="upload-icon">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                        <polyline points="7 10 12 15 17 10" />
+                                        <line x1="12" y1="15" x2="12" y2="3" />
+                                    </svg>
+                                </div>
+                                <div class="upload-text">
+                                    点击或拖拽文件到此处上传<br>
+                                    <strong>支持格式：</strong>doc, docx, xls, xlsx, ppt, pptx, pdf, zip, rar<br>
+                                    <strong>单个文件大小限制：</strong>50MB
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="upload-files" id="uploaded-files">
+                            <!-- 上传的文件将显示在这里 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 公告设置 -->
+            <div class="form-section">
+                <h3>公告设置</h3>
+                
+                <div class="form-row">
+                    <div class="form-item">
+                        <label class="form-label">是否需要确认</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="need-confirm-yes" name="need-confirm" value="yes">
+                                <label for="need-confirm-yes">是</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="need-confirm-no" name="need-confirm" value="no" checked>
+                                <label for="need-confirm-no">否</label>
+                            </div>
+                        </div>
+                        <div class="form-tips">选择"是"时，接收者需要确认已阅读公告</div>
+                    </div>
+                    
+                    <div class="form-item">
+                        <label class="form-label">是否短信通知</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="sms-notify-yes" name="sms-notify" value="yes">
+                                <label for="sms-notify-yes">是</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="sms-notify-no" name="sms-notify" value="no" checked>
+                                <label for="sms-notify-no">否</label>
+                            </div>
+                        </div>
+                        <div class="form-tips">选择"是"时，将通过短信通知接收者</div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-item">
+                        <label class="form-label">是否邮件通知</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="email-notify-yes" name="email-notify" value="yes">
+                                <label for="email-notify-yes">是</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="email-notify-no" name="email-notify" value="no" checked>
+                                <label for="email-notify-no">否</label>
+                            </div>
+                        </div>
+                        <div class="form-tips">选择"是"时，将通过邮件通知接收者</div>
+                    </div>
+                    
+                    <div class="form-item">
+                        <label class="form-label">是否推送消息</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="push-notify-yes" name="push-notify" value="yes">
+                                <label for="push-notify-yes">是</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="push-notify-no" name="push-notify" value="no" checked>
+                                <label for="push-notify-no">否</label>
+                            </div>
+                        </div>
+                        <div class="form-tips">选择"是"时，将通过OA系统消息推送通知接收者</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 表单操作 -->
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" id="btn-cancel">取消</button>
+                <button type="button" class="btn-secondary" id="btn-save">保存草稿</button>
+                <button type="button" class="btn-primary" id="btn-publish">发布</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="../JS/common.js"></script>
+    <script src="../JS/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置默认日期为当天
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('effective-date').value = today;
+            
+            // 文件上传处理
+            const fileUpload = document.getElementById('file-upload');
+            const uploadedFiles = document.getElementById('uploaded-files');
+            const uploadArea = document.getElementById('upload-area');
+            
+            // 添加点击事件，当点击上传区域时触发文件选择
+            uploadArea.addEventListener('click', function() {
+                fileUpload.click();
+            });
+            
+            // 支持的文件类型
+            const SUPPORTED_FILE_TYPES = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'pdf', 'zip', 'rar'];
+            const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+            
+            // 文件验证函数
+            function validateFile(file) {
+                const fileExt = getFileExtension(file.name);
+                
+                // 验证文件类型
+                if (!SUPPORTED_FILE_TYPES.includes(fileExt)) {
+                    showMessage(`不支持的文件类型：${file.name}`, 'error');
+                    return false;
+                }
+                
+                // 验证文件大小
+                if (file.size > MAX_FILE_SIZE) {
+                    showMessage(`文件大小超过限制：${file.name} (最大50MB)`, 'error');
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            // 添加文件到上传列表
+            function addFileToUploadList(file) {
+                const fileSize = formatFileSize(file.size);
+                const fileExt = getFileExtension(file.name);
+                const fileIcon = getFileIcon(fileExt);
+                
+                const fileItem = document.createElement('div');
+                fileItem.className = 'upload-file';
+                fileItem.innerHTML = `
+                    <div class="file-icon">${fileIcon}</div>
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${fileSize}</div>
+                        <div class="file-progress">
+                            <div class="file-progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="file-action-btn" title="预览">👁️</button>
+                        <button class="file-action-btn danger" title="删除">🗑️</button>
+                    </div>
+                `;
+                
+                uploadedFiles.appendChild(fileItem);
+                
+                // 添加删除按钮事件
+                const deleteBtn = fileItem.querySelector('.file-action-btn[title="删除"]');
+                deleteBtn.addEventListener('click', function() {
+                    fileItem.remove();
+                    showMessage(`已删除文件：${file.name}`, 'success');
+                });
+                
+                // 添加预览按钮事件
+                const previewBtn = fileItem.querySelector('.file-action-btn[title="预览"]');
+                previewBtn.addEventListener('click', function() {
+                    // 对于PDF等浏览器可预览的文件，可以实现实际预览
+                    if (fileExt === 'pdf') {
+                        const url = URL.createObjectURL(file);
+                        window.open(url, '_blank');
+                    } else {
+                        showMessage(`预览文件：${file.name}`, 'info');
+                    }
+                });
+                
+                // 模拟文件上传进度
+                simulateFileUpload(fileItem, file.name);
+            }
+            
+            // 模拟文件上传进度
+            function simulateFileUpload(fileItem, fileName) {
+                const progressBar = fileItem.querySelector('.file-progress-bar');
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 20;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        // 上传完成后延迟移除进度条
+                        setTimeout(() => {
+                            fileItem.querySelector('.file-progress').style.display = 'none';
+                        }, 500);
+                    }
+                    progressBar.style.width = `${progress}%`;
+                }, 300);
+            }
+            
+            // 文件选择事件
+            fileUpload.addEventListener('change', function(e) {
+                const files = e.target.files;
+                if (files.length > 0) {
+                    const validFiles = Array.from(files).filter(validateFile);
+                    
+                    if (validFiles.length > 0) {
+                        // 添加有效文件到列表
+                        validFiles.forEach(file => {
+                            addFileToUploadList(file);
+                        });
+                        
+                        showMessage(`成功上传 ${validFiles.length} 个文件`, 'success');
+                    }
+                    
+                    // 清空input值，以便可以重复上传相同的文件
+                    this.value = '';
+                }
+            });
+            
+            // 拖拽上传功能
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                uploadArea.classList.add('dragover');
+            }
+            
+            function unhighlight() {
+                uploadArea.classList.remove('dragover');
+            }
+            
+            uploadArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0) {
+                    const validFiles = Array.from(files).filter(validateFile);
+                    
+                    if (validFiles.length > 0) {
+                        // 添加有效文件到列表
+                        validFiles.forEach(file => {
+                            addFileToUploadList(file);
+                        });
+                        
+                        showMessage(`成功上传 ${validFiles.length} 个文件`, 'success');
+                    }
+                }
+            }
+            
+            // 取消按钮点击事件
+            document.getElementById('btn-cancel').addEventListener('click', function() {
+                confirmDialog('确定要取消发布公告吗？未保存的内容将丢失。', function(confirm) {
+                    if (confirm) {
+                        window.location.href = 'announcement_list.html';
+                    }
+                });
+            });
+            
+            // 保存草稿按钮点击事件
+            document.getElementById('btn-save').addEventListener('click', function() {
+                saveAnnouncement('draft');
+            });
+            
+            // 发布按钮点击事件
+            document.getElementById('btn-publish').addEventListener('click', function() {
+                confirmDialog('确定要发布此公告吗？发布后将立即通知相关人员。', function(confirm) {
+                    if (confirm) {
+                        saveAnnouncement('publish');
+                    }
+                });
+            });
+            
+            // 公告范围选择变化事件
+            document.getElementById('announcement-scope').addEventListener('change', function() {
+                const scope = this.value;
+                if (scope === 'department' || scope === 'position' || scope === 'custom') {
+                    showMessage(`公告范围设置为：${getOptionText('announcement-scope', scope)}，请联系管理员进行详细配置`, 'info');
+                }
+            });
+            
+            // 辅助函数：保存或发布公告
+            function saveAnnouncement(type) {
+                // 表单验证
+                if (!validateForm()) {
+                    return;
+                }
+                
+                // 构建公告数据
+                const announcementData = {
+                    type: document.getElementById('announcement-type').value,
+                    scope: document.getElementById('announcement-scope').value,
+                    title: document.getElementById('announcement-title').value,
+                    effectiveDate: document.getElementById('effective-date').value,
+                    expireDate: document.getElementById('expire-date').value,
+                    content: document.getElementById('announcement-content').value,
+                    tags: {
+                        important: document.getElementById('tag-important').checked,
+                        top: document.getElementById('tag-top').checked
+                    },
+                    settings: {
+                        needConfirm: document.querySelector('input[name="need-confirm"]:checked').value === 'yes',
+                        smsNotify: document.querySelector('input[name="sms-notify"]:checked').value === 'yes',
+                        emailNotify: document.querySelector('input[name="email-notify"]:checked').value === 'yes',
+                        pushNotify: document.querySelector('input[name="push-notify"]:checked').value === 'yes'
+                    },
+                    status: type === 'publish' ? 'published' : 'draft'
+                };
+                
+                // 这里可以添加实际的保存逻辑
+                console.log('公告数据：', announcementData);
+                
+                if (type === 'publish') {
+                    showMessage('公告发布成功', 'success');
+                    setTimeout(function() {
+                        window.location.href = 'announcement_list.html';
+                    }, 1500);
+                } else {
+                    showMessage('公告已保存为草稿', 'success');
+                }
+            }
+            
+            // 辅助函数：表单验证
+            function validateForm() {
+                const announcementType = document.getElementById('announcement-type').value;
+                const announcementScope = document.getElementById('announcement-scope').value;
+                const announcementTitle = document.getElementById('announcement-title').value.trim();
+                const announcementContent = document.getElementById('announcement-content').value.trim();
+                const effectiveDate = document.getElementById('effective-date').value;
+                const expireDate = document.getElementById('expire-date').value;
+                
+                if (!announcementType) {
+                    showMessage('请选择公告类型', 'error');
+                    return false;
+                }
+                
+                if (!announcementScope) {
+                    showMessage('请选择公告范围', 'error');
+                    return false;
+                }
+                
+                if (!announcementTitle) {
+                    showMessage('请输入公告标题', 'error');
+                    return false;
+                }
+                
+                if (announcementTitle.length > 50) {
+                    showMessage('公告标题不能超过50个字', 'error');
+                    return false;
+                }
+                
+                if (!announcementContent) {
+                    showMessage('请输入公告内容', 'error');
+                    return false;
+                }
+                
+                if (announcementContent.length > 5000) {
+                    showMessage('公告内容不能超过5000个字', 'error');
+                    return false;
+                }
+                
+                if (!effectiveDate) {
+                    showMessage('请选择生效日期', 'error');
+                    return false;
+                }
+                
+                if (expireDate && new Date(expireDate) < new Date(effectiveDate)) {
+                    showMessage('过期日期不能早于生效日期', 'error');
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            // 辅助函数：格式化文件大小
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            // 辅助函数：获取文件扩展名
+            function getFileExtension(filename) {
+                return filename.split('.').pop().toLowerCase();
+            }
+            
+            // 辅助函数：根据文件扩展名获取文件图标
+            function getFileIcon(ext) {
+                const icons = {
+                    doc: '📄',
+                    docx: '📄',
+                    xls: '📊',
+                    xlsx: '📊',
+                    ppt: '📋',
+                    pptx: '📋',
+                    pdf: '📝',
+                    zip: '🗜️',
+                    rar: '🗜️'
+                };
+                return icons[ext] || '📎';
+            }
+            
+            // 辅助函数：根据值获取选项文本
+            function getOptionText(selectId, value) {
+                const select = document.getElementById(selectId);
+                const option = select.querySelector(`option[value="${value}"]`);
+                return option ? option.textContent : value;
+            }
+        });
+    </script>
+</body>
+</html>

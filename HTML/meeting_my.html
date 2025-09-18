@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的会议 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <style>
+        .meeting-my-container {
+            padding: 20px;
+        }
+        
+        .meeting-my-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .meeting-my-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 20px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn-primary {
+            background-color: #409EFF;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-primary:hover {
+            background-color: #66b1ff;
+        }
+        
+        .btn-secondary {
+            padding: 8px 16px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-secondary:hover {
+            border-color: #409EFF;
+            color: #409EFF;
+        }
+        
+        .search-filter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .search-input-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            width: 300px;
+            font-size: 14px;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #409EFF;
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: #409EFF;
+        }
+        
+        .meeting-tabs {
+            display: flex;
+            background-color: #f5f7fa;
+            border-radius: 4px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #606266;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-item.active {
+            background-color: white;
+            color: #409EFF;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .meeting-content {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 20px;
+        }
+        
+        .calendar-section {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-title {
+            font-size: 16px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .calendar-nav {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .calendar-nav-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .calendar-nav-btn:hover {
+            border-color: #409EFF;
+            color: #409EFF;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+        
+        .calendar-weekday {
+            text-align: center;
+            padding: 8px;
+            font-size: 12px;
+            color: #909399;
+            font-weight: 500;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .calendar-day:hover {
+            background-color: #f5f7fa;
+        }
+        
+        .calendar-day.current {
+            background-color: #409EFF;
+            color: white;
+        }
+        
+        .calendar-day.has-meeting {
+            background-color: #ecf5ff;
+        }
+        
+        .calendar-day.has-meeting::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 4px;
+            height: 4px;
+            background-color: #409EFF;
+            border-radius: 50%;
+        }
+        
+        .meetings-section {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+        
+        /* 会议卡片网格 - 采用与会议室管理页面相同的网格布局 */
+        .meeting-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        /* 会议卡片样式 - 采用与会议室卡片类似的样式 */
+        .meeting-card {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            border-left: 4px solid #409EFF;
+            transition: all 0.3s ease;
+        }
+        
+        .meeting-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .meeting-card.upcoming {
+            border-left-color: #409EFF;
+        }
+        
+        .meeting-card.ongoing {
+            border-left-color: #67c23a;
+        }
+        
+        .meeting-card.completed {
+            border-left-color: #909399;
+        }
+        
+        .meeting-card.cancelled {
+            border-left-color: #f56c6c;
+        }
+        
+        /* 会议卡片头部 */
+        .meeting-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        
+        .meeting-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+        }
+        
+        .meeting-time {
+            font-size: 12px;
+            color: #909399;
+        }
+        
+        /* 会议信息 */
+        .meeting-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .meeting-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #606266;
+        }
+        
+        .meeting-info-label {
+            color: #909399;
+            min-width: 80px;
+        }
+        
+        /* 参与者列表 */
+        .participants-container {
+            margin-bottom: 16px;
+        }
+        
+        .participants-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .participants-list {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .participant-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #ecf5ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #409EFF;
+        }
+        
+        .participant-more {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #f5f7fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #909399;
+        }
+        
+        /* 按钮组样式 - 采用与会议室管理页面相同的按钮组样式 */
+        .button-group {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+        
+        .primary-actions {
+            margin-bottom: 12px;
+        }
+        
+        .process-actions {
+            border-top: 1px solid #f0f0f0;
+            padding-top: 12px;
+        }
+        
+        /* 会议操作按钮 - 采用与会议室操作按钮相同的样式 */
+        .meeting-action-btn {
+            padding: 4px 12px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            flex: 1;
+        }
+        
+        .meeting-action-btn:hover {
+            border-color: #409EFF;
+            color: #409EFF;
+        }
+        
+        .meeting-action-btn.primary {
+            background-color: #409EFF;
+            color: white;
+            border-color: #409EFF;
+        }
+        
+        .meeting-action-btn.primary:hover {
+            background-color: #66b1ff;
+            border-color: #66b1ff;
+        }
+        
+        .meeting-action-btn.danger {
+            color: #f56c6c;
+            border-color: #f56c6c;
+        }
+        
+        .meeting-action-btn.danger:hover {
+            background-color: #f56c6c;
+            color: white;
+        }
+        
+        /* 流程操作按钮 */
+        .process-action-btn {
+            padding: 4px 12px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            min-width: 70px;
+        }
+        
+        .process-action-btn:hover {
+            border-color: #409EFF;
+            color: #409EFF;
+        }
+        
+        /* 分页样式 - 与会议室管理页面保持一致 */
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding: 16px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .pagination-info {
+            font-size: 14px;
+            color: #606266;
+            margin-right: auto;
+        }
+        
+        .pagination-btn {
+            padding: 6px 12px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            border-color: #409EFF;
+            color: #409EFF;
+        }
+        
+        .pagination-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        .pagination-btn.active {
+            background-color: #409EFF;
+            color: white;
+            border-color: #409EFF;
+        }
+        
+        .pagination-select {
+            padding: 6px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="meeting-my-container">
+        <div class="meeting-my-header">
+            <h2>我的会议</h2>
+            <div class="header-actions">
+                <a href="meeting_room.html" class="btn-secondary" style="text-decoration: none;">会议室管理</a>
+                <button class="btn-primary">发起会议</button>
+                <button class="btn-secondary">导出日程</button>
+            </div>
+        </div>
+        
+        <div class="search-filter">
+            <div class="search-input-container">
+                <input type="text" class="search-input" placeholder="搜索会议">
+                <select class="filter-select">
+                    <option value="all">全部状态</option>
+                    <option value="pending">进行中</option>
+                    <option value="completed">已完成</option>
+                    <option value="cancelled">已取消</option>
+                </select>
+                <select class="filter-select">
+                    <option value="all">全部类型</option>
+                    <option value="team">团队会议</option>
+                    <option value="project">项目会议</option>
+                    <option value="client">客户会议</option>
+                    <option value="training">培训会议</option>
+                </select>
+            </div>
+            <div>
+                <button class="btn-secondary">高级筛选</button>
+            </div>
+        </div>
+        
+        <div class="meeting-tabs">
+            <div class="tab-item active">今日会议</div>
+            <div class="tab-item">明日会议</div>
+            <div class="tab-item">本周会议</div>
+            <div class="tab-item">本月会议</div>
+            <div class="tab-item">全部会议</div>
+        </div>
+        
+        <div class="meeting-content">
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    <div class="calendar-title">2023年6月</div>
+                    <div class="calendar-nav">
+                        <button class="calendar-nav-btn">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <button class="calendar-nav-btn">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="calendar-grid">
+                    <div class="calendar-weekday">日</div>
+                    <div class="calendar-weekday">一</div>
+                    <div class="calendar-weekday">二</div>
+                    <div class="calendar-weekday">三</div>
+                    <div class="calendar-weekday">四</div>
+                    <div class="calendar-weekday">五</div>
+                    <div class="calendar-weekday">六</div>
+                    
+                    <div class="calendar-day" style="opacity: 0.5;">28</div>
+                    <div class="calendar-day" style="opacity: 0.5;">29</div>
+                    <div class="calendar-day" style="opacity: 0.5;">30</div>
+                    <div class="calendar-day" style="opacity: 0.5;">31</div>
+                    <div class="calendar-day">1</div>
+                    <div class="calendar-day">2</div>
+                    <div class="calendar-day">3</div>
+                    
+                    <div class="calendar-day">4</div>
+                    <div class="calendar-day">5</div>
+                    <div class="calendar-day">6</div>
+                    <div class="calendar-day">7</div>
+                    <div class="calendar-day">8</div>
+                    <div class="calendar-day">9</div>
+                    <div class="calendar-day">10</div>
+                    
+                    <div class="calendar-day">11</div>
+                    <div class="calendar-day">12</div>
+                    <div class="calendar-day">13</div>
+                    <div class="calendar-day">14</div>
+                    <div class="calendar-day current has-meeting">15</div>
+                    <div class="calendar-day">16</div>
+                    <div class="calendar-day">17</div>
+                    
+                    <div class="calendar-day has-meeting">18</div>
+                    <div class="calendar-day">19</div>
+                    <div class="calendar-day">20</div>
+                    <div class="calendar-day">21</div>
+                    <div class="calendar-day">22</div>
+                    <div class="calendar-day">23</div>
+                    <div class="calendar-day has-meeting">24</div>
+                    
+                    <div class="calendar-day">25</div>
+                    <div class="calendar-day">26</div>
+                    <div class="calendar-day">27</div>
+                    <div class="calendar-day">28</div>
+                    <div class="calendar-day">29</div>
+                    <div class="calendar-day">30</div>
+                    <div class="calendar-day" style="opacity: 0.5;">1</div>
+                </div>
+            </div>
+            
+            <div class="meetings-section">
+                <div class="meeting-grid">
+                    <!-- 会议项1 -->
+                    <div class="meeting-card upcoming">
+                        <div class="meeting-header">
+                            <h3 class="meeting-title">产品周会</h3>
+                            <div class="meeting-time">10:00 - 11:30</div>
+                        </div>
+                        <div class="meeting-info">
+                            <div class="meeting-info-item">
+                                <span class="meeting-info-label">会议室：</span>
+                                <span>会议室A</span>
+                            </div>
+                            <div class="meeting-info-item">
+                                <span class="meeting-info-label">类型：</span>
+                                <span>项目会议</span>
+                            </div>
+                            <div class="meeting-info-item">
+                                <span class="meeting-info-label">主持人：</span>
+                                <span>张三</span>
+                            </div>
+                        </div>
+                        <div class="participants-container">
+                            <div class="participants-title">参与者</div>
+                            <div class="participants-list">
+                                <div class="participant-avatar">张</div>
+                                <div class="participant-avatar">李</div>
+                                <div class="participant-avatar">王</div>
+                                <div class="participant-avatar">赵</div>
+                                <div class="participant-more">+5</div>
+                            </div>
+                        </div>
+                        <div class="button-group primary-actions">
+                            <button class="meeting-action-btn primary">加入会议</button>
+                            <button class="meeting-action-btn">会议详情</button>
+                            <button class="meeting-action-btn">编辑</button>
+                        </div>
+                        
+                        <!-- 流程按钮组 -->
+                        <div class="button-group process-actions">
+                            <button class="process-action-btn" data-meeting="产品周会" data-type="pre-meeting">会前</button>
+                            <button class="process-action-btn" data-meeting="产品周会" data-type="in-meeting">会中</button>
+                            <button class="process-action-btn" data-meeting="产品周会" data-type="post-meeting">会后</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 会议项2 -->
+                    <div class="meeting-card upcoming">
+                        <div class="meeting-header">
+                            <h3 class="meeting-title">客户需求沟通会</h3>
+                            <div class="meeting-time">14:00 - 15:30</div>
+                        </div>
+                        <div class="meeting-info">
+                            <div class="meeting-info-item">
+                                <span class="meeting-info-label">会议室：</span>
+                                <span>会议室B</span>
+                            </div>
+                            <div class="meeting-info-item">
+                                <span class="meeting-info-label">类型：</span>
+                                <span>客户会议</span>
+                            </div>
+                            <div class="meeting-info-item">
+                                <span class="meeting-info-label">主持人：</span>
+                                <span>李四</span>
+                            </div>
+                        </div>
+                        <div class="participants-container">
+                            <div class="participants-title">参与者</div>
+                            <div class="participants-list">
+                                <div class="participant-avatar">李</div>
+                                <div class="participant-avatar">张</div>
+                                <div class="participant-avatar">陈</div>
+                                <div class="participant-avatar">客户1</div>
+                                <div class="participant-avatar">客户2</div>
+                            </div>
+                        </div>
+                        <div class="button-group primary-actions">
+                            <button class="meeting-action-btn primary">加入会议</button>
+                            <button class="meeting-action-btn">会议详情</button>
+                            <button class="meeting-action-btn">编辑</button>
+                        </div>
+                        
+                        <!-- 流程按钮组 -->
+                        <div class="button-group process-actions">
+                            <button class="process-action-btn" data-meeting="客户需求沟通会" data-type="pre-meeting">会前</button>
+                            <button class="process-action-btn" data-meeting="客户需求沟通会" data-type="in-meeting">会中</button>
+                            <button class="process-action-btn" data-meeting="客户需求沟通会" data-type="post-meeting">会后</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 会议项3 -->
+                    <div class="meeting-card upcoming">
+                        <div class="meeting-header">
+                            <h3 class="meeting-title">技术评审会议</h3>
+                            <div class="meeting-time">16:00 - 17:00</div>
+                        </div>
+                        <div class="meeting-info">
+                            <div class="meeting-info-item">
+                                <span class="meeting-info-label">会议室：</span>
+                                <span>会议室C</span>
+                            </div>
+                            <div class="meeting-info-item">
+                                <span class="meeting-info-label">类型：</span>
+                                <span>团队会议</span>
+                            </div>
+                            <div class="meeting-info-item">
+                                <span class="meeting-info-label">主持人：</span>
+                                <span>王五</span>
+                            </div>
+                        </div>
+                        <div class="participants-container">
+                            <div class="participants-title">参与者</div>
+                            <div class="participants-list">
+                                <div class="participant-avatar">王</div>
+                                <div class="participant-avatar">赵</div>
+                                <div class="participant-avatar">刘</div>
+                                <div class="participant-avatar">孙</div>
+                                <div class="participant-more">+3</div>
+                            </div>
+                        </div>
+                        <div class="button-group primary-actions">
+                            <button class="meeting-action-btn primary">加入会议</button>
+                            <button class="meeting-action-btn">会议详情</button>
+                            <button class="meeting-action-btn">编辑</button>
+                        </div>
+                        
+                        <!-- 流程按钮组 -->
+                        <div class="button-group process-actions">
+                            <button class="process-action-btn" data-meeting="技术评审会议" data-type="pre-meeting">会前</button>
+                            <button class="process-action-btn" data-meeting="技术评审会议" data-type="in-meeting">会中</button>
+                            <button class="process-action-btn" data-meeting="技术评审会议" data-type="post-meeting">会后</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pagination">
+                    <span class="pagination-info">共 8 个会议，每页显示 3 个</span>
+                    <button class="pagination-btn" disabled>
+                        &lt;
+                    </button>
+                    <button class="pagination-btn active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn">3</button>
+                    <button class="pagination-btn">
+                        &gt;
+                    </button>
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #606266; white-space: nowrap;">
+                        每页显示：
+                        <select class="pagination-select">
+                            <option value="3">3</option>
+                            <option value="6">6</option>
+                            <option value="12">12</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../JS/common.js"></script>
+    <script src="../JS/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 发起会议按钮点击事件
+            document.querySelector('.btn-primary').addEventListener('click', function() {
+                window.location.href = 'meeting_initiate.html';
+            });
+            
+            // 导出日程按钮点击事件
+            document.querySelectorAll('.btn-secondary')[0].addEventListener('click', function() {
+                showMessage('导出日程功能尚未实现', 'info');
+            });
+            
+            // 高级筛选按钮点击事件
+            document.querySelectorAll('.btn-secondary')[1].addEventListener('click', function() {
+                showMessage('高级筛选功能尚未实现', 'info');
+            });
+            
+            // 标签页切换事件
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.tab-item').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    showMessage(`已切换至${this.textContent}标签`, 'success');
+                });
+            });
+            
+            // 日历导航按钮点击事件
+            document.querySelectorAll('.calendar-nav-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    showMessage('日历导航功能尚未实现', 'info');
+                });
+            });
+            
+            // 日历日期点击事件
+            document.querySelectorAll('.calendar-day').forEach(day => {
+                day.addEventListener('click', function() {
+                    showMessage(`查看${this.textContent}日的会议功能尚未实现`, 'info');
+                });
+            });
+            
+            // 加入会议按钮点击事件
+            document.querySelectorAll('.meeting-action-btn.primary').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const meetingTitle = this.closest('.meeting-card').querySelector('.meeting-title').textContent;
+                    showMessage(`加入会议 ${meetingTitle} 功能尚未实现`, 'info');
+                });
+            });
+            
+            // 会议详情按钮点击事件
+            document.querySelectorAll('.meeting-action-btn').forEach(btn => {
+                if (btn.textContent === '会议详情') {
+                    btn.addEventListener('click', function() {
+                        const meetingTitle = this.closest('.meeting-card').querySelector('.meeting-title').textContent;
+                        showMessage(`查看${meetingTitle}详情功能尚未实现`, 'info');
+                    });
+                }
+            });
+            
+            // 编辑会议按钮点击事件
+            document.querySelectorAll('.meeting-action-btn').forEach(btn => {
+                if (btn.textContent === '编辑') {
+                    btn.addEventListener('click', function() {
+                        const meetingTitle = this.closest('.meeting-card').querySelector('.meeting-title').textContent;
+                        showMessage(`编辑${meetingTitle}功能尚未实现`, 'info');
+                    });
+                }
+            });
+            
+            // 分页按钮点击事件
+            document.querySelectorAll('.pagination-btn:not(:disabled)').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (this.textContent.trim() === '>') {
+                        // 下一页
+                        const activeBtn = document.querySelector('.pagination-btn.active');
+                        const nextBtn = activeBtn.nextElementSibling;
+                        
+                        if (nextBtn && nextBtn.textContent.trim() !== '>') {
+                            // 移除当前活动状态
+                            activeBtn.classList.remove('active');
+                            // 添加新活动状态
+                            nextBtn.classList.add('active');
+                            showMessage(`跳转到第${nextBtn.textContent}页`, 'info');
+                        }
+                    } else if (this.textContent.trim() === '<') {
+                        // 上一页
+                        const activeBtn = document.querySelector('.pagination-btn.active');
+                        const prevBtn = activeBtn.previousElementSibling;
+                        
+                        if (prevBtn && prevBtn.textContent.trim() !== '<') {
+                            // 移除当前活动状态
+                            activeBtn.classList.remove('active');
+                            // 添加新活动状态
+                            prevBtn.classList.add('active');
+                            showMessage(`跳转到第${prevBtn.textContent}页`, 'info');
+                        }
+                    } else {
+                        // 页码按钮
+                        document.querySelectorAll('.pagination-btn').forEach(pBtn => {
+                            pBtn.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        showMessage(`跳转到第${this.textContent}页`, 'info');
+                    }
+                });
+            });
+            
+            // 每页显示数量改变事件
+            const paginationSelect = document.querySelector('.pagination-select');
+            if (paginationSelect) {
+                paginationSelect.addEventListener('change', function() {
+                    showMessage(`每页显示${this.value}个会议`, 'info');
+                });
+            }
+            
+            // 流程按钮点击事件
+            document.querySelectorAll('.process-action-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const meetingTitle = this.dataset.meeting;
+                    const processType = this.dataset.type;
+                    showMessage(`会议"${meetingTitle}"${getProcessTypeName(processType)}功能尚未实现`, 'info');
+                });
+            });
+            
+            // 获取流程类型名称
+            function getProcessTypeName(type) {
+                switch(type) {
+                    case 'pre-meeting':
+                        return '会前准备';
+                    case 'in-meeting':
+                        return '会中确认';
+                    case 'post-meeting':
+                        return '会后处理';
+                    default:
+                        return '流程操作';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

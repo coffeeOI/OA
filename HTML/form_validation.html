@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OA系统 - 表单校验</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <style>
+        /* 表单校验页面专用样式 */
+        .validation-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .validation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .validation-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .validation-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+        
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+            flex: 1;
+        }
+        
+        .filter-label {
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .filter-input:focus {
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        
+        .validation-table {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .table-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 20px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        th {
+            background-color: #fafafa;
+            font-weight: 500;
+            color: #666;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        
+        td {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        tr:hover {
+            background-color: #fafafa;
+        }
+        
+        .validation-type-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #fff;
+        }
+        
+        .tag-regex {
+            background-color: #1890ff;
+        }
+        
+        .tag-script {
+            background-color: #722ed1;
+        }
+        
+        .tag-builtin {
+            background-color: #52c41a;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background-color: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+        
+        .status-inactive {
+            background-color: #fff2f0;
+            color: #ff4d4f;
+            border: 1px solid #ffccc7;
+        }
+        
+        .table-actions-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .table-action-btn {
+            padding: 4px 12px;
+            border: 1px solid #d9d9d9;
+            background-color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .table-action-btn:hover {
+            color: #1890ff;
+            border-color: #1890ff;
+        }
+        
+        .table-action-btn.edit-btn:hover {
+            color: #1890ff;
+            border-color: #1890ff;
+        }
+        
+        .table-action-btn.delete-btn:hover {
+            color: #f5222d;
+            border-color: #f5222d;
+        }
+        
+        .table-action-btn.copy-btn:hover {
+            color: #52c41a;
+            border-color: #52c41a;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 16px 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .page-info {
+            margin-right: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .page-control {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .page-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #d9d9d9;
+            background-color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .page-btn:hover {
+            color: #1890ff;
+            border-color: #1890ff;
+        }
+        
+        .page-btn.active {
+            background-color: #1890ff;
+            color: #fff;
+            border-color: #1890ff;
+        }
+        
+        .page-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        /* 模态框样式增强 */
+        .modal-content {
+            max-width: 700px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .form-col {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        /* 验证规则详情 */
+        .validation-details {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .detail-section {
+            margin-bottom: 20px;
+        }
+        
+        .detail-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        .regex-preview {
+            background-color: #f5f5f5;
+            padding: 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin-top: 8px;
+        }
+        
+        .script-editor {
+            width: 100%;
+            height: 200px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            outline: none;
+        }
+        
+        .script-editor:focus {
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        
+        /* 示例代码块 */
+        .code-example {
+            background-color: #f5f5f5;
+            padding: 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin-top: 8px;
+            white-space: pre-wrap;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .validation-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .validation-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            
+            .filter-row {
+                flex-direction: column;
+            }
+            
+            .filter-item {
+                min-width: 100%;
+            }
+            
+            .filter-buttons {
+                justify-content: flex-start;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .table-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
+            .pagination {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+            
+            .page-info {
+                margin-right: 0;
+            }
+            
+            .table-wrapper {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 内容区 -->
+    <div class="validation-container">
+                <!-- 页面头部 -->
+                <div class="validation-header">
+                    <h1 class="validation-title">表单校验管理</h1>
+                    <div class="validation-actions">
+                        <button class="btn btn-primary" id="addValidationBtn">新增校验规则</button>
+                        <button class="btn btn-default" id="importValidationBtn">导入规则</button>
+                        <button class="btn btn-default" id="exportValidationBtn">导出规则</button>
+                    </div>
+                </div>
+
+                <!-- 筛选区域 -->
+                <div class="filter-container">
+                    <div class="filter-row">
+                        <div class="filter-item">
+                            <label class="filter-label">规则名称</label>
+                            <input type="text" class="filter-input" id="ruleNameFilter" placeholder="请输入规则名称">
+                        </div>
+                        <div class="filter-item">
+                            <label class="filter-label">校验类型</label>
+                            <select class="filter-input" id="validationTypeFilter">
+                                <option value="">全部类型</option>
+                                <option value="regex">正则表达式</option>
+                                <option value="script">自定义脚本</option>
+                                <option value="builtin">内置规则</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label class="filter-label">适用字段类型</label>
+                            <select class="filter-input" id="fieldTypeFilter">
+                                <option value="">全部字段类型</option>
+                                <option value="text">单行文本</option>
+                                <option value="textarea">多行文本</option>
+                                <option value="number">数字输入</option>
+                                <option value="date">日期选择</option>
+                                <option value="select">下拉选择</option>
+                                <option value="radio">单选框组</option>
+                                <option value="checkbox">复选框组</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label class="filter-label">状态</label>
+                            <select class="filter-input" id="statusFilter">
+                                <option value="">全部状态</option>
+                                <option value="active">启用</option>
+                                <option value="inactive">禁用</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="btn btn-primary" id="searchBtn">搜索</button>
+                        <button class="btn btn-default" id="resetBtn">重置</button>
+                    </div>
+                </div>
+
+                <!-- 校验规则表格 -->
+                <div class="validation-table">
+                    <div class="table-header">
+                        <h2 class="table-title">校验规则列表</h2>
+                        <div class="table-actions">
+                            <div style="display: flex; align-items: center;">
+                                <label style="margin-right: 8px; font-size: 14px; color: #666;">显示：</label>
+                                <select class="filter-input" style="width: 100px;">
+                                    <option value="10">10条</option>
+                                    <option value="20">20条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;">
+                                        <input type="checkbox" id="selectAll">
+                                    </th>
+                                    <th>规则名称</th>
+                                    <th>规则编码</th>
+                                    <th>校验类型</th>
+                                    <th>适用字段类型</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>更新时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr data-rule-id="1">
+                                    <td>
+                                        <input type="checkbox" class="rule-checkbox">
+                                    </td>
+                                    <td>邮箱格式校验</td>
+                                    <td>EMAIL_VALIDATION</td>
+                                    <td>
+                                        <span class="validation-type-tag tag-regex">正则表达式</span>
+                                    </td>
+                                    <td>单行文本</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-15 10:30</td>
+                                    <td>2023-06-15 10:30</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn copy-btn" title="复制">复制</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-rule-id="2">
+                                    <td>
+                                        <input type="checkbox" class="rule-checkbox">
+                                    </td>
+                                    <td>手机号码校验</td>
+                                    <td>PHONE_VALIDATION</td>
+                                    <td>
+                                        <span class="validation-type-tag tag-regex">正则表达式</span>
+                                    </td>
+                                    <td>单行文本</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-15 10:32</td>
+                                    <td>2023-06-15 10:32</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn copy-btn" title="复制">复制</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-rule-id="3">
+                                    <td>
+                                        <input type="checkbox" class="rule-checkbox">
+                                    </td>
+                                    <td>身份证号码校验</td>
+                                    <td>ID_CARD_VALIDATION</td>
+                                    <td>
+                                        <span class="validation-type-tag tag-script">自定义脚本</span>
+                                    </td>
+                                    <td>单行文本</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-15 10:35</td>
+                                    <td>2023-06-15 10:35</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn copy-btn" title="复制">复制</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-rule-id="4">
+                                    <td>
+                                        <input type="checkbox" class="rule-checkbox">
+                                    </td>
+                                    <td>正整数校验</td>
+                                    <td>POSITIVE_INTEGER_VALIDATION</td>
+                                    <td>
+                                        <span class="validation-type-tag tag-regex">正则表达式</span>
+                                    </td>
+                                    <td>数字输入</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-15 10:38</td>
+                                    <td>2023-06-15 10:38</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn copy-btn" title="复制">复制</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-rule-id="5">
+                                    <td>
+                                        <input type="checkbox" class="rule-checkbox">
+                                    </td>
+                                    <td>金额格式校验</td>
+                                    <td>AMOUNT_VALIDATION</td>
+                                    <td>
+                                        <span class="validation-type-tag tag-regex">正则表达式</span>
+                                    </td>
+                                    <td>数字输入</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-15 10:40</td>
+                                    <td>2023-06-15 10:40</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn copy-btn" title="复制">复制</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-rule-id="6">
+                                    <td>
+                                        <input type="checkbox" class="rule-checkbox">
+                                    </td>
+                                    <td>日期范围校验</td>
+                                    <td>DATE_RANGE_VALIDATION</td>
+                                    <td>
+                                        <span class="validation-type-tag tag-script">自定义脚本</span>
+                                    </td>
+                                    <td>日期选择</td>
+                                    <td>
+                                        <span class="status-badge status-inactive">禁用</span>
+                                    </td>
+                                    <td>2023-06-15 10:42</td>
+                                    <td>2023-06-15 15:20</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn copy-btn" title="复制">复制</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-rule-id="7">
+                                    <td>
+                                        <input type="checkbox" class="rule-checkbox">
+                                    </td>
+                                    <td>URL地址校验</td>
+                                    <td>URL_VALIDATION</td>
+                                    <td>
+                                        <span class="validation-type-tag tag-regex">正则表达式</span>
+                                    </td>
+                                    <td>单行文本</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-16 09:15</td>
+                                    <td>2023-06-16 09:15</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn copy-btn" title="复制">复制</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-rule-id="8">
+                                    <td>
+                                        <input type="checkbox" class="rule-checkbox">
+                                    </td>
+                                    <td>用户名格式校验</td>
+                                    <td>USERNAME_VALIDATION</td>
+                                    <td>
+                                        <span class="validation-type-tag tag-regex">正则表达式</span>
+                                    </td>
+                                    <td>单行文本</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-16 14:30</td>
+                                    <td>2023-06-16 14:30</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn copy-btn" title="复制">复制</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-rule-id="9">
+                                    <td>
+                                        <input type="checkbox" class="rule-checkbox">
+                                    </td>
+                                    <td>密码强度校验</td>
+                                    <td>PASSWORD_STRENGTH_VALIDATION</td>
+                                    <td>
+                                        <span class="validation-type-tag tag-script">自定义脚本</span>
+                                    </td>
+                                    <td>单行文本</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-17 11:20</td>
+                                    <td>2023-06-17 11:20</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn copy-btn" title="复制">复制</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-rule-id="10">
+                                    <td>
+                                        <input type="checkbox" class="rule-checkbox">
+                                    </td>
+                                    <td>邮政编码校验</td>
+                                    <td>ZIP_CODE_VALIDATION</td>
+                                    <td>
+                                        <span class="validation-type-tag tag-regex">正则表达式</span>
+                                    </td>
+                                    <td>单行文本</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-18 16:45</td>
+                                    <td>2023-06-18 16:45</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn copy-btn" title="复制">复制</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <div class="page-info">显示 1-10 条，共 24 条</div>
+                        <div class="page-control">
+                            <button class="page-btn" disabled>上一页</button>
+                            <button class="page-btn active">1</button>
+                            <button class="page-btn">2</button>
+                            <button class="page-btn">3</button>
+                            <button class="page-btn">下一页</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 新增/编辑校验规则模态框 -->
+    <div class="modal" id="validationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">新增校验规则</h3>
+                <button class="modal-close" onclick="closeValidationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="validationForm">
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">规则名称 <span style="color: #f5222d;">*</span></label>
+                                <input type="text" class="form-control" id="ruleName" name="ruleName" required placeholder="请输入规则名称">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">规则编码 <span style="color: #f5222d;">*</span></label>
+                                <input type="text" class="form-control" id="ruleCode" name="ruleCode" required placeholder="请输入规则编码（英文大写、数字、下划线）">
+                                <p style="font-size: 12px; color: #999; margin-top: 4px;">规则编码用于系统内部使用，建议使用英文大写、数字和下划线</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">校验类型 <span style="color: #f5222d;">*</span></label>
+                                <select class="form-control" id="validationType" name="validationType" required>
+                                    <option value="">请选择校验类型</option>
+                                    <option value="regex">正则表达式</option>
+                                    <option value="script">自定义脚本</option>
+                                    <option value="builtin">内置规则</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">适用字段类型 <span style="color: #f5222d;">*</span></label>
+                                <select class="form-control" id="fieldType" name="fieldType" multiple required>
+                                    <option value="text">单行文本</option>
+                                    <option value="textarea">多行文本</option>
+                                    <option value="number">数字输入</option>
+                                    <option value="date">日期选择</option>
+                                    <option value="select">下拉选择</option>
+                                    <option value="radio">单选框组</option>
+                                    <option value="checkbox">复选框组</option>
+                                    <option value="upload">文件上传</option>
+                                    <option value="image">图片上传</option>
+                                </select>
+                                <p style="font-size: 12px; color: #999; margin-top: 4px;">按住Ctrl键可多选</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">错误提示信息 <span style="color: #f5222d;">*</span></label>
+                                <input type="text" class="form-control" id="errorMessage" name="errorMessage" required placeholder="请输入错误提示信息">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">状态</label>
+                                <select class="form-control" id="ruleStatus" name="ruleStatus">
+                                    <option value="active">启用</option>
+                                    <option value="inactive">禁用</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">规则描述</label>
+                        <textarea class="form-control" id="ruleDescription" name="ruleDescription" rows="3" placeholder="请输入规则描述"></textarea>
+                    </div>
+                    
+                    <!-- 校验规则详情 -->
+                    <div class="validation-details">
+                        <div class="detail-section" id="regexSection" style="display: none;">
+                            <div class="detail-title">正则表达式配置</div>
+                            <div class="form-group">
+                                <label class="form-label">正则表达式 <span style="color: #f5222d;">*</span></label>
+                                <input type="text" class="form-control" id="regexPattern" name="regexPattern" placeholder="请输入正则表达式">
+                                <div class="regex-preview" id="regexPreview">
+                                    正则表达式预览将显示在这里
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">测试输入</label>
+                                <input type="text" class="form-control" id="testInput" placeholder="请输入测试内容">
+                                <button type="button" class="btn btn-default" id="testRegexBtn" style="margin-top: 8px;">测试</button>
+                                <div id="testResult" style="margin-top: 8px; font-size: 14px;"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">常用正则表达式</label>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                                    <button type="button" class="btn btn-default" style="padding: 4px 12px; font-size: 12px;" onclick="loadCommonRegex('email')">邮箱</button>
+                                    <button type="button" class="btn btn-default" style="padding: 4px 12px; font-size: 12px;" onclick="loadCommonRegex('phone')">手机号码</button>
+                                    <button type="button" class="btn btn-default" style="padding: 4px 12px; font-size: 12px;" onclick="loadCommonRegex('idcard')">身份证</button>
+                                    <button type="button" class="btn btn-default" style="padding: 4px 12px; font-size: 12px;" onclick="loadCommonRegex('url')">URL</button>
+                                    <button type="button" class="btn btn-default" style="padding: 4px 12px; font-size: 12px;" onclick="loadCommonRegex('number')">数字</button>
+                                    <button type="button" class="btn btn-default" style="padding: 4px 12px; font-size: 12px;" onclick="loadCommonRegex('integer')">整数</button>
+                                    <button type="button" class="btn btn-default" style="padding: 4px 12px; font-size: 12px;" onclick="loadCommonRegex('amount')">金额</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section" id="scriptSection" style="display: none;">
+                            <div class="detail-title">自定义脚本配置</div>
+                            <div class="form-group">
+                                <label class="form-label">JavaScript 脚本 <span style="color: #f5222d;">*</span></label>
+                                <textarea class="script-editor" id="validationScript" name="validationScript" placeholder="请输入JavaScript验证脚本"></textarea>
+                                <div class="code-example">
+// 示例：日期范围校验脚本
+function validate(value, formData) {
+    // value 为当前字段值
+    // formData 为整个表单数据对象
+    
+    const startDate = new Date(formData.start_date);
+    const endDate = new Date(formData.end_date);
+    
+    if (endDate < startDate) {
+        return false; // 验证失败
+    }
+    
+    return true; // 验证通过
+}
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">测试字段值</label>
+                                <input type="text" class="form-control" id="scriptTestValue" placeholder="请输入测试字段值">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">测试表单数据（JSON格式）</label>
+                                <textarea class="form-control" id="scriptTestFormData" rows="3" placeholder="请输入测试表单数据（JSON格式）">{"start_date":"2023-06-01"}</textarea>
+                                <button type="button" class="btn btn-default" id="testScriptBtn" style="margin-top: 8px;">测试脚本</button>
+                                <div id="scriptTestResult" style="margin-top: 8px; font-size: 14px;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section" id="builtinSection" style="display: none;">
+                            <div class="detail-title">内置规则配置</div>
+                            <div class="form-group">
+                                <label class="form-label">选择内置规则 <span style="color: #f5222d;">*</span></label>
+                                <select class="form-control" id="builtinRule" name="builtinRule">
+                                    <option value="">请选择内置规则</option>
+                                    <option value="required">必填项</option>
+                                    <option value="maxLength">最大长度</option>
+                                    <option value="minLength">最小长度</option>
+                                    <option value="maxValue">最大值</option>
+                                    <option value="minValue">最小值</option>
+                                    <option value="range">数值范围</option>
+                                    <option value="dateAfter">日期晚于</option>
+                                    <option value="dateBefore">日期早于</option>
+                                </select>
+                            </div>
+                            
+                            <div id="builtinParams" style="display: none;">
+                                <!-- 内置规则参数将根据选择的规则动态显示 -->
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeValidationModal()">取消</button>
+                <button class="btn btn-primary" id="saveRuleBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../JS/common.js"></script>
+    <script src="../JS/main.js"></script>
+    <script>
+        // 表单校验页面专用脚本
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化变量
+            const validationModal = document.getElementById('validationModal');
+            const addValidationBtn = document.getElementById('addValidationBtn');
+            const saveRuleBtn = document.getElementById('saveRuleBtn');
+            const modalTitle = document.getElementById('modalTitle');
+            const validationTypeSelect = document.getElementById('validationType');
+            const regexSection = document.getElementById('regexSection');
+            const scriptSection = document.getElementById('scriptSection');
+            const builtinSection = document.getElementById('builtinSection');
+            const regexPatternInput = document.getElementById('regexPattern');
+            const regexPreview = document.getElementById('regexPreview');
+            const testRegexBtn = document.getElementById('testRegexBtn');
+            const testInput = document.getElementById('testInput');
+            const testResult = document.getElementById('testResult');
+            const testScriptBtn = document.getElementById('testScriptBtn');
+            const scriptTestValue = document.getElementById('scriptTestValue');
+            const scriptTestFormData = document.getElementById('scriptTestFormData');
+            const scriptTestResult = document.getElementById('scriptTestResult');
+            const builtinRuleSelect = document.getElementById('builtinRule');
+            const builtinParams = document.getElementById('builtinParams');
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const ruleCheckboxes = document.querySelectorAll('.rule-checkbox');
+            const searchBtn = document.getElementById('searchBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const importValidationBtn = document.getElementById('importValidationBtn');
+            const exportValidationBtn = document.getElementById('exportValidationBtn');
+            
+            // 当前编辑的规则ID
+            let currentRuleId = null;
+            
+            // 初始化事件监听
+            initEventListeners();
+            
+            // 初始化表格操作按钮
+            initTableActions();
+            
+            // 初始化校验类型选择事件
+            validationTypeSelect.addEventListener('change', function() {
+                updateValidationSectionVisibility();
+            });
+            
+            // 初始化正则表达式变化事件
+            regexPatternInput.addEventListener('input', function() {
+                updateRegexPreview();
+            });
+            
+            // 初始化测试正则按钮事件
+            testRegexBtn.addEventListener('click', function() {
+                testRegex();
+            });
+            
+            // 初始化测试脚本按钮事件
+            testScriptBtn.addEventListener('click', function() {
+                testScript();
+            });
+            
+            // 初始化内置规则选择事件
+            builtinRuleSelect.addEventListener('change', function() {
+                updateBuiltinParams();
+            });
+            
+            // 初始化全选/取消全选事件
+            selectAllCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                ruleCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+            });
+            
+            // 初始化单选框变化事件
+            ruleCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateSelectAllStatus();
+                });
+            });
+        });
+        
+        /**
+         * 初始化事件监听
+         */
+        function initEventListeners() {
+            // 新增校验规则按钮事件
+            document.getElementById('addValidationBtn').addEventListener('click', function() {
+                openAddValidationModal();
+            });
+            
+            // 保存校验规则按钮事件
+            document.getElementById('saveRuleBtn').addEventListener('click', function() {
+                saveValidationRule();
+            });
+            
+            // 搜索按钮事件
+            document.getElementById('searchBtn').addEventListener('click', function() {
+                searchRules();
+            });
+            
+            // 重置按钮事件
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                resetFilters();
+            });
+            
+            // 导入规则按钮事件
+            document.getElementById('importValidationBtn').addEventListener('click', function() {
+                importRules();
+            });
+            
+            // 导出规则按钮事件
+            document.getElementById('exportValidationBtn').addEventListener('click', function() {
+                exportRules();
+            });
+            
+            // 模态框点击外部关闭
+            document.getElementById('validationModal').addEventListener('click', function(event) {
+                if (event.target === this) {
+                    closeValidationModal();
+                }
+            });
+        }
+        
+        /**
+         * 初始化表格操作按钮
+         */
+        function initTableActions() {
+            // 编辑按钮事件
+            const editButtons = document.querySelectorAll('.table-action-btn.edit-btn');
+            editButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const ruleId = this.closest('tr').dataset.ruleId;
+                    openEditValidationModal(ruleId);
+                });
+            });
+            
+            // 复制按钮事件
+            const copyButtons = document.querySelectorAll('.table-action-btn.copy-btn');
+            copyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const ruleId = this.closest('tr').dataset.ruleId;
+                    copyRule(ruleId);
+                });
+            });
+            
+            // 删除按钮事件
+            const deleteButtons = document.querySelectorAll('.table-action-btn.delete-btn');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const ruleId = this.closest('tr').dataset.ruleId;
+                    deleteRule(ruleId);
+                });
+            });
+        }
+        
+        /**
+         * 更新校验类型对应的配置区域显示状态
+         */
+        function updateValidationSectionVisibility() {
+            const validationType = document.getElementById('validationType').value;
+            
+            regexSection.style.display = 'none';
+            scriptSection.style.display = 'none';
+            builtinSection.style.display = 'none';
+            
+            switch(validationType) {
+                case 'regex':
+                    regexSection.style.display = 'block';
+                    break;
+                case 'script':
+                    scriptSection.style.display = 'block';
+                    break;
+                case 'builtin':
+                    builtinSection.style.display = 'block';
+                    updateBuiltinParams();
+                    break;
+            }
+        }
+        
+        /**
+         * 更新正则表达式预览
+         */
+        function updateRegexPreview() {
+            const regexPattern = document.getElementById('regexPattern').value;
+            const regexPreview = document.getElementById('regexPreview');
+            
+            if (regexPattern) {
+                try {
+                    // 测试正则表达式是否有效
+                    new RegExp(regexPattern);
+                    regexPreview.textContent = regexPattern;
+                    regexPreview.style.color = '#333';
+                } catch (e) {
+                    regexPreview.textContent = '无效的正则表达式';
+                    regexPreview.style.color = '#f5222d';
+                }
+            } else {
+                regexPreview.textContent = '正则表达式预览将显示在这里';
+                regexPreview.style.color = '#999';
+            }
+        }
+        
+        /**
+         * 测试正则表达式
+         */
+        function testRegex() {
+            const regexPattern = document.getElementById('regexPattern').value;
+            const testInput = document.getElementById('testInput').value;
+            const testResult = document.getElementById('testResult');
+            
+            if (!regexPattern) {
+                testResult.textContent = '请输入正则表达式';
+                testResult.style.color = '#f5222d';
+                return;
+            }
+            
+            try {
+                const regex = new RegExp(regexPattern);
+                const isValid = regex.test(testInput);
+                
+                if (isValid) {
+                    testResult.textContent = '测试通过！输入内容符合正则表达式要求。';
+                    testResult.style.color = '#52c41a';
+                } else {
+                    testResult.textContent = '测试失败！输入内容不符合正则表达式要求。';
+                    testResult.style.color = '#f5222d';
+                }
+            } catch (e) {
+                testResult.textContent = '正则表达式无效：' + e.message;
+                testResult.style.color = '#f5222d';
+            }
+        }
+        
+        /**
+         * 测试脚本
+         */
+        function testScript() {
+            const script = document.getElementById('validationScript').value;
+            const testValue = document.getElementById('scriptTestValue').value;
+            const testFormData = document.getElementById('scriptTestFormData').value;
+            const scriptTestResult = document.getElementById('scriptTestResult');
+            
+            if (!script) {
+                scriptTestResult.textContent = '请输入验证脚本';
+                scriptTestResult.style.color = '#f5222d';
+                return;
+            }
+            
+            try {
+                // 解析表单数据
+                let formData = {};
+                if (testFormData) {
+                    formData = JSON.parse(testFormData);
+                }
+                
+                // 创建函数
+                const validate = new Function('value', 'formData', script);
+                
+                // 执行验证
+                const isValid = validate(testValue, formData);
+                
+                if (isValid) {
+                    scriptTestResult.textContent = '测试通过！验证脚本执行成功。';
+                    scriptTestResult.style.color = '#52c41a';
+                } else {
+                    scriptTestResult.textContent = '测试失败！验证脚本返回false。';
+                    scriptTestResult.style.color = '#f5222d';
+                }
+            } catch (e) {
+                scriptTestResult.textContent = '脚本执行错误：' + e.message;
+                scriptTestResult.style.color = '#f5222d';
+            }
+        }
+        
+        /**
+         * 更新内置规则参数
+         */
+        function updateBuiltinParams() {
+            const builtinRule = document.getElementById('builtinRule').value;
+            const builtinParams = document.getElementById('builtinParams');
+            
+            builtinParams.innerHTML = '';
+            builtinParams.style.display = builtinRule ? 'block' : 'none';
+            
+            switch(builtinRule) {
+                case 'maxLength':
+                    builtinParams.innerHTML = `
+                        <div class="form-group">
+                            <label class="form-label">最大长度 <span style="color: #f5222d;">*</span></label>
+                            <input type="number" class="form-control" id="maxLengthParam" name="maxLengthParam" required min="1">
+                        </div>
+                    `;
+                    break;
+                case 'minLength':
+                    builtinParams.innerHTML = `
+                        <div class="form-group">
+                            <label class="form-label">最小长度 <span style="color: #f5222d;">*</span></label>
+                            <input type="number" class="form-control" id="minLengthParam" name="minLengthParam" required min="0">
+                        </div>
+                    `;
+                    break;
+                case 'maxValue':
+                    builtinParams.innerHTML = `
+                        <div class="form-group">
+                            <label class="form-label">最大值 <span style="color: #f5222d;">*</span></label>
+                            <input type="number" class="form-control" id="maxValueParam" name="maxValueParam" required>
+                        </div>
+                    `;
+                    break;
+                case 'minValue':
+                    builtinParams.innerHTML = `
+                        <div class="form-group">
+                            <label class="form-label">最小值 <span style="color: #f5222d;">*</span></label>
+                            <input type="number" class="form-control" id="minValueParam" name="minValueParam" required>
+                        </div>
+                    `;
+                    break;
+                case 'range':
+                    builtinParams.innerHTML = `
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label">最小值 <span style="color: #f5222d;">*</span></label>
+                                    <input type="number" class="form-control" id="rangeMinParam" name="rangeMinParam" required>
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label">最大值 <span style="color: #f5222d;">*</span></label>
+                                    <input type="number" class="form-control" id="rangeMaxParam" name="rangeMaxParam" required>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'dateAfter':
+                    builtinParams.innerHTML = `
+                        <div class="form-group">
+                            <label class="form-label">目标日期字段 <span style="color: #f5222d;">*</span></label>
+                            <input type="text" class="form-control" id="dateAfterParam" name="dateAfterParam" required placeholder="请输入目标日期字段名">
+                        </div>
+                    `;
+                    break;
+                case 'dateBefore':
+                    builtinParams.innerHTML = `
+                        <div class="form-group">
+                            <label class="form-label">目标日期字段 <span style="color: #f5222d;">*</span></label>
+                            <input type="text" class="form-control" id="dateBeforeParam" name="dateBeforeParam" required placeholder="请输入目标日期字段名">
+                        </div>
+                    `;
+                    break;
+            }
+        }
+        
+        /**
+         * 加载常用正则表达式
+         * @param {string} type - 正则表达式类型
+         */
+        function loadCommonRegex(type) {
+            let pattern = '';
+            let errorMessage = '';
+            
+            switch(type) {
+                case 'email':
+                    pattern = '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$';
+                    errorMessage = '请输入有效的邮箱地址';
+                    break;
+                case 'phone':
+                    pattern = '^1[3-9]\\d{9}$';
+                    errorMessage = '请输入有效的手机号码';
+                    break;
+                case 'idcard':
+                    pattern = '^[1-9]\\d{5}(18|19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])\\d{3}[\\dXx]$';
+                    errorMessage = '请输入有效的身份证号码';
+                    break;
+                case 'url':
+                    pattern = '^https?:\\/\\/[^\\s/$.?#].[^\\s]*$';
+                    errorMessage = '请输入有效的URL地址';
+                    break;
+                case 'number':
+                    pattern = '^-?\\d+(\\.\\d+)?$';
+                    errorMessage = '请输入有效的数字';
+                    break;
+                case 'integer':
+                    pattern = '^-?\\d+$';
+                    errorMessage = '请输入有效的整数';
+                    break;
+                case 'amount':
+                    pattern = '^\\d+(\\.\\d{1,2})?$';
+                    errorMessage = '请输入有效的金额（最多两位小数）';
+                    break;
+            }
+            
+            if (pattern) {
+                document.getElementById('regexPattern').value = pattern;
+                updateRegexPreview();
+                
+                // 如果没有设置错误提示信息，则自动设置
+                if (!document.getElementById('errorMessage').value) {
+                    document.getElementById('errorMessage').value = errorMessage;
+                }
+            }
+        }
+        
+        /**
+         * 打开新增校验规则模态框
+         */
+        function openAddValidationModal() {
+            // 重置表单
+            const validationForm = document.getElementById('validationForm');
+            validationForm.reset();
+            
+            // 重置配置区域
+            updateValidationSectionVisibility();
+            
+            // 设置模态框标题
+            document.getElementById('modalTitle').textContent = '新增校验规则';
+            
+            // 重置当前编辑的规则ID
+            currentRuleId = null;
+            
+            // 显示模态框
+            document.getElementById('validationModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        /**
+         * 打开编辑校验规则模态框
+         * @param {string} ruleId - 规则ID
+         */
+        function openEditValidationModal(ruleId) {
+            // 重置表单
+            const validationForm = document.getElementById('validationForm');
+            validationForm.reset();
+            
+            // 设置当前编辑的规则ID
+            currentRuleId = ruleId;
+            
+            // 设置模态框标题
+            document.getElementById('modalTitle').textContent = '编辑校验规则';
+            
+            // 模拟加载规则数据
+            loadRuleData(ruleId);
+            
+            // 显示模态框
+            document.getElementById('validationModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        /**
+         * 关闭校验规则模态框
+         */
+        function closeValidationModal() {
+            document.getElementById('validationModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        
+        /**
+         * 加载规则数据
+         * @param {string} ruleId - 规则ID
+         */
+        function loadRuleData(ruleId) {
+            // 模拟根据ID获取规则数据
+            // 实际项目中应该从服务器获取数据
+            let ruleData = {
+                name: '',
+                code: '',
+                type: '',
+                fieldTypes: [],
+                errorMessage: '',
+                status: 'active',
+                description: '',
+                regexPattern: '',
+                script: '',
+                builtinRule: '',
+                builtinParams: {}
+            };
+            
+            // 根据规则ID模拟不同的规则数据
+            switch(ruleId) {
+                case '1':
+                    ruleData = {
+                        name: '邮箱格式校验',
+                        code: 'EMAIL_VALIDATION',
+                        type: 'regex',
+                        fieldTypes: ['text'],
+                        errorMessage: '请输入有效的邮箱地址',
+                        status: 'active',
+                        description: '验证邮箱地址格式是否正确',
+                        regexPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$',
+                        script: '',
+                        builtinRule: '',
+                        builtinParams: {}
+                    };
+                    break;
+                case '2':
+                    ruleData = {
+                        name: '手机号码校验',
+                        code: 'PHONE_VALIDATION',
+                        type: 'regex',
+                        fieldTypes: ['text'],
+                        errorMessage: '请输入有效的手机号码',
+                        status: 'active',
+                        description: '验证手机号码格式是否正确',
+                        regexPattern: '^1[3-9]\\d{9}$',
+                        script: '',
+                        builtinRule: '',
+                        builtinParams: {}
+                    };
+                    break;
+                case '3':
+                    ruleData = {
+                        name: '身份证号码校验',
+                        code: 'ID_CARD_VALIDATION',
+                        type: 'script',
+                        fieldTypes: ['text'],
+                        errorMessage: '请输入有效的身份证号码',
+                        status: 'active',
+                        description: '验证身份证号码格式是否正确',
+                        regexPattern: '',
+                        script: `function validate(value, formData) {\n    // 简单的身份证号验证逻辑\n    const idCardRegex = /^[1-9]\\d{5}(18|19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])\\d{3}[\\dXx]$/;\n    return idCardRegex.test(value);\n}`,
+                        builtinRule: '',
+                        builtinParams: {}
+                    };
+                    break;
+                // 其他规则ID的数据...
+            }
+            
+            // 填充表单数据
+            document.getElementById('ruleName').value = ruleData.name;
+            document.getElementById('ruleCode').value = ruleData.code;
+            document.getElementById('validationType').value = ruleData.type;
+            document.getElementById('errorMessage').value = ruleData.errorMessage;
+            document.getElementById('ruleStatus').value = ruleData.status;
+            document.getElementById('ruleDescription').value = ruleData.description;
+            document.getElementById('regexPattern').value = ruleData.regexPattern;
+            document.getElementById('validationScript').value = ruleData.script;
+            document.getElementById('builtinRule').value = ruleData.builtinRule;
+            
+            // 设置适用字段类型
+            const fieldTypeSelect = document.getElementById('fieldType');
+            Array.from(fieldTypeSelect.options).forEach(option => {
+                option.selected = ruleData.fieldTypes.includes(option.value);
+            });
+            
+            // 更新配置区域显示状态
+            updateValidationSectionVisibility();
+            
+            // 更新正则表达式预览
+            updateRegexPreview();
+            
+            // 填充内置规则参数
+            if (ruleData.builtinRule && Object.keys(ruleData.builtinParams).length > 0) {
+                updateBuiltinParams();
+                // 根据实际数据填充参数值
+                // 示例：document.getElementById('maxLengthParam').value = ruleData.builtinParams.maxLength || '';
+            }
+        }
+        
+        /**
+         * 保存校验规则
+         */
+        function saveValidationRule() {
+            const validationForm = document.getElementById('validationForm');
+            
+            // 表单验证
+            if (!validationForm.checkValidity()) {
+                validationForm.reportValidity();
+                return;
+            }
+            
+            // 收集表单数据
+            const ruleData = {
+                id: currentRuleId,
+                name: document.getElementById('ruleName').value,
+                code: document.getElementById('ruleCode').value,
+                type: document.getElementById('validationType').value,
+                fieldTypes: Array.from(document.getElementById('fieldType').selectedOptions).map(option => option.value),
+                errorMessage: document.getElementById('errorMessage').value,
+                status: document.getElementById('ruleStatus').value,
+                description: document.getElementById('ruleDescription').value,
+                regexPattern: document.getElementById('regexPattern').value,
+                script: document.getElementById('validationScript').value,
+                builtinRule: document.getElementById('builtinRule').value,
+                builtinParams: {}
+            };
+            
+            // 收集内置规则参数
+            if (ruleData.builtinRule) {
+                switch(ruleData.builtinRule) {
+                    case 'maxLength':
+                        ruleData.builtinParams.maxLength = document.getElementById('maxLengthParam')?.value || '';
+                        break;
+                    case 'minLength':
+                        ruleData.builtinParams.minLength = document.getElementById('minLengthParam')?.value || '';
+                        break;
+                    case 'maxValue':
+                        ruleData.builtinParams.maxValue = document.getElementById('maxValueParam')?.value || '';
+                        break;
+                    case 'minValue':
+                        ruleData.builtinParams.minValue = document.getElementById('minValueParam')?.value || '';
+                        break;
+                    case 'range':
+                        ruleData.builtinParams.min = document.getElementById('rangeMinParam')?.value || '';
+                        ruleData.builtinParams.max = document.getElementById('rangeMaxParam')?.value || '';
+                        break;
+                    case 'dateAfter':
+                        ruleData.builtinParams.targetField = document.getElementById('dateAfterParam')?.value || '';
+                        break;
+                    case 'dateBefore':
+                        ruleData.builtinParams.targetField = document.getElementById('dateBeforeParam')?.value || '';
+                        break;
+                }
+            }
+            
+            // 模拟提交数据到服务器
+            console.log('保存校验规则数据:', ruleData);
+            
+            // 显示成功消息
+            showMessage(currentRuleId ? '规则更新成功' : '规则创建成功', 'success');
+            
+            // 关闭模态框
+            closeValidationModal();
+            
+            // 刷新表格数据
+            refreshTable();
+        }
+        
+        /**
+         * 复制规则
+         * @param {string} ruleId - 规则ID
+         */
+        function copyRule(ruleId) {
+            // 模拟复制规则数据
+            // 实际项目中应该从服务器获取数据并创建新的规则
+            showMessage('规则复制成功', 'success');
+            
+            // 刷新表格数据
+            refreshTable();
+        }
+        
+        /**
+         * 删除规则
+         * @param {string} ruleId - 规则ID
+         */
+        function deleteRule(ruleId) {
+            // 显示确认对话框
+            if (confirm('确定要删除这条校验规则吗？删除后将无法恢复。')) {
+                // 模拟删除操作
+                // 实际项目中应该调用API删除服务器上的数据
+                console.log('删除规则:', ruleId);
+                
+                // 显示成功消息
+                showMessage('规则删除成功', 'success');
+                
+                // 刷新表格数据
+                refreshTable();
+            }
+        }
+        
+        /**
+         * 搜索规则
+         */
+        function searchRules() {
+            // 获取搜索条件
+            const ruleName = document.getElementById('ruleNameFilter').value.trim();
+            const validationType = document.getElementById('validationTypeFilter').value;
+            const fieldType = document.getElementById('fieldTypeFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            
+            // 构建搜索条件对象
+            const searchParams = {
+                ruleName,
+                validationType,
+                fieldType,
+                status
+            };
+            
+            // 模拟搜索操作
+            console.log('搜索规则:', searchParams);
+            
+            // 刷新表格数据
+            refreshTable(searchParams);
+        }
+        
+        /**
+         * 重置筛选条件
+         */
+        function resetFilters() {
+            document.getElementById('ruleNameFilter').value = '';
+            document.getElementById('validationTypeFilter').value = '';
+            document.getElementById('fieldTypeFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+        }
+        
+        /**
+         * 导入规则
+         */
+        function importRules() {
+            // 创建隐藏的文件输入元素
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.json,.txt';
+            fileInput.style.display = 'none';
+            
+            // 添加文件选择事件
+            fileInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            // 解析导入的JSON数据
+                            const rulesData = JSON.parse(e.target.result);
+                            
+                            // 模拟导入操作
+                            console.log('导入规则数据:', rulesData);
+                            
+                            // 显示成功消息
+                            showMessage('规则导入成功', 'success');
+                            
+                            // 刷新表格数据
+                            refreshTable();
+                        } catch (error) {
+                            showMessage('导入失败：文件格式不正确', 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            });
+            
+            // 添加到文档并触发点击
+            document.body.appendChild(fileInput);
+            fileInput.click();
+            
+            // 清理
+            setTimeout(() => {
+                document.body.removeChild(fileInput);
+            }, 0);
+        }
+        
+        /**
+         * 导出规则
+         */
+        function exportRules() {
+            // 获取选中的规则
+            const selectedRuleIds = getSelectedRuleIds();
+            
+            // 如果没有选中规则，导出所有规则
+            const exportParams = selectedRuleIds.length > 0 ? {
+                ruleIds: selectedRuleIds
+            } : {};
+            
+            // 模拟导出操作
+            console.log('导出规则:', exportParams);
+            
+            // 模拟生成导出数据
+            const exportData = {
+                exportTime: new Date().toISOString(),
+                version: '1.0',
+                rules: getCurrentTableData()
+            };
+            
+            // 创建下载链接
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileName = 'validation_rules_' + new Date().toISOString().replace(/[:.]/g, '-') + '.json';
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileName);
+            linkElement.style.display = 'none';
+            document.body.appendChild(linkElement);
+            
+            // 触发下载
+            linkElement.click();
+            
+            // 清理
+            document.body.removeChild(linkElement);
+            
+            // 显示成功消息
+            showMessage('规则导出成功', 'success');
+        }
+        
+        /**
+         * 获取选中的规则ID列表
+         * @returns {Array} 选中的规则ID列表
+         */
+        function getSelectedRuleIds() {
+            const selectedIds = [];
+            const checkedBoxes = document.querySelectorAll('.rule-checkbox:checked');
+            
+            checkedBoxes.forEach(checkbox => {
+                const ruleId = checkbox.closest('tr').dataset.ruleId;
+                if (ruleId) {
+                    selectedIds.push(ruleId);
+                }
+            });
+            
+            return selectedIds;
+        }
+        
+        /**
+         * 更新全选复选框状态
+         */
+        function updateSelectAllStatus() {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const ruleCheckboxes = document.querySelectorAll('.rule-checkbox');
+            const checkedBoxes = document.querySelectorAll('.rule-checkbox:checked');
+            
+            selectAllCheckbox.checked = ruleCheckboxes.length > 0 && ruleCheckboxes.length === checkedBoxes.length;
+        }
+        
+        /**
+         * 刷新表格数据
+         * @param {Object} searchParams - 搜索参数
+         */
+        function refreshTable(searchParams = {}) {
+            // 模拟表格数据刷新
+            // 实际项目中应该根据搜索参数从服务器获取数据
+            console.log('刷新表格数据，搜索参数:', searchParams);
+            
+            // 这里可以添加加载动画
+            // 然后重新渲染表格数据
+        }
+        
+        /**
+         * 获取当前表格数据（用于导出）
+         * @returns {Array} 表格数据数组
+         */
+        function getCurrentTableData() {
+            const tableData = [];
+            const tableRows = document.querySelectorAll('tbody tr');
+            
+            tableRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 8) {
+                    const ruleId = row.dataset.ruleId;
+                    const ruleName = cells[1].textContent.trim();
+                    const ruleCode = cells[2].textContent.trim();
+                    const validationType = cells[3].querySelector('.validation-type-tag')?.textContent.trim() || '';
+                    const fieldType = cells[4].textContent.trim();
+                    const status = cells[5].querySelector('.status-badge')?.textContent.trim() || '';
+                    const createTime = cells[6].textContent.trim();
+                    const updateTime = cells[7].textContent.trim();
+                    
+                    tableData.push({
+                        id: ruleId,
+                        name: ruleName,
+                        code: ruleCode,
+                        type: validationType,
+                        fieldType: fieldType,
+                        status: status,
+                        createTime: createTime,
+                        updateTime: updateTime
+                    });
+                }
+            });
+            
+            return tableData;
+        }
+        
+        /**
+         * 显示消息提示
+         * @param {string} message - 消息内容
+         * @param {string} type - 消息类型：success, error, warning, info
+         */
+        function showMessage(message, type = 'info') {
+            // 使用common.js中的showMessage函数
+            if (window.showMessage) {
+                window.showMessage(message, type);
+            } else {
+                // 降级处理
+                alert(message);
+            }
+        }
+    </script>
+</body>
+</html>

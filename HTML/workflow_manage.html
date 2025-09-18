@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作流管理 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <script src="../JS/common.js"></script>
+    <style>
+        /* 工作流管理页面特定样式 */
+        .workflow-management-container {
+            padding: 20px;
+            background-color: #f0f2f5;
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        .workflow-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .workflow-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .workflow-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* 筛选条件布局 - 一行5列格式 */
+        .workflow-filters {
+            margin-bottom: 20px;
+            padding: 16px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: nowrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        .filter-group label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+            min-width: 80px;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            padding: 6px 12px;
+            width: 100%;
+            min-width: 120px;
+        }
+        
+        .workflow-action-btn {
+            padding: 4px 12px;
+            margin-right: 8px;
+            border: 1px solid #d9d9d9;
+            background-color: #fff;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .workflow-action-btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+        
+        .workflow-icon {
+            margin-right: 5px;
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        /* 统计卡片区域 */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        /* 页签样式 */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #f0f0f0;
+            background-color: #fff;
+            border-radius: 8px 8px 0 0;
+            padding-left: 20px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #1890ff;
+            border-bottom-color: #1890ff;
+        }
+        
+        .tab-content {
+            display: none;
+            background-color: #fff;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* 图表容器 */
+        .chart-container {
+            padding: 20px;
+            height: 400px;
+        }
+        
+        /* 报告内容 */
+        .report-content {
+            padding: 20px;
+        }
+        
+        .report-section {
+            margin-bottom: 24px;
+        }
+        
+        .report-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        
+        .report-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .report-stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .report-stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1890ff;
+        }
+        
+        .report-stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 1200px) {
+            .workflow-filters {
+                flex-wrap: wrap;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .workflow-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            
+            .workflow-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="workflow-management-container">
+        <!-- 页面头部 -->
+        <div class="workflow-header">
+            <h2 class="workflow-title">工作流管理</h2>
+            <div class="workflow-actions">
+                <button class="btn btn-primary" onclick="showCreateWorkflowModal()">创建工作流</button>
+                <button class="btn btn-default" onclick="refreshWorkflowList()">刷新列表</button>
+            </div>
+        </div>
+        
+        <!-- 筛选条件 - 一行5列格式 -->
+        <div class="workflow-filters card">
+            <div class="filter-group">
+                <label for="workflow-status">工作流状态：</label>
+                <select id="workflow-status">
+                    <option value="all">全部</option>
+                    <option value="active">启用</option>
+                    <option value="inactive">禁用</option>
+                    <option value="draft">草稿</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="workflow-type">工作流类型：</label>
+                <select id="workflow-type">
+                    <option value="all">全部</option>
+                    <option value="approval">审批类</option>
+                    <option value="process">流程类</option>
+                    <option value="form">表单类</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="workflow-search">搜索：</label>
+                <input type="text" id="workflow-search" placeholder="输入工作流名称或描述...">
+            </div>
+            <button class="btn btn-default" onclick="filterWorkflows()">查询</button>
+            <button class="btn btn-default" onclick="resetFilters()">重置</button>
+        </div>
+        
+        <!-- 统计数据卡片 -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-value" id="total-workflows">0</div>
+                <div class="stat-label">总工作流数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="active-workflows">0</div>
+                <div class="stat-label">启用工作流</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="inactive-workflows">0</div>
+                <div class="stat-label">禁用工作流</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="draft-workflows">0</div>
+                <div class="stat-label">草稿工作流</div>
+            </div>
+        </div>
+        
+        <!-- 内容页签 -->
+        <div class="tabs-container">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('list')">明细</div>
+                <div class="tab" onclick="switchTab('chart')">图表</div>
+                <div class="tab" onclick="switchTab('report')">报告</div>
+            </div>
+            
+            <!-- 明细内容 -->
+            <div id="list" class="tab-content active">
+                <div class="table-container">
+                    <table class="table-hover">
+                        <thead>
+                            <tr>
+                                <th>工作流名称</th>
+                                <th>工作流类型</th>
+                                <th>创建人</th>
+                                <th>创建时间</th>
+                                <th>最后修改</th>
+                                <th>状态</th>
+                                <th>使用次数</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="workflow-list">
+                            <!-- 工作流数据将通过JavaScript动态生成 -->
+                        </tbody>
+                    </table>
+                    
+                    <!-- 分页 -->
+                    <div class="pagination">
+                        <div class="page-info">共 <span id="total-count">0</span> 条记录</div>
+                        <div class="page-control">
+                            <button class="page-btn" id="prev-page" disabled>上一页</button>
+                            <span id="page-numbers"></span>
+                            <button class="page-btn" id="next-page" disabled>下一页</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 图表内容 -->
+            <div id="chart" class="tab-content">
+                <div class="chart-container">
+                    <!-- 这里将通过JavaScript渲染图表 -->
+                    <canvas id="workflowChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 报告内容 -->
+            <div id="report" class="tab-content">
+                <div class="report-content">
+                    <div class="report-section">
+                        <h3 class="report-title">工作流概览</h3>
+                        <div class="report-stats">
+                            <div class="report-stat-item">
+                                <span class="report-stat-value" id="report-total">0</span>
+                                <span class="report-stat-label">总工作流数</span>
+                            </div>
+                            <div class="report-stat-item">
+                                <span class="report-stat-value" id="report-active">0</span>
+                                <span class="report-stat-label">启用工作流</span>
+                            </div>
+                            <div class="report-stat-item">
+                                <span class="report-stat-value" id="report-inactive">0</span>
+                                <span class="report-stat-label">禁用工作流</span>
+                            </div>
+                            <div class="report-stat-item">
+                                <span class="report-stat-value" id="report-draft">0</span>
+                                <span class="report-stat-label">草稿工作流</span>
+                            </div>
+                            <div class="report-stat-item">
+                                <span class="report-stat-value" id="report-total-usage">0</span>
+                                <span class="report-stat-label">总使用次数</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    <div class="report-section">
+                        <h3 class="report-title">使用频率最高的工作流</h3>
+                        <div id="top-workflows" class="table-container">
+                            <table class="table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>排名</th>
+                                        <th>工作流名称</th>
+                                        <th>类型</th>
+                                        <th>使用次数</th>
+                                        <th>占比</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="top-workflows-body">
+                                    <!-- 数据将通过JavaScript动态生成 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        // 模拟工作流数据
+        const workflows = [
+            { id: '1', name: '请假审批流程', type: 'approval', creator: '张三', createTime: '2023-10-15', lastModify: '2023-11-05', status: 'active', useCount: 128 },
+            { id: '2', name: '报销审批流程', type: 'approval', creator: '李四', createTime: '2023-10-20', lastModify: '2023-11-10', status: 'active', useCount: 95 },
+            { id: '3', name: '新员工入职流程', type: 'process', creator: '王五', createTime: '2023-09-30', lastModify: '2023-11-15', status: 'active', useCount: 42 },
+            { id: '4', name: '离职申请流程', type: 'process', creator: '赵六', createTime: '2023-10-05', lastModify: '2023-10-25', status: 'active', useCount: 18 },
+            { id: '5', name: '项目立项审批', type: 'approval', creator: '钱七', createTime: '2023-09-20', lastModify: '2023-11-08', status: 'active', useCount: 36 },
+            { id: '6', name: '合同审批流程', type: 'approval', creator: '孙八', createTime: '2023-10-10', lastModify: '2023-11-02', status: 'active', useCount: 57 },
+            { id: '7', name: '设备采购申请', type: 'form', creator: '周九', createTime: '2023-10-25', lastModify: '2023-11-12', status: 'draft', useCount: 0 },
+            { id: '8', name: '会议预订流程', type: 'process', creator: '吴十', createTime: '2023-09-15', lastModify: '2023-10-30', status: 'inactive', useCount: 23 },
+            { id: '9', name: '文档审批流程', type: 'approval', creator: '郑十一', createTime: '2023-10-08', lastModify: '2023-11-01', status: 'active', useCount: 78 },
+            { id: '10', name: '培训申请流程', type: 'form', creator: '王十二', createTime: '2023-11-01', lastModify: '2023-11-10', status: 'active', useCount: 15 }
+        ];
+
+        // 当前页码和每页显示数量
+        let currentPage = 1;
+        const pageSize = 10;
+        let filteredWorkflows = [...workflows];
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initPage();
+        });
+
+        // 初始化页面
+        function initPage() {
+            renderWorkflowList();
+            updateStatistics();
+            renderReport();
+            initPagination();
+        }
+
+        // 渲染工作流列表
+        function renderWorkflowList() {
+            const workflowListElement = document.getElementById('workflow-list');
+            workflowListElement.innerHTML = '';
+
+            // 获取当前页的数据
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const currentPageWorkflows = filteredWorkflows.slice(startIndex, endIndex);
+
+            if (currentPageWorkflows.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `<td colspan="8" style="text-align: center; padding: 40px; color: #999;">暂无数据</td>`;
+                workflowListElement.appendChild(emptyRow);
+                return;
+            }
+
+            currentPageWorkflows.forEach(workflow => {
+                const row = document.createElement('tr');
+                
+                // 状态徽章样式类
+                let statusClass = '';
+                let statusText = '';
+                switch(workflow.status) {
+                    case 'active':
+                        statusClass = 'badge badge-success';
+                        statusText = '启用';
+                        break;
+                    case 'inactive':
+                        statusClass = 'badge badge-info';
+                        statusText = '禁用';
+                        break;
+                    case 'draft':
+                        statusClass = 'badge badge-warning';
+                        statusText = '草稿';
+                        break;
+                }
+
+                // 工作流类型文本
+                let typeText = '';
+                switch(workflow.type) {
+                    case 'approval':
+                        typeText = '审批类';
+                        break;
+                    case 'process':
+                        typeText = '流程类';
+                        break;
+                    case 'form':
+                        typeText = '表单类';
+                        break;
+                }
+
+                row.innerHTML = `
+                    <td>${workflow.name}</td>
+                    <td>${typeText}</td>
+                    <td>${workflow.creator}</td>
+                    <td>${workflow.createTime}</td>
+                    <td>${workflow.lastModify}</td>
+                    <td><span class="${statusClass}">${statusText}</span></td>
+                    <td>${workflow.useCount}</td>
+                    <td>
+                        <button class="workflow-action-btn" onclick="viewWorkflow('${workflow.id}')">查看</button>
+                        <button class="workflow-action-btn" onclick="editWorkflow('${workflow.id}')">编辑</button>
+                        <button class="workflow-action-btn" onclick="toggleWorkflowStatus('${workflow.id}')">
+                            ${workflow.status === 'active' ? '禁用' : '启用'}
+                        </button>
+                    </td>
+                `;
+                
+                workflowListElement.appendChild(row);
+            });
+        }
+
+        // 更新统计数据
+        function updateStatistics() {
+            // 更新顶部统计卡片
+            document.getElementById('total-workflows').textContent = workflows.length;
+            document.getElementById('active-workflows').textContent = workflows.filter(w => w.status === 'active').length;
+            document.getElementById('inactive-workflows').textContent = workflows.filter(w => w.status === 'inactive').length;
+            document.getElementById('draft-workflows').textContent = workflows.filter(w => w.status === 'draft').length;
+            
+            // 更新分页信息
+            document.getElementById('total-count').textContent = filteredWorkflows.length;
+            
+            // 更新报告页面数据
+            document.getElementById('report-total').textContent = workflows.length;
+            document.getElementById('report-active').textContent = workflows.filter(w => w.status === 'active').length;
+            document.getElementById('report-inactive').textContent = workflows.filter(w => w.status === 'inactive').length;
+            document.getElementById('report-draft').textContent = workflows.filter(w => w.status === 'draft').length;
+            document.getElementById('report-total-usage').textContent = workflows.reduce((sum, w) => sum + w.useCount, 0);
+        }
+
+        // 初始化分页
+        function initPagination() {
+            const totalPages = Math.ceil(filteredWorkflows.length / pageSize);
+            const pageNumbersContainer = document.getElementById('page-numbers');
+            pageNumbersContainer.innerHTML = '';
+            
+            // 生成页码按钮
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => goToPage(i);
+                pageNumbersContainer.appendChild(pageBtn);
+            }
+            
+            // 更新上一页和下一页按钮状态
+            document.getElementById('prev-page').disabled = currentPage === 1;
+            document.getElementById('next-page').disabled = currentPage === totalPages;
+            
+            // 绑定上一页和下一页按钮事件
+            document.getElementById('prev-page').onclick = goToPrevPage;
+            document.getElementById('next-page').onclick = goToNextPage;
+        }
+
+        // 跳转到指定页
+        function goToPage(page) {
+            if (page < 1 || page > Math.ceil(filteredWorkflows.length / pageSize)) {
+                return;
+            }
+            currentPage = page;
+            renderWorkflowList();
+            initPagination();
+        }
+
+        // 上一页
+        function goToPrevPage() {
+            if (currentPage > 1) {
+                goToPage(currentPage - 1);
+            }
+        }
+
+        // 下一页
+        function goToNextPage() {
+            if (currentPage < Math.ceil(filteredWorkflows.length / pageSize)) {
+                goToPage(currentPage + 1);
+            }
+        }
+
+        // 查看工作流
+        function viewWorkflow(id) {
+            console.log('查看工作流:', id);
+            showMessage('查看工作流: ' + id, 'info');
+        }
+
+        // 编辑工作流
+        function editWorkflow(id) {
+            console.log('编辑工作流:', id);
+            showMessage('编辑工作流: ' + id, 'info');
+        }
+
+        // 切换工作流状态（启用/禁用）
+        function toggleWorkflowStatus(id) {
+            const workflow = workflows.find(w => w.id === id);
+            if (workflow) {
+                const newStatus = workflow.status === 'active' ? 'inactive' : 'active';
+                
+                // 使用确认对话框
+                confirmDialog(
+                    `确定要${newStatus === 'active' ? '启用' : '禁用'}工作流"${workflow.name}"吗？`,
+                    () => {
+                        workflow.status = newStatus;
+                        // 重新应用筛选条件
+                        filterWorkflows(true);
+                        updateStatistics();
+                        showMessage(`工作流已${newStatus === 'active' ? '启用' : '禁用'}`, 'success');
+                    }
+                );
+            }
+        }
+
+        // 跳转到工作流设计页面
+        function showCreateWorkflowModal() {
+            window.location.href = 'workflow_from.html';
+        }
+
+
+
+
+
+        // 刷新工作流列表
+        function refreshWorkflowList() {
+            filterWorkflows(true);
+            showMessage('工作流列表已刷新', 'info');
+        }
+
+        // 筛选工作流
+        function filterWorkflows(forceRefresh = false) {
+            const statusFilter = document.getElementById('workflow-status').value;
+            const typeFilter = document.getElementById('workflow-type').value;
+            const searchFilter = document.getElementById('workflow-search').value.toLowerCase();
+            
+            // 如果不是强制刷新且没有筛选条件，则直接返回
+            if (!forceRefresh && statusFilter === 'all' && typeFilter === 'all' && !searchFilter) {
+                return;
+            }
+            
+            // 根据筛选条件过滤数据
+            filteredWorkflows = workflows.filter(workflow => {
+                const statusMatch = statusFilter === 'all' || workflow.status === statusFilter;
+                const typeMatch = typeFilter === 'all' || workflow.type === typeFilter;
+                const searchMatch = !searchFilter || 
+                    workflow.name.toLowerCase().includes(searchFilter) || 
+                    workflow.creator.toLowerCase().includes(searchFilter);
+                
+                return statusMatch && typeMatch && searchMatch;
+            });
+            
+            // 重置到第一页
+            currentPage = 1;
+            
+            // 重新渲染列表和分页
+            renderWorkflowList();
+            initPagination();
+            
+            // 更新图表和报告
+            if (window.workflowChart) {
+                updateChart();
+            }
+            renderReport();
+            
+            if (!forceRefresh) {
+                showMessage('已应用筛选条件', 'info');
+            }
+        }
+
+        // 重置筛选条件
+        function resetFilters() {
+            document.getElementById('workflow-status').value = 'all';
+            document.getElementById('workflow-type').value = 'all';
+            document.getElementById('workflow-search').value = '';
+            
+            // 应用重置后的筛选条件
+            filterWorkflows(true);
+            showMessage('筛选条件已重置', 'info');
+        }
+
+        // 切换页签
+        function switchTab(tabName) {
+            // 隐藏所有页签内容
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 移除所有页签的激活状态
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的页签内容
+            document.getElementById(tabName).classList.add('active');
+            
+            // 激活选中的页签
+            event.currentTarget.classList.add('active');
+            
+            // 如果切换到图表页签，确保图表已初始化
+            if (tabName === 'chart') {
+                initChart();
+            }
+            
+            // 如果切换到报告页签，确保报告已渲染
+            if (tabName === 'report') {
+                renderReport();
+            }
+        }
+
+        // 初始化图表 - 使用Canvas API直接绘制，不依赖外部库
+        function initChart() {
+            // 直接调用自定义绘制函数
+            drawChart();
+        }
+
+        // 使用Canvas API绘制图表
+        function drawChart() {
+            const canvas = document.getElementById('workflowChart');
+            const ctx = canvas.getContext('2d');
+            
+            // 获取容器尺寸并设置canvas尺寸
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            
+            // 准备图表数据
+            const chartData = prepareChartData();
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 图表配置
+            const margin = { top: 60, right: 20, bottom: 100, left: 40 };
+            const chartWidth = canvas.width - margin.left - margin.right;
+            const chartHeight = canvas.height - margin.top - margin.bottom;
+            
+            // 绘制标题
+            ctx.font = '16px Arial, sans-serif';
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'center';
+            ctx.fillText('工作流类型与状态分布', canvas.width / 2, margin.top / 2);
+            
+            // 如果没有数据，显示提示信息
+            if (chartData.data.length === 0) {
+                ctx.font = '14px Arial, sans-serif';
+                ctx.fillStyle = '#999';
+                ctx.fillText('暂无数据', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            // 计算最大值，用于确定Y轴刻度
+            const maxValue = Math.max(...chartData.data);
+            const yAxisMax = Math.ceil(maxValue * 1.1); // 留出10%的余量
+            
+            // 绘制坐标轴
+            ctx.beginPath();
+            ctx.moveTo(margin.left, margin.top);
+            ctx.lineTo(margin.left, canvas.height - margin.bottom);
+            ctx.lineTo(canvas.width - margin.right, canvas.height - margin.bottom);
+            ctx.strokeStyle = '#ddd';
+            ctx.stroke();
+            
+            // 绘制Y轴刻度
+            ctx.font = '12px Arial, sans-serif';
+            ctx.fillStyle = '#666';
+            ctx.textAlign = 'right';
+            
+            const yTicks = 5; // Y轴刻度数量
+            for (let i = 0; i <= yTicks; i++) {
+                const yValue = Math.round((i / yTicks) * yAxisMax);
+                const yPosition = canvas.height - margin.bottom - (i / yTicks) * chartHeight;
+                
+                // 绘制水平网格线
+                ctx.beginPath();
+                ctx.moveTo(margin.left, yPosition);
+                ctx.lineTo(canvas.width - margin.right, yPosition);
+                ctx.strokeStyle = '#f0f0f0';
+                ctx.stroke();
+                
+                // 绘制刻度标签
+                ctx.fillText(yValue.toString(), margin.left - 10, yPosition + 4);
+            }
+            
+            // 绘制柱状图
+            const barWidth = chartWidth / chartData.data.length * 0.7; // 柱状图宽度
+            const barGap = chartWidth / chartData.data.length * 0.3; // 柱状图间隔
+            
+            // 定义颜色数组
+            const colors = [
+                { fill: 'rgba(24, 144, 255, 0.6)', border: 'rgba(24, 144, 255, 1)' },
+                { fill: 'rgba(82, 196, 26, 0.6)', border: 'rgba(82, 196, 26, 1)' },
+                { fill: 'rgba(250, 173, 20, 0.6)', border: 'rgba(250, 173, 20, 1)' },
+                { fill: 'rgba(245, 34, 45, 0.6)', border: 'rgba(245, 34, 45, 1)' }
+            ];
+            
+            chartData.data.forEach((value, index) => {
+                // 计算柱状图位置
+                const xPosition = margin.left + index * (barWidth + barGap) + barGap / 2;
+                const barHeight = (value / yAxisMax) * chartHeight;
+                const yPosition = canvas.height - margin.bottom - barHeight;
+                
+                // 获取颜色（循环使用4种颜色）
+                const colorIndex = index % colors.length;
+                const color = colors[colorIndex];
+                
+                // 绘制柱状图
+                ctx.fillStyle = color.fill;
+                ctx.strokeStyle = color.border;
+                ctx.lineWidth = 1;
+                ctx.fillRect(xPosition, yPosition, barWidth, barHeight);
+                ctx.strokeRect(xPosition, yPosition, barWidth, barHeight);
+                
+                // 绘制数值标签
+                ctx.fillStyle = '#333';
+                ctx.font = '12px Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(value.toString(), xPosition + barWidth / 2, yPosition - 5);
+                
+                // 绘制X轴标签（旋转45度以避免重叠）
+                ctx.save();
+                ctx.translate(xPosition + barWidth / 2, canvas.height - margin.bottom + 20);
+                ctx.rotate(-Math.PI / 4); // 旋转45度
+                ctx.fillStyle = '#666';
+                ctx.font = '12px Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(chartData.labels[index], 0, 0);
+                ctx.restore();
+            });
+        }
+
+        // 监听窗口大小变化，重新绘制图表
+        window.addEventListener('resize', function() {
+            if (document.getElementById('chart').classList.contains('active')) {
+                drawChart();
+            }
+        });
+
+        // 准备图表数据
+        function prepareChartData() {
+            // 按类型和状态分组统计
+            const typeStatusCount = {};
+            
+            filteredWorkflows.forEach(workflow => {
+                const key = `${workflow.type}-${workflow.status}`;
+                typeStatusCount[key] = (typeStatusCount[key] || 0) + 1;
+            });
+            
+            // 准备标签和数据
+            const labels = [];
+            const data = [];
+            
+            // 类型和状态的显示名称映射
+            const typeMap = {
+                'approval': '审批类',
+                'process': '流程类',
+                'form': '表单类'
+            };
+            
+            const statusMap = {
+                'active': '启用',
+                'inactive': '禁用',
+                'draft': '草稿'
+            };
+            
+            // 遍历所有可能的类型和状态组合
+            const types = ['approval', 'process', 'form'];
+            const statuses = ['active', 'inactive', 'draft'];
+            
+            types.forEach(type => {
+                statuses.forEach(status => {
+                    const key = `${type}-${status}`;
+                    if (typeStatusCount[key] > 0) {
+                        labels.push(`${typeMap[type]}(${statusMap[status]})`);
+                        data.push(typeStatusCount[key]);
+                    }
+                });
+            });
+            
+            return { labels, data };
+        }
+
+        // 更新图表
+        function updateChart() {
+            drawChart();
+        }
+
+        // 渲染报告
+        function renderReport() {
+            const topWorkflowsBody = document.getElementById('top-workflows-body');
+            topWorkflowsBody.innerHTML = '';
+            
+            // 按使用次数排序，取前5个
+            const topWorkflows = [...filteredWorkflows]
+                .filter(w => w.useCount > 0)
+                .sort((a, b) => b.useCount - a.useCount)
+                .slice(0, 5);
+            
+            // 计算总使用次数
+            const totalUsage = topWorkflows.reduce((sum, w) => sum + w.useCount, 0);
+            
+            if (topWorkflows.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `<td colspan="5" style="text-align: center; padding: 40px; color: #999;">暂无使用数据</td>`;
+                topWorkflowsBody.appendChild(emptyRow);
+                return;
+            }
+            
+            // 渲染前5个工作流
+            topWorkflows.forEach((workflow, index) => {
+                const row = document.createElement('tr');
+                
+                // 工作流类型文本
+                let typeText = '';
+                switch(workflow.type) {
+                    case 'approval':
+                        typeText = '审批类';
+                        break;
+                    case 'process':
+                        typeText = '流程类';
+                        break;
+                    case 'form':
+                        typeText = '表单类';
+                        break;
+                }
+                
+                // 计算占比
+                const percentage = totalUsage > 0 ? ((workflow.useCount / totalUsage) * 100).toFixed(1) : '0.0';
+                
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${workflow.name}</td>
+                    <td>${typeText}</td>
+                    <td>${workflow.useCount}</td>
+                    <td>${percentage}%</td>
+                `;
+                
+                topWorkflowsBody.appendChild(row);
+            });
+        }
+
+
+    </script>
+</body>
+</html>

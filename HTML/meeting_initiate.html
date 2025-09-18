@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发起会议 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <style>
+        .meeting-initiate-container {
+            padding: 20px;
+        }
+        
+        .meeting-initiate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .meeting-initiate-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 20px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn-primary {
+            background-color: #409EFF;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-primary:hover {
+            background-color: #66b1ff;
+        }
+        
+        .btn-secondary {
+            padding: 8px 16px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-secondary:hover {
+            border-color: #409EFF;
+            color: #409EFF;
+        }
+        
+        /* 会议表单样式优化 */
+        .meeting-form {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 180px;
+        }
+        
+        /* 确保表单项在同一行高度对齐 */
+        .form-row {
+            align-items: stretch;
+        }
+        
+        .form-group.label-right {
+            flex-direction: row;
+            align-items: center;
+        }
+        
+        .form-group.label-right label {
+            width: 80px;
+            flex-shrink: 0;
+        }
+        
+        .form-group.label-right .form-control {
+            flex: 1;
+        }
+        
+        .form-group.full-width {
+            flex: 1 0 100%;
+        }
+        
+        .form-group .form-control {
+            width: 100%;
+        }
+        
+        label {
+            font-size: 14px;
+            color: #303133;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        input[type="number"],
+        select,
+        textarea {
+            padding: 10px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            background-color: #ffffff;
+        }
+        
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #409EFF;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+        
+        input[type="text"]:hover,
+        input[type="date"]:hover,
+        input[type="time"]:hover,
+        input[type="number"]:hover,
+        select:hover,
+        textarea:hover {
+            border-color: #c0c4cc;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            padding: 10px 12px;
+            line-height: 1.6;
+        }
+        
+        /* 必填字段样式 */
+        label .required {
+            color: #f56c6c;
+            margin-left: 2px;
+        }
+        
+        /* 占位符样式 */
+        ::placeholder {
+            color: #c0c4cc;
+        }
+        
+        /* 参与人选择器样式优化 */
+        .participant-selector {
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            padding: 12px;
+            min-height: 120px;
+            transition: border-color 0.3s ease;
+            background-color: #fafafa;
+        }
+        
+        .participant-selector:hover {
+            border-color: #c0c4cc;
+        }
+        
+        .participant-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .participant-tag {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            background-color: #ecf5ff;
+            color: #409EFF;
+            border-radius: 4px;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .participant-tag:hover {
+            background-color: #d9ecff;
+            transform: translateY(-1px);
+        }
+        
+        .participant-tag-remove {
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+        
+        .participant-tag-remove:hover {
+            color: #f56c6c;
+        }
+        
+        .select-participants-btn {
+            padding: 8px 16px;
+            border: 1px dashed #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #909399;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .select-participants-btn:hover {
+            border-color: #409EFF;
+            color: #409EFF;
+            background-color: #ecf5ff;
+        }
+        
+        /* 附件上传样式优化 */
+        .attachment-upload {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .attachment-upload .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .attachment-upload .btn-secondary:hover {
+            background-color: #ecf5ff;
+            border-color: #409EFF;
+            color: #409EFF;
+        }
+        
+        .attachment-info {
+            color: #909399;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-top: 4px;
+        }
+        
+        /* 错误提示样式 */
+        .error-message {
+            color: #f56c6c;
+            font-size: 12px;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+        
+        .meeting-settings {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .setting-group {
+            margin-bottom: 20px;
+        }
+        
+        .setting-group-title {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+        
+        .setting-options {
+            display: flex;
+            gap: 24px;
+        }
+        
+        .setting-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #606266;
+        }
+        
+        input[type="checkbox"],
+        input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 20px 24px;
+            background-color: #f5f7fa;
+            border-radius: 4px;
+        }
+        
+        .template-section {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .template-title {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .template-item {
+            border: 1px solid #ebeef5;
+            border-radius: 4px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .template-item:hover {
+            border-color: #409EFF;
+            box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
+        }
+        
+        .template-item.selected {
+            border-color: #409EFF;
+            background-color: #ecf5ff;
+        }
+        
+        .template-name {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .template-desc {
+            font-size: 12px;
+            color: #909399;
+        }
+    </style>
+</head>
+<body>
+    <div class="meeting-initiate-container">
+        <div class="meeting-initiate-header">
+            <h2>发起会议</h2>
+            <div class="header-actions">
+                <button class="btn-secondary">保存草稿</button>
+                <button class="btn-primary">发起会议</button>
+            </div>
+        </div>
+        
+        <div class="template-section">
+            <div class="template-title">选择会议模板（可选）</div>
+            <div class="template-grid">
+                <div class="template-item">
+                    <div class="template-name">周例会</div>
+                    <div class="template-desc">每周团队例行会议</div>
+                </div>
+                <div class="template-item">
+                    <div class="template-name">项目启动会</div>
+                    <div class="template-desc">新项目启动会议</div>
+                </div>
+                <div class="template-item">
+                    <div class="template-name">客户需求沟通会</div>
+                    <div class="template-desc">与客户沟通需求</div>
+                </div>
+                <div class="template-item">
+                    <div class="template-name">技术评审会</div>
+                    <div class="template-desc">项目技术方案评审</div>
+                </div>
+                <div class="template-item">
+                    <div class="template-name">产品评审会</div>
+                    <div class="template-desc">产品功能评审</div>
+                </div>
+                <div class="template-item">
+                    <div class="template-name">培训会议</div>
+                    <div class="template-desc">内部培训学习</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="meeting-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="meeting-title">会议标题 <span style="color: #f56c6c;">*</span></label>
+                    <input type="text" id="meeting-title" placeholder="请输入会议标题">
+                </div>
+                <div class="form-group">
+                    <label for="meeting-type">会议类型 <span style="color: #f56c6c;">*</span></label>
+                    <select id="meeting-type">
+                        <option value="">请选择会议类型</option>
+                        <option value="team">团队会议</option>
+                        <option value="project">项目会议</option>
+                        <option value="client">客户会议</option>
+                        <option value="training">培训会议</option>
+                        <option value="other">其他会议</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="meeting-date">会议日期 <span style="color: #f56c6c;">*</span></label>
+                    <input type="date" id="meeting-date">
+                </div>
+                <div class="form-group">
+                    <label for="meeting-start-time">开始时间 <span style="color: #f56c6c;">*</span></label>
+                    <input type="time" id="meeting-start-time">
+                </div>
+                <div class="form-group">
+                    <label for="meeting-end-time">结束时间 <span style="color: #f56c6c;">*</span></label>
+                    <input type="time" id="meeting-end-time">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="meeting-location">会议地点/会议室 <span style="color: #f56c6c;">*</span></label>
+                    <select id="meeting-location">
+                        <option value="">请选择会议地点</option>
+                        <option value="meeting-room-a">会议室A</option>
+                        <option value="meeting-room-b">会议室B</option>
+                        <option value="meeting-room-c">会议室C</option>
+                        <option value="online">线上会议</option>
+                        <option value="other-location">其他地点</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="meeting-organizer">主持人 <span style="color: #f56c6c;">*</span></label>
+                    <select id="meeting-organizer">
+                        <option value="">请选择主持人</option>
+                        <option value="1" selected>我（张三）</option>
+                        <option value="2">李四</option>
+                        <option value="3">王五</option>
+                        <option value="4">赵六</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- 会议室详情信息 - 在选择会议室后显示 -->
+            <div id="meeting-room-details" class="form-row">
+                <div class="form-group">
+                    <label for="meeting-capacity">容纳人数</label>
+                    <input type="number" id="meeting-capacity" placeholder="请输入容纳人数" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="meeting-position">位置</label>
+                    <input type="text" id="meeting-position" placeholder="请输入会议室位置">
+                </div>
+                <div class="form-group">
+                    <label for="meeting-equipment">设备</label>
+                    <input type="text" id="meeting-equipment" placeholder="请输入设备配置">
+                </div>
+                <div class="form-group">
+                    <label for="meeting-area">面积</label>
+                    <input type="text" id="meeting-area" placeholder="请输入会议室面积，如：45㎡">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label>参会人员 <span style="color: #f56c6c;">*</span></label>
+                    <div class="participant-selector">
+                        <div class="participant-tags">
+                            <div class="participant-tag">
+                                张三 <span class="participant-tag-remove">&times;</span>
+                            </div>
+                            <div class="participant-tag">
+                                李四 <span class="participant-tag-remove">&times;</span>
+                            </div>
+                        </div>
+                        <button type="button" class="select-participants-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 5V19M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            添加参会人员
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="meeting-agenda">会议议程</label>
+                    <textarea id="meeting-agenda" placeholder="请输入会议议程..."></textarea>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="meeting-attachment">会议附件</label>
+                    <div class="attachment-upload">
+                        <button type="button" class="btn-secondary">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 15V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M8 3V8L16 16L21 11V3H8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            上传附件
+                        </button>
+                        <div style="color: #909399; font-size: 12px; margin-top: 8px;">支持PDF、Word、Excel、PPT等格式，单个文件不超过20MB</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="meeting-settings">
+            <div class="setting-group">
+                <div class="setting-group-title">会议提醒</div>
+                <div class="setting-options">
+                    <div class="setting-option">
+                        <input type="checkbox" id="remind-15" checked>
+                        <label for="remind-15">会前15分钟</label>
+                    </div>
+                    <div class="setting-option">
+                        <input type="checkbox" id="remind-30">
+                        <label for="remind-30">会前30分钟</label>
+                    </div>
+                    <div class="setting-option">
+                        <input type="checkbox" id="remind-60">
+                        <label for="remind-60">会前1小时</label>
+                    </div>
+                    <div class="setting-option">
+                        <input type="checkbox" id="remind-1440">
+                        <label for="remind-1440">会前1天</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <div class="setting-group-title">其他设置</div>
+                <div class="setting-options">
+                    <div class="setting-option">
+                        <input type="checkbox" id="allow-comment">
+                        <label for="allow-comment">允许参会人评论</label>
+                    </div>
+                    <div class="setting-option">
+                        <input type="checkbox" id="allow-recording">
+                        <label for="allow-recording">允许会议录制</label>
+                    </div>
+                    <div class="setting-option">
+                        <input type="checkbox" id="auto-join">
+                        <label for="auto-join">自动加入（线上会议）</label>
+                    </div>
+                    <div class="setting-option">
+                        <input type="checkbox" id="is-maintenance">
+                        <label for="is-maintenance">是否维护</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button class="btn-secondary">取消</button>
+            <button class="btn-secondary">保存草稿</button>
+            <button class="btn-primary">发起会议</button>
+        </div>
+    </div>
+
+    <script src="../JS/common.js"></script>
+        <script src="../JS/main.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // 设置当前日期为默认值
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('meeting-date').value = today;
+                
+                // 设置当前时间加减1小时为默认值
+                const now = new Date();
+                const startTime = new Date(now.getTime() + 60 * 60000);
+                const endTime = new Date(now.getTime() + 120 * 60000);
+                
+                const formatTime = (date) => {
+                    const hours = date.getHours().toString().padStart(2, '0');
+                    const minutes = date.getMinutes().toString().padStart(2, '0');
+                    return `${hours}:${minutes}`;
+                };
+                
+                document.getElementById('meeting-start-time').value = formatTime(startTime);
+                document.getElementById('meeting-end-time').value = formatTime(endTime);
+                
+                // 会议室选择逻辑 - 根据选择的会议室显示/隐藏相关字段
+                const meetingLocation = document.getElementById('meeting-location');
+                const meetingRoomDetails = document.getElementById('meeting-room-details');
+                
+                function updateMeetingRoomDetails() {
+                    const isOnlineMeeting = meetingLocation.value === 'online';
+                    const isOtherLocation = meetingLocation.value === 'other-location';
+                    
+                    if (isOnlineMeeting || isOtherLocation) {
+                        meetingRoomDetails.style.display = 'none';
+                    } else {
+                        meetingRoomDetails.style.display = 'flex';
+                    }
+                }
+                
+                // 初始检查
+                updateMeetingRoomDetails();
+                
+                // 添加事件监听器
+                meetingLocation.addEventListener('change', updateMeetingRoomDetails);
+            
+            // 模板选择
+            // 模板选择
+            document.querySelectorAll('.template-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('.template-item').forEach(t => {
+                        t.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    showMessage(`已选择模板：${this.querySelector('.template-name').textContent}`, 'success');
+                });
+            });
+            
+            // 保存草稿按钮点击事件
+            const saveDraftButtons = document.querySelectorAll('.btn-secondary');
+            saveDraftButtons.forEach(btn => {
+                if (btn.textContent.trim() === '保存草稿') {
+                    btn.addEventListener('click', function() {
+                        showMessage('已保存草稿', 'success');
+                    });
+                }
+            });
+            
+            // 取消按钮点击事件
+            document.querySelector('.btn-secondary:first-of-type').addEventListener('click', function() {
+                if (this.textContent.trim() === '取消') {
+                    showConfirm('确定要取消发起会议吗？未保存的内容将丢失。', function() {
+                        window.location.href = 'meeting_my.html';
+                    });
+                }
+            });
+            
+            // 发起会议按钮点击事件
+            document.querySelectorAll('.btn-primary').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // 简单验证
+                    const meetingTitle = document.getElementById('meeting-title').value.trim();
+                    const meetingType = document.getElementById('meeting-type').value;
+                    const meetingDate = document.getElementById('meeting-date').value;
+                    const meetingStartTime = document.getElementById('meeting-start-time').value;
+                    const meetingEndTime = document.getElementById('meeting-end-time').value;
+                    const meetingLocation = document.getElementById('meeting-location').value;
+                    const meetingOrganizer = document.getElementById('meeting-organizer').value;
+                    const participantCount = document.querySelectorAll('.participant-tag').length;
+                    
+                    if (!meetingTitle) {
+                        showMessage('请输入会议标题', 'error');
+                        document.getElementById('meeting-title').focus();
+                        return;
+                    }
+                    
+                    if (!meetingType) {
+                        showMessage('请选择会议类型', 'error');
+                        document.getElementById('meeting-type').focus();
+                        return;
+                    }
+                    
+                    if (!meetingDate) {
+                        showMessage('请选择会议日期', 'error');
+                        document.getElementById('meeting-date').focus();
+                        return;
+                    }
+                    
+                    if (!meetingStartTime || !meetingEndTime) {
+                        showMessage('请选择会议时间', 'error');
+                        document.getElementById('meeting-start-time').focus();
+                        return;
+                    }
+                    
+                    // 验证时间逻辑
+                    if (meetingStartTime >= meetingEndTime) {
+                        showMessage('会议结束时间必须晚于开始时间', 'error');
+                        document.getElementById('meeting-end-time').focus();
+                        return;
+                    }
+                    
+                    if (!meetingLocation) {
+                        showMessage('请选择会议地点', 'error');
+                        document.getElementById('meeting-location').focus();
+                        return;
+                    }
+                    
+                    if (!meetingOrganizer) {
+                        showMessage('请选择主持人', 'error');
+                        document.getElementById('meeting-organizer').focus();
+                        return;
+                    }
+                    
+                    if (participantCount === 0) {
+                        showMessage('请至少添加一名参会人员', 'error');
+                        return;
+                    }
+                    
+                    showConfirm('确定要发起会议吗？', function() {
+                        showMessage('会议发起成功', 'success');
+                        setTimeout(() => {
+                            window.location.href = 'meeting_my.html';
+                        }, 1500);
+                    });
+                });
+            });
+            
+            // 移除参会人员标签
+            document.querySelectorAll('.participant-tag-remove').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.parentElement.remove();
+                });
+            });
+            
+            // 添加参会人员按钮点击事件
+            document.querySelector('.select-participants-btn').addEventListener('click', function() {
+                showMessage('选择参会人员功能尚未实现', 'info');
+            });
+            
+            // 上传附件按钮点击事件
+            const uploadButton = document.querySelector('.attachment-upload .btn-secondary');
+            if (uploadButton) {
+                uploadButton.addEventListener('click', function() {
+                    showMessage('上传附件功能尚未实现', 'info');
+                });
+            }
+            
+            // 是否维护选项点击事件
+            const isMaintenanceCheckbox = document.getElementById('is-maintenance');
+            isMaintenanceCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    showMessage('已开启会议维护模式，系统将记录更多会议细节', 'info');
+                } else {
+                    showMessage('已关闭会议维护模式', 'info');
+                }
+            });
+            
+            // 在发起会议时检查是否处于维护模式
+            const submitButtons = document.querySelectorAll('.btn-primary');
+            submitButtons.forEach(btn => {
+                if (btn.textContent.trim() === '发起会议') {
+                    btn.addEventListener('click', function(e) {
+                        // 不阻止原有行为，只是添加额外的检查
+                        if (isMaintenanceCheckbox.checked) {
+                            console.log('会议以维护模式发起');
+                            // 这里可以添加维护模式下的特殊处理逻辑
+                        }
+                    }, true); // 使用捕获阶段以确保先于其他事件处理器执行
+                }
+            });
+        });
+    </script>
+</body>
+</html>

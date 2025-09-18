@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>审批详情 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <script src="../JS/common.js"></script>
+    <style>
+        /* 全局样式重置和基础设置 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+            background-color: #f0f2f5;
+            line-height: 1.5;
+        }
+        
+        /* 容器样式 */
+        .approval-info-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+        }
+        
+        /* 页面头部 */
+        .approval-info-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .approval-info-header h2 {
+            margin: 0;
+            color: #1890ff;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        /* 表单内容容器 */
+        .approval-info-content {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            padding: 28px;
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .approval-info-content:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.09);
+        }
+        
+        /* 表单部分 */
+        .info-section {
+            margin-bottom: 32px;
+        }
+        
+        .info-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #262626;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            position: relative;
+        }
+        
+        .info-section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background-color: #1890ff;
+        }
+        
+        /* 信息行和组 */
+        .info-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -12px 20px -12px;
+        }
+        
+        .info-group {
+            flex: 1;
+            min-width: 250px;
+            padding: 0 12px;
+            margin-bottom: 20px;
+        }
+        
+        .info-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .info-value {
+            display: block;
+            color: #262626;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .info-value.textarea {
+            background-color: #fafafa;
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 3px solid #d9d9d9;
+            min-height: 80px;
+        }
+        
+        /* 审批流程样式 */
+        .approval-flow {
+            background-color: #fafafa;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #f0f0f0;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+        
+        .flow-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #262626;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        /* 流程步骤容器 - 使用相对定位作为流程线的父容器 */
+        .flow-steps {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding: 0;
+            min-height: 100px;
+        }
+        
+        /* 单个流程步骤 - 垂直布局 */
+        .flow-step {
+            position: relative;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            z-index: 2;
+        }
+        
+        /* 步骤左侧内容 */
+        .flow-step-left {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 120px;
+            flex-shrink: 0;
+        }
+        
+        /* 步骤圆圈 */
+        .step-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #d9d9d9;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-circle.active {
+            background-color: #1890ff;
+            box-shadow: 0 0 0 4px rgba(24, 144, 255, 0.2);
+        }
+        
+        .step-circle.passed {
+            background-color: #52c41a;
+            box-shadow: 0 0 0 4px rgba(82, 196, 26, 0.2);
+        }
+        
+        .step-circle.pending {
+            background-color: #d9d9d9;
+            box-shadow: 0 0 0 4px rgba(217, 217, 217, 0.2);
+        }
+        
+        .step-circle.rejected {
+            background-color: #ff4d4f;
+            box-shadow: 0 0 0 4px rgba(255, 77, 79, 0.2);
+        }
+        
+        /* 步骤名称 */
+        .step-name {
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            line-height: 1.4;
+            word-wrap: break-word;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        
+        .step-circle.active + .step-name {
+            color: #1890ff;
+        }
+        
+        .step-circle.passed + .step-name {
+            color: #52c41a;
+        }
+        
+        /* 步骤状态信息 */
+        .step-info {
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+            margin-top: 2px;
+        }
+        
+        /* 步骤右侧内容 */
+        .flow-step-right {
+            flex: 1;
+            margin-left: 24px;
+            padding: 16px;
+            background-color: white;
+            border-radius: 6px;
+            border: 1px solid #f0f0f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 活动步骤右侧内容高亮 */
+        .flow-step.active .flow-step-right {
+            border-color: #1890ff;
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+        }
+        
+        /* 已完成步骤右侧内容样式 */
+        .flow-step.passed .flow-step-right {
+            border-color: #52c41a;
+        }
+        
+        /* 处理人信息 */
+        .step-handler {
+            font-size: 14px;
+            color: #262626;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        /* 处理结果 */
+        .step-result {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        /* 处理意见 */
+        .step-comment {
+            font-size: 13px;
+            color: #333;
+            background-color: #fafafa;
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 3px solid #d9d9d9;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        /* 处理时间 */
+        .step-time {
+            font-size: 12px;
+            color: #999;
+            margin-top: auto;
+        }
+        
+        /* 流程连接线 - 垂直线 */
+        .flow-line {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            bottom: 0;
+            width: 2px;
+            background-color: #d9d9d9;
+            z-index: 1;
+        }
+        
+        /* 已通过步骤之间的连接线 */
+        .flow-steps.has-passed .flow-line {
+            background-image: linear-gradient(to bottom, #52c41a 0%, #52c41a 25%, #d9d9d9 25%, #d9d9d9 100%);
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+        }
+        
+        /* 最后一个步骤不需要连接线 */
+        .flow-step:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* 底部操作按钮 */
+        .info-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            padding-top: 24px;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 32px;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary {
+            background-color: #1890ff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #40a9ff;
+        }
+        
+        .btn-default {
+            background-color: white;
+            color: #262626;
+            border: 1px solid #d9d9d9;
+        }
+        
+        .btn-default:hover {
+            border-color: #40a9ff;
+            color: #40a9ff;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .approval-info-container {
+                padding: 16px;
+            }
+            
+            .approval-info-content {
+                padding: 20px;
+            }
+            
+            .info-group {
+                min-width: 100%;
+            }
+            
+            .info-row {
+                margin: 0 -8px 16px -8px;
+            }
+            
+            .info-group {
+                padding: 0 8px;
+            }
+            
+            .flow-steps {
+                padding: 0 10px;
+            }
+            
+            .step-name {
+                font-size: 12px;
+            }
+            
+            .info-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+        
+        /* 审批状态标签 */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-badge.pending {
+            background-color: #fff7e6;
+            color: #fa8c16;
+        }
+        
+        .status-badge.approved {
+            background-color: #f6ffed;
+            color: #52c41a;
+        }
+        
+        .status-badge.rejected {
+            background-color: #fff1f0;
+            color: #ff4d4f;
+        }
+        
+        .status-badge.processing {
+            background-color: #e6f7ff;
+            color: #1890ff;
+        }
+        
+        /* 表单ID信息 */
+        .form-id-info {
+            background-color: #f5f5f5;
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 24px;
+        }
+        
+        /* 附件列表样式 */
+        .attachment-list {
+            margin-top: 8px;
+        }
+        
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: #fafafa;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+        
+        .attachment-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .attachment-icon {
+            margin-right: 8px;
+            color: #1890ff;
+        }
+        
+        .attachment-name {
+            flex: 1;
+            color: #333;
+        }
+        
+        .attachment-size {
+            color: #999;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        
+        .attachment-download {
+            color: #1890ff;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        .attachment-download:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="approval-info-container">
+        <div class="approval-info-header">
+            <div>
+                <h2>审批详情</h2>
+            </div>
+            <div class="status-badge processing">处理中</div>
+        </div>
+        
+        <div class="approval-info-content">
+            <!-- 表单ID信息 -->
+            <div class="form-id-info">
+                审批编号：OA-20231015-001 | 提交时间：2023-10-15 09:30:45 | 申请人：张三
+            </div>
+            
+            <!-- 第一模块：基本信息 -->
+            <div class="info-section">
+                <div class="info-section-title">基本信息</div>
+                <div class="info-row">
+                    <div class="info-group">
+                        <div class="info-label">审批分类</div>
+                        <div class="info-value">行政审批</div>
+                    </div>
+                    <div class="info-group">
+                        <div class="info-label">审批类型</div>
+                        <div class="info-value">请假申请</div>
+                    </div>
+                    <div class="info-group">
+                        <div class="info-label">申请人部门</div>
+                        <div class="info-value">技术部</div>
+                    </div>
+                    <div class="info-group">
+                        <div class="info-label">申请人职位</div>
+                        <div class="info-value">前端开发工程师</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 第二模块：表单内容 -->
+            <div class="info-section">
+                <div class="info-section-title">表单内容</div>
+                
+                <!-- 请假申请详情 -->
+                <div id="leave-info">
+                    <div class="info-row">
+                        <div class="info-group">
+                            <div class="info-label">请假类型</div>
+                            <div class="info-value">年假</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">开始日期</div>
+                            <div class="info-value">2023-10-20</div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-group">
+                            <div class="info-label">结束日期</div>
+                            <div class="info-value">2023-10-22</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">请假天数</div>
+                            <div class="info-value">3天</div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-group">
+                            <div class="info-label">请假原因</div>
+                            <div class="info-value textarea">家中有事，需要回去处理。已与同事交接工作，紧急事项可通过电话联系。</div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-group">
+                            <div class="info-label">附件</div>
+                            <div class="info-value">
+                                <div class="attachment-list">
+                                    <div class="attachment-item">
+                                        <span class="attachment-icon">📄</span>
+                                        <span class="attachment-name">请假说明.docx</span>
+                                        <span class="attachment-size">2.4MB</span>
+                                        <a href="#" class="attachment-download">下载</a>
+                                    </div>
+                                    <div class="attachment-item">
+                                        <span class="attachment-icon">📅</span>
+                                        <span class="attachment-name">工作交接清单.xlsx</span>
+                                        <span class="attachment-size">1.8MB</span>
+                                        <a href="#" class="attachment-download">下载</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 第三模块：审批流程 -->
+            <div class="info-section">
+                <div class="approval-flow">
+                    <div class="flow-title">审批流程</div>
+                    <div class="flow-steps has-passed">
+                        <!-- 添加垂直线 -->
+                        <div class="flow-line"></div>
+                        
+                        <!-- 步骤1：申请人提交 -->
+                        <div class="flow-step passed">
+                            <div class="flow-step-left">
+                                <div class="step-circle passed" title="申请人提交 - 已完成">1</div>
+                                <div class="step-name">申请人提交</div>
+                                <div class="step-info">已完成</div>
+                            </div>
+                            <div class="flow-step-right">
+                                <div class="step-handler">处理人：张三 (申请人)</div>
+                                <div class="step-result">处理结果：已提交</div>
+                                <div class="step-comment">请假3天，处理日常事务交接。</div>
+                                <div class="step-time">处理时间：2023-10-15 09:30:45</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 步骤2：部门经理审批 -->
+                        <div class="flow-step active">
+                            <div class="flow-step-left">
+                                <div class="step-circle active" title="部门经理审批 - 处理中">2</div>
+                                <div class="step-name">部门经理审批</div>
+                                <div class="step-info">处理中</div>
+                            </div>
+                            <div class="flow-step-right">
+                                <div class="step-handler">处理人：李四 (技术部经理)</div>
+                                <div class="step-result">处理结果：待审批</div>
+                                <div class="step-comment">正在审核请假申请，预计今天内完成审批。</div>
+                                <div class="step-time">开始时间：2023-10-15 09:35:12</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 步骤3：表单填完加载 -->
+                        <div class="flow-step">
+                            <div class="flow-step-left">
+                                <div class="step-circle pending" title="表单填完加载 - 待选择">3</div>
+                                <div class="step-name">表单填完加载</div>
+                                <div class="step-info">待选择</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 步骤4：人事审核 -->
+                        <div class="flow-step">
+                            <div class="flow-step-left">
+                                <div class="step-circle pending" title="人事审核 - 待处理">4</div>
+                                <div class="step-name">人事审核</div>
+                                <div class="step-info">待处理</div>
+                            </div>
+                            <div class="flow-step-right">
+                                <div class="step-handler">处理人：王五 (人事专员)</div>
+                                <div class="step-result">处理结果：待处理</div>
+                                <div class="step-comment">等待部门经理审批后进行人事审核。</div>
+                                <div class="step-time">预计处理时间：待定</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 步骤5：总经理审批 -->
+                        <div class="flow-step">
+                            <div class="flow-step-left">
+                                <div class="step-circle pending" title="总经理审批 - 待处理">5</div>
+                                <div class="step-name">总经理审批</div>
+                                <div class="step-info">待处理</div>
+                            </div>
+                            <div class="flow-step-right">
+                                <div class="step-handler">处理人：赵六 (总经理)</div>
+                                <div class="step-result">处理结果：待处理</div>
+                                <div class="step-comment">等待人事审核后进行总经理审批。</div>
+                                <div class="step-time">预计处理时间：待定</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 步骤6：附加流程 -->
+                        <div class="flow-step">
+                            <div class="flow-step-left">
+                                <div class="step-circle" title="附加流程 - 未选择">6</div>
+                                <div class="step-name">附加流程</div>
+                                <div class="step-info">未选择</div>
+                            </div>
+                            <div class="flow-step-right">
+                                <div class="step-handler">处理人：手动选择</div>
+                                <div class="step-result">处理结果：未选择</div>
+                                <div class="step-comment">无附加流程</div>
+                                <div class="step-time">处理时间：不适用</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 步骤7：审批完成 -->
+                        <div class="flow-step">
+                            <div class="flow-step-left">
+                                <div class="step-circle pending" title="审批完成 - 待处理">7</div>
+                                <div class="step-name">审批完成</div>
+                                <div class="step-info">待处理</div>
+                            </div>
+                            <div class="flow-step-right">
+                                <div class="step-handler">处理人：系统自动处理</div>
+                                <div class="step-result">处理结果：待处理</div>
+                                <div class="step-comment">所有审批流程完成后自动归档。</div>
+                                <div class="step-time">预计完成时间：待定</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 底部操作按钮 -->
+            <div class="info-actions">
+                <button id="print-btn" class="btn btn-default">打印</button>
+                <button id="close-btn" class="btn btn-primary">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 等待页面加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取相关元素
+            const closeBtn = document.getElementById('close-btn');
+            const printBtn = document.getElementById('print-btn');
+            
+            // 关闭按钮事件
+            closeBtn.addEventListener('click', function() {
+                // 模拟返回上一页操作
+                window.history.back();
+            });
+            
+            // 打印按钮事件
+            printBtn.addEventListener('click', function() {
+                // 触发浏览器打印功能
+                window.print();
+            });
+            
+            // 附件下载点击事件（模拟）
+            document.querySelectorAll('.attachment-download').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const fileName = this.closest('.attachment-item').querySelector('.attachment-name').textContent;
+                    alert(`正在下载文件：${fileName}\n（此为模拟下载）`);
+                });
+            });
+            
+            // 流程步骤点击事件
+            document.querySelectorAll('.flow-step').forEach(step => {
+                step.addEventListener('click', function() {
+                    // 可以添加步骤详情展开/收起功能
+                    const content = this.querySelector('.flow-step-right');
+                    if (content) {
+                        content.style.opacity = 0.9;
+                        setTimeout(() => {
+                            content.style.opacity = 1;
+                        }, 200);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

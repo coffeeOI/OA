@@ -1,0 +1,3198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务管理 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 任务管理页面特定样式 */
+        .task-management-container {
+            padding: 20px;
+            background-color: #f0f2f5;
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .task-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #1890ff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #40a9ff;
+        }
+        
+        .btn-default {
+            background-color: #fff;
+            color: #666;
+            border: 1px solid #d9d9d9;
+        }
+        
+        .btn-default:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+        
+        .task-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 16px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            /* 确保筛选区域不换行 */
+            flex-wrap: nowrap;
+            /* 允许内容在必要时横向滚动 */
+            overflow-x: auto;
+            /* 优化滚动条样式 */
+            scrollbar-width: thin;
+            scrollbar-color: #d9d9d9 #f5f5f5;
+        }
+        
+        /* 自定义滚动条样式 */
+        .task-filters::-webkit-scrollbar {
+            height: 4px;
+        }
+        
+        .task-filters::-webkit-scrollbar-track {
+            background: #f5f5f5;
+            border-radius: 2px;
+        }
+        
+        .task-filters::-webkit-scrollbar-thumb {
+            background: #d9d9d9;
+            border-radius: 2px;
+        }
+        
+        .task-filters::-webkit-scrollbar-thumb:hover {
+            background: #bfbfbf;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            /* 确保filter-group内的元素不换行 */
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        
+        .filter-group label {
+            font-size: 14px;
+            color: #666;
+            /* 确保label不换行 */
+            white-space: nowrap;
+            min-width: fit-content;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            /* 确保选择框和输入框不会被压缩得太小 */
+            min-width: 120px;
+        }
+        
+        /* 汇总统计区域样式 */
+        .task-statistics {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+        
+        .stat-item {
+            flex: 1;
+            min-width: 120px;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        
+        .stat-icon.total {
+            background-color: #e6f7ff;
+            color: #1890ff;
+        }
+        
+        .stat-icon.pending {
+            background-color: #fff7e6;
+            color: #fa8c16;
+        }
+        
+        .stat-icon.in-progress {
+            background-color: #f6ffed;
+            color: #52c41a;
+        }
+        
+        .stat-icon.completed {
+            background-color: #f0f0ff;
+            color: #722ed1;
+        }
+        
+        .stat-icon.overdue {
+            background-color: #fff1f0;
+            color: #ff4d4f;
+        }
+        
+        .stat-icon.more {
+            background-color: #f5f5f5;
+            color: #666;
+        }
+        
+        .stat-info {
+            flex: 1;
+        }
+        
+        .stat-number {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 2px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .stat-details {
+            font-size: 11px;
+            color: #999;
+            margin-top: 2px;
+        }
+        
+        /* 展开按钮样式 */
+        .expand-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: none;
+            color: #999;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            opacity: 0;
+        }
+        
+        .stat-item:hover .expand-btn {
+            opacity: 1;
+        }
+        
+        .expand-btn:hover {
+            background-color: #f0f0f0;
+            color: #1890ff;
+        }
+        
+        /* 统计详情模态框样式 */
+        .stats-detail-modal {
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .stats-detail-content {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .stats-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stats-summary-item {
+            background-color: #fafafa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .delete-icon {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            color: #999;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s, color 0.3s;
+        }
+        
+        .stats-summary-item:hover .delete-icon {
+            opacity: 1;
+        }
+        
+        .delete-icon:hover {
+            color: #ff4d4f;
+        }
+        
+        .stats-summary-number {
+            font-size: 36px;
+            font-weight: 600;
+            color: #1890ff;
+            margin-bottom: 8px;
+        }
+        
+        .stats-summary-label {
+            font-size: 16px;
+            color: #666;
+        }
+        
+        .stats-section {
+            margin-bottom: 24px;
+        }
+        
+        .stats-section-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .stats-chart-container {
+            height: 300px;
+            margin-bottom: 24px;
+        }
+        
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .stats-table th,
+        .stats-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .stats-table th {
+            background-color: #fafafa;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .task-table {
+            width: 100%;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .table-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th,
+        td {
+            padding: 12px 20px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        th {
+            background-color: #fafafa;
+            font-weight: 500;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        td {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        tr:hover {
+            background-color: #fafafa;
+        }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: inline-block;
+        }
+        
+        .status-pending {
+            background-color: #fff7e6;
+            color: #fa8c16;
+        }
+        
+        .status-in-progress {
+            background-color: #e6f7ff;
+            color: #1890ff;
+        }
+        
+        .status-completed {
+            background-color: #f6ffed;
+            color: #52c41a;
+        }
+        
+        .status-overdue {
+            background-color: #fff1f0;
+            color: #ff4d4f;
+        }
+        
+        .task-action-btn {
+            padding: 4px 12px;
+            margin-right: 8px;
+            border: 1px solid #d9d9d9;
+            background-color: #fff;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .task-action-btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 16px 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .page-info {
+            margin-right: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .page-control {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .page-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #d9d9d9;
+            background-color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .page-btn:hover {
+            color: #1890ff;
+            border-color: #1890ff;
+        }
+        
+        .page-btn.active {
+            background-color: #1890ff;
+            color: #fff;
+            border-color: #1890ff;
+        }
+        
+        /* 任务详情模态框样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s ease;
+        }
+        
+        .modal-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .task-detail-modal {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            background-color: #fafafa;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        
+        .modal-close:hover {
+            background-color: #f0f0f0;
+            color: #666;
+        }
+        
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .detail-section {
+            margin-bottom: 24px;
+        }
+        
+        .detail-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .detail-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 4px;
+        }
+        
+        .detail-value {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .detail-full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .task-description {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-fill.pending {
+            background-color: #fa8c16;
+        }
+        
+        .progress-fill.in-progress {
+            background-color: #1890ff;
+        }
+        
+        .progress-fill.completed {
+            background-color: #52c41a;
+        }
+        
+        .progress-fill.overdue {
+            background-color: #ff4d4f;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 16px 24px;
+            border-top: 1px solid #f0f0f0;
+            gap: 12px;
+            background-color: #fafafa;
+        }
+        
+        /* 任务历史记录样式 */
+        .task-history {
+            margin-top: 10px;
+        }
+        
+        .history-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .history-item:not(:last-child)::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 20px;
+            bottom: -15px;
+            width: 2px;
+            background-color: #e8e8e8;
+        }
+        
+        .history-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 10px;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+        
+        .history-content {
+            flex: 1;
+        }
+        
+        .history-action {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .history-time {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        /* 任务表单模态框样式 */
+        .task-form-modal {
+            width: 90%;
+            max-width: 850px; /* 增加最大宽度以适应两列布局 */
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* 确保表单控件宽度正确 */
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+            box-sizing: border-box;
+            min-width: 0; /* 允许内容收缩 */
+        }
+        
+        /* 确保选择框也能正确收缩 */
+        select.form-control {
+            min-width: 0;
+        }
+        
+        /* 确保输入框也能正确收缩 */
+        input.form-control {
+            min-width: 0;
+        }
+        
+        /* 确保文本域也能正确收缩 */
+        textarea.form-control {
+            min-width: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        /* 表单行布局 - 用于两列布局 */
+        .form-row {
+            display: flex;
+            flex-wrap: nowrap; /* 禁止换行 */
+            margin: 0 -8px;
+            width: calc(100% + 16px); /* 补偿负边距 */
+        }
+        
+        .form-col {
+            flex: 1;
+            margin: 0 8px;
+            min-width: 0; /* 允许内容收缩 */
+        }
+        
+        /* 确保form-group不影响flex布局 */
+        .form-group {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        
+        /* 响应式设计 - 在小屏幕上回退到单列布局 */
+        @media (max-width: 768px) {
+            .form-col {
+                flex: 0 0 100%;
+                margin: 0 0 20px 0;
+            }
+            
+            .task-form-modal {
+                max-width: 95%;
+                margin: 20px;
+            }
+        }
+        
+        /* 模态框动画效果 */
+        .modal-overlay {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .task-form-modal {
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        .modal-overlay.show .task-form-modal {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* 优化表单元素的焦点状态 */
+        .form-control:focus {
+            border-color: #1890ff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        
+        /* 进度条输入区域增强 */
+        .progress-input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .progress-input-container input {
+            flex: 1;
+        }
+        
+        .progress-value {
+            min-width: 40px;
+            text-align: right;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* 模态框内容区域滚动 */
+        .modal-body {
+            max-height: calc(100vh - 160px);
+            overflow-y: auto;
+            padding: 24px;
+        }
+        
+        /* 按钮组样式优化 */
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background-color: #fafafa;
+        }
+        
+        /* 增强标签视觉效果 */
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+        
+        .form-control:focus + label {
+            color: #1890ff;
+        }
+        
+        /* 日期选择器宽度优化 */
+        input[type="date"] {
+            cursor: pointer;
+        }
+        
+        /* 错误提示样式 */
+        .form-control:invalid {
+            border-color: #ff4d4f;
+        }
+        
+        .form-control:invalid:focus {
+            box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+        }
+        
+        /* 必填项视觉增强 */
+        .required {
+            color: #ff4d4f;
+            margin-left: 4px;
+            font-weight: normal;
+        }
+        
+        /* 小进度条样式 */
+        .progress-bar-small {
+            width: 100%;
+            height: 8px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .progress-fill-small {
+            height: 100%;
+            background-color: #1890ff;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+        
+        /* 根据进度值改变进度条颜色 */
+        .progress-fill-small.low {
+            background-color: #1890ff; /* 0-30% 蓝色 */
+        }
+        
+        .progress-fill-small.medium {
+            background-color: #faad14; /* 31-60% 黄色 */
+        }
+        
+        .progress-fill-small.high {
+            background-color: #52c41a; /* 61-99% 绿色 */
+        }
+        
+        .progress-fill-small.completed {
+            background-color: #52c41a; /* 100% 绿色 */
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+        
+        .form-control:focus {
+            border-color: #1890ff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        
+        .form-control:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+        
+        .required {
+            color: #ff4d4f;
+            margin-left: 4px;
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            text-align: center;
+            white-space: nowrap;
+        }
+        
+        .btn:hover {
+            opacity: 0.85;
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-default {
+            background-color: #fff;
+            color: #333;
+        }
+        
+        .btn-primary {
+            background-color: #1890ff;
+            color: #fff;
+            border-color: #1890ff;
+        }
+        
+        .btn-primary:hover {
+            background-color: #40a9ff;
+            border-color: #40a9ff;
+        }
+        
+        .btn-danger {
+            background-color: #ff4d4f;
+            color: #fff;
+            border-color: #ff4d4f;
+        }
+        
+        .btn-danger:hover {
+            background-color: #ff7875;
+            border-color: #ff7875;
+        }
+    
+        /* 页签样式 */
+        .tab-container {
+            margin: 15px 0;
+        }
+        .tab-buttons {
+            display: flex;
+            background-color: #f0f2f5;
+            border-radius: 4px;
+            padding: 3px;
+            justify-content: space-between;
+        }
+        .tab-actions {
+            display: flex;
+            margin-left: 10px;
+        }
+        .tab-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            background-color: white;
+            color: #333;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: all 0.3s;
+            margin-left: 5px;
+        }
+        .tab-action-btn:hover {
+            border-color: #40a9ff;
+            color: #40a9ff;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-right: 2px;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .tab-btn.active {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-weight: 500;
+        }
+        .tab-btn:hover:not(.active) {
+            background-color: #e0e2e5;
+        }
+        .tab-content {
+            display: none;
+            background-color: white;
+            border-radius: 4px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* 图表样式 */
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        .chart-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .chart-section h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #333;
+        }
+        .chart-wrapper {
+            background-color: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        /* 报告样式 */
+        .report-container {
+            background-color: white;
+        }
+        .report-container h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #e0e2e5;
+            padding-bottom: 10px;
+        }
+        .report-date {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        .report-section {
+            margin-bottom: 30px;
+        }
+        .report-section h4 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #444;
+            font-size: 16px;
+        }
+        .report-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+        .report-stat {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .report-stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .report-stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+        .report-content {
+            line-height: 1.6;
+            color: #555;
+        }
+        .report-chart {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .report-table th, .report-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e0e2e5;
+        }
+        .report-table th {
+            background-color: #f8f9fa;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="task-management-container">
+        <!-- 页面头部 -->
+        <div class="task-header">
+            <h2 class="task-title">任务管理</h2>
+            <div class="task-actions">
+                <button class="btn btn-primary" onclick="showCreateTaskModal()">创建任务</button>
+                <button class="btn btn-default" onclick="refreshTaskList()">刷新列表</button>
+            </div>
+        </div>
+        
+        <!-- 筛选条件 -->
+        <div class="task-filters">
+            <div class="filter-group">
+                <label for="task-status">任务状态：</label>
+                <select id="task-status">
+                    <option value="all">全部</option>
+                    <option value="pending">待处理</option>
+                    <option value="in-progress">进行中</option>
+                    <option value="completed">已完成</option>
+                    <option value="overdue">已逾期</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="task-priority">优先级：</label>
+                <select id="task-priority">
+                    <option value="all">全部</option>
+                    <option value="high">高</option>
+                    <option value="medium">中</option>
+                    <option value="low">低</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="task-search">搜索：</label>
+                <input type="text" id="task-search" placeholder="输入任务名称或描述...">
+            </div>
+            <button class="btn btn-default" onclick="filterTasks()">查询</button>
+            <button class="btn btn-default" onclick="resetFilters()">重置</button>
+        </div>
+        
+        <!-- 汇总统计区域 -->
+        <div class="task-statistics">
+            <div class="stat-item" onclick="showTasksByStatus('all')">
+                <div class="stat-icon total">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 6H20M4 12H20M4 18H11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number" id="total-tasks">0</div>
+                    <div class="stat-label">总任务数</div>
+                </div>
+                <button class="expand-btn" onclick="event.stopPropagation(); showStatisticsDetailModal('total');">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 12H16M16 12L12 8M16 12L12 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="stat-item" onclick="showTasksByStatus('pending')">
+                <div class="stat-icon pending">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 8V12L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number" id="pending-tasks">0</div>
+                    <div class="stat-label">待处理</div>
+                </div>
+                <button class="expand-btn" onclick="event.stopPropagation(); showStatisticsDetailModal('pending');">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 12H16M16 12L12 8M16 12L12 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="stat-item" onclick="showTasksByStatus('in-progress')">
+                <div class="stat-icon in-progress">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number" id="in-progress-tasks">0</div>
+                    <div class="stat-label">进行中</div>
+                </div>
+                <button class="expand-btn" onclick="event.stopPropagation(); showStatisticsDetailModal('in-progress');">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 12H16M16 12L12 8M16 12L12 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="stat-item" onclick="showTasksByStatus('completed')">
+                <div class="stat-icon completed">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number" id="completed-tasks">0</div>
+                    <div class="stat-label">已完成</div>
+                </div>
+                <button class="expand-btn" onclick="event.stopPropagation(); showStatisticsDetailModal('completed');">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 12H16M16 12L12 8M16 12L12 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="stat-item" onclick="showTasksByStatus('overdue')">
+                <div class="stat-icon overdue">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <polyline points="12 6 12 12 16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number" id="overdue-tasks">0</div>
+                    <div class="stat-label">已逾期</div>
+                </div>
+                <button class="expand-btn" onclick="event.stopPropagation(); showStatisticsDetailModal('overdue');">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 12H16M16 12L12 8M16 12L12 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="stat-item" onclick="showStatisticsDetailModal('all')">
+                <div class="stat-icon more">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="6" r="2" fill="currentColor"/>
+                        <circle cx="12" cy="12" r="2" fill="currentColor"/>
+                        <circle cx="12" cy="18" r="2" fill="currentColor"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number">全部</div>
+                    <div class="stat-label">统计详情</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页签切换区域 -->
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <div style="display: flex;">
+                    <button class="tab-btn active" onclick="switchTab('detail')">明细</button>
+                    <button class="tab-btn" onclick="switchTab('chart')">图表</button>
+                    <button class="tab-btn" onclick="switchTab('report')">报告</button>
+                </div>
+                <div class="tab-actions">
+                    <button class="tab-action-btn" onclick="importTasks()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 15V3M12 3L6 9M12 3L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 17H21M3 21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        导入
+                    </button>
+                    <button class="tab-action-btn" onclick="exportTasks()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 3V15M12 15L6 9M12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 7H21M3 11H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        导出
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 任务列表 - 明细页签内容 -->
+        <div id="detail-tab" class="tab-content active">
+        <div class="task-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>任务名称</th>
+                        <th>优先级</th>
+                        <th>负责人</th>
+                        <th>开始时间</th>
+                        <th>截止时间</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="task-list">
+                    <!-- 任务数据将通过JavaScript动态生成 -->
+                </tbody>
+            </table>
+            
+            <!-- 分页 -->
+            <div class="pagination">
+                <div class="page-info">共 28 条记录</div>
+                <div class="page-control">
+                    <button class="page-btn" disabled>上一页</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn">下一页</button>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- 图表页签内容 -->
+        <div id="chart-tab" class="tab-content">
+            <div class="chart-container">
+                <div class="chart-section">
+                    <h3>任务状态分布</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="statusChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+                <div class="chart-section">
+                    <h3>优先级分布</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="priorityChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+                <div class="chart-section">
+                    <h3>负责人任务量</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="assigneeChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 报告页签内容 -->
+        <div id="report-tab" class="tab-content">
+            <div class="report-container">
+                <h3>任务统计报告</h3>
+                <div class="report-date">生成日期: <span id="report-date"></span></div>
+                
+                <div class="report-section">
+                    <h4>总体概况</h4>
+                    <div class="report-summary">
+                        <div class="report-stat">
+                            <div class="report-stat-label">总任务数</div>
+                            <div class="report-stat-value" id="report-total">0</div>
+                        </div>
+                        <div class="report-stat">
+                            <div class="report-stat-label">待处理</div>
+                            <div class="report-stat-value" id="report-pending">0</div>
+                        </div>
+                        <div class="report-stat">
+                            <div class="report-stat-label">进行中</div>
+                            <div class="report-stat-value" id="report-in-progress">0</div>
+                        </div>
+                        <div class="report-stat">
+                            <div class="report-stat-label">已完成</div>
+                            <div class="report-stat-value" id="report-completed">0</div>
+                        </div>
+                        <div class="report-stat">
+                            <div class="report-stat-label">已逾期</div>
+                            <div class="report-stat-value" id="report-overdue">0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="report-section">
+                    <h4>详细分析</h4>
+                    <div class="report-content">
+                        <p id="report-analysis"></p>
+                    </div>
+                </div>
+                
+                <div class="report-section">
+                    <h4>图表分析</h4>
+                    <div class="report-chart">
+                        <canvas id="reportChart" width="600" height="300"></canvas>
+                    </div>
+                </div>
+                
+                <div class="report-section">
+                    <h4>负责人任务分布</h4>
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>负责人</th>
+                                <th>任务数量</th>
+                                <th>完成率</th>
+                                <th>逾期率</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-assignee-table">
+                            <!-- 数据将通过JavaScript动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 任务详情模态框 -->
+    <div id="task-detail-modal" class="modal-overlay">
+        <div class="task-detail-modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="task-detail-title">任务详情</h3>
+                <button class="modal-close" onclick="hideTaskDetailModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- 任务基本信息 -->
+                <div class="detail-section">
+                    <h4 class="detail-title">基本信息</h4>
+                    <div class="detail-info">
+                        <div class="detail-item">
+                            <span class="detail-label">任务名称</span>
+                            <span class="detail-value" id="detail-task-name">--</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">任务状态</span>
+                            <span class="detail-value" id="detail-task-status">--</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">优先级</span>
+                            <span class="detail-value" id="detail-task-priority">--</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">负责人</span>
+                            <span class="detail-value" id="detail-task-assignee">--</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">创建人</span>
+                            <span class="detail-value" id="detail-task-creator">--</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">完成度</span>
+                            <span class="detail-value" id="detail-task-progress">--</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 时间信息 -->
+                <div class="detail-section">
+                    <h4 class="detail-title">时间信息</h4>
+                    <div class="detail-info">
+                        <div class="detail-item">
+                            <span class="detail-label">开始时间</span>
+                            <span class="detail-value" id="detail-task-start-date">--</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">截止时间</span>
+                            <span class="detail-value" id="detail-task-end-date">--</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">创建时间</span>
+                            <span class="detail-value" id="detail-task-create-time">--</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">更新时间</span>
+                            <span class="detail-value" id="detail-task-update-time">--</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 任务描述 -->
+                <div class="detail-section">
+                    <h4 class="detail-title">任务描述</h4>
+                    <div class="detail-item detail-full-width">
+                        <p class="task-description" id="detail-task-description">--</p>
+                    </div>
+                </div>
+                
+                <!-- 完成进度 -->
+                <div class="detail-section">
+                    <h4 class="detail-title">完成进度</h4>
+                    <div class="detail-item detail-full-width">
+                        <span class="detail-label">当前进度</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="detail-progress-bar"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 任务历史记录 -->
+                <div class="detail-section">
+                    <h4 class="detail-title">任务历史</h4>
+                    <div class="task-history" id="task-history">
+                        <!-- 任务历史记录将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="hideTaskDetailModal()">关闭</button>
+                <button class="btn btn-primary" id="detail-edit-btn">编辑任务</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 创建任务模态框 -->
+    <div id="create-task-modal" class="modal-overlay">
+        <div class="task-form-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">创建新任务</h3>
+                <button class="modal-close" onclick="hideCreateTaskModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="create-task-form">
+                    <!-- 第一行：任务名称和优先级 -->
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="create-task-name">任务名称 <span class="required">*</span></label>
+                                <input type="text" id="create-task-name" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="create-task-priority">优先级 <span class="required">*</span></label>
+                                <select id="create-task-priority" class="form-control" required>
+                                    <option value="高">高</option>
+                                    <option value="中">中</option>
+                                    <option value="低">低</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 第二行：负责人和任务类型 -->
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="create-task-assignee">负责人 <span class="required">*</span></label>
+                                <input type="text" id="create-task-assignee" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="create-task-type">任务类型</label>
+                                <select id="create-task-type" class="form-control">
+                                    <option value="开发">开发</option>
+                                    <option value="测试">测试</option>
+                                    <option value="文档">文档</option>
+                                    <option value="设计">设计</option>
+                                    <option value="其他">其他</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 第三行：完成进度和预留字段 -->
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="create-task-progress">完成进度 (%)</label>
+                                <div class="progress-input-container">
+                                    <input type="number" id="create-task-progress" class="form-control" min="0" max="100" value="0">
+                                    <span class="progress-value" id="create-progress-value-display">0%</span>
+                                </div>
+                                <!-- 实时进度条显示 -->
+                                <div class="progress-bar-small">
+                                    <div class="progress-fill-small" id="create-progress-bar-display"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="form-col">
+                         
+                        </div> -->
+                    </div>
+                    
+                    <!-- 第四行：时间信息 -->
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="create-task-start-date">开始时间 <span class="required">*</span></label>
+                                <input type="date" id="create-task-start-date" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="create-task-end-date">截止时间 <span class="required">*</span></label>
+                                <input type="date" id="create-task-end-date" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 任务描述（单列全宽） -->
+                    <div class="form-group">
+                        <label for="create-task-description">任务描述</label>
+                        <textarea id="create-task-description" class="form-control" rows="5"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="hideCreateTaskModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitCreateTask()">创建</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 编辑任务模态框 -->
+    <div id="edit-task-modal" class="modal-overlay">
+        <div class="task-form-modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="edit-task-title">编辑任务</h3>
+                <button class="modal-close" onclick="hideEditTaskModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-task-form">
+                    <input type="hidden" id="edit-task-id">
+                    
+                    <!-- 第一行：任务名称和优先级 -->
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="edit-task-name">任务名称 <span class="required">*</span></label>
+                                <input type="text" id="edit-task-name" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="edit-task-priority">优先级 <span class="required">*</span></label>
+                                <select id="edit-task-priority" class="form-control" required>
+                                    <option value="高">高</option>
+                                    <option value="中">中</option>
+                                    <option value="低">低</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 第二行：负责人和任务状态 -->
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="edit-task-assignee">负责人 <span class="required">*</span></label>
+                                <input type="text" id="edit-task-assignee" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="edit-task-status">任务状态 <span class="required">*</span></label>
+                                <select id="edit-task-status" class="form-control" required>
+                                    <option value="待处理">待处理</option>
+                                    <option value="进行中">进行中</option>
+                                    <option value="已完成">已完成</option>
+                                    <option value="已逾期">已逾期</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 第三行：完成进度和预留字段 -->
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="edit-task-progress">完成进度 (%)</label>
+                                <div class="progress-input-container">
+                                    <input type="number" id="edit-task-progress" class="form-control" min="0" max="100" value="0">
+                                    <span class="progress-value" id="progress-value-display">0%</span>
+                                </div>
+                                <!-- 实时进度条显示 -->
+                                <div class="progress-bar-small">
+                                    <div class="progress-fill-small" id="progress-bar-display"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="form-col">
+                          
+                        </div> -->
+                    </div>
+                    
+                    <!-- 第四行：时间信息 -->
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="edit-task-start-date">开始时间 <span class="required">*</span></label>
+                                <input type="date" id="edit-task-start-date" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="edit-task-end-date">截止时间 <span class="required">*</span></label>
+                                <input type="date" id="edit-task-end-date" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 任务描述（单列全宽） -->
+                    <div class="form-group">
+                        <label for="edit-task-description">任务描述</label>
+                        <textarea id="edit-task-description" class="form-control" rows="5"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="hideEditTaskModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitEditTask()">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 模拟任务数据（包含更多详细信息）
+        const mockTasks = [
+            {
+                id: 1,
+                name: "完成季度报告",
+                priority: "高",
+                assignee: "张三",
+                creator: "系统管理员",
+                startDate: "2023-09-01",
+                endDate: "2023-09-15",
+                status: "进行中",
+                progress: 60,
+                description: "1. 收集本季度各部门数据\n2. 分析各项指标完成情况\n3. 对比上季度数据变化\n4. 编写季度总结报告\n5. 制作演示PPT",
+                createTime: "2023-08-25 14:30:00",
+                updateTime: "2023-09-08 16:45:00",
+                history: [
+                    { action: "创建任务", time: "2023-08-25 14:30:00" },
+                    { action: "分配给张三", time: "2023-08-25 14:35:00" },
+                    { action: "更新状态为进行中", time: "2023-09-01 09:15:00" },
+                    { action: "更新进度至60%", time: "2023-09-08 16:45:00" }
+                ]
+            },
+            {
+                id: 2,
+                name: "更新系统文档",
+                priority: "中",
+                assignee: "李四",
+                creator: "系统管理员",
+                startDate: "2023-09-05",
+                endDate: "2023-09-20",
+                status: "待处理",
+                progress: 0,
+                description: "1. 检查现有系统文档完整性\n2. 更新新增功能的文档说明\n3. 修改过时的操作指南\n4. 优化文档结构和格式\n5. 完成文档审核和发布",
+                createTime: "2023-09-01 10:20:00",
+                updateTime: "2023-09-01 10:20:00",
+                history: [
+                    { action: "创建任务", time: "2023-09-01 10:20:00" },
+                    { action: "分配给李四", time: "2023-09-01 10:25:00" }
+                ]
+            },
+            {
+                id: 3,
+                name: "优化用户界面",
+                priority: "高",
+                assignee: "王五",
+                creator: "系统管理员",
+                startDate: "2023-08-28",
+                endDate: "2023-09-10",
+                status: "已完成",
+                progress: 100,
+                description: "1. 收集用户反馈和使用数据\n2. 分析现有界面存在的问题\n3. 设计界面优化方案\n4. 实现界面原型和交互效果\n5. 进行用户测试和迭代优化",
+                createTime: "2023-08-20 16:10:00",
+                updateTime: "2023-09-10 15:30:00",
+                history: [
+                    { action: "创建任务", time: "2023-08-20 16:10:00" },
+                    { action: "分配给王五", time: "2023-08-20 16:15:00" },
+                    { action: "更新状态为进行中", time: "2023-08-28 09:00:00" },
+                    { action: "更新进度至50%", time: "2023-09-05 14:20:00" },
+                    { action: "更新进度至100%", time: "2023-09-10 15:25:00" },
+                    { action: "更新状态为已完成", time: "2023-09-10 15:30:00" }
+                ]
+            },
+            {
+                id: 4,
+                name: "修复登录页面bug",
+                priority: "中",
+                assignee: "赵六",
+                creator: "系统管理员",
+                startDate: "2023-08-25",
+                endDate: "2023-08-30",
+                status: "已逾期",
+                progress: 40,
+                description: "1. 复现登录页面的兼容性问题\n2. 分析问题产生的原因\n3. 设计修复方案\n4. 实现修复代码\n5. 进行测试验证",
+                createTime: "2023-08-24 11:45:00",
+                updateTime: "2023-08-30 17:20:00",
+                history: [
+                    { action: "创建任务", time: "2023-08-24 11:45:00" },
+                    { action: "分配给赵六", time: "2023-08-24 11:50:00" },
+                    { action: "更新状态为进行中", time: "2023-08-25 09:30:00" },
+                    { action: "更新进度至40%", time: "2023-08-30 17:20:00" }
+                ]
+            },
+            {
+                id: 5,
+                name: "整理会议记录",
+                priority: "低",
+                assignee: "张三",
+                creator: "系统管理员",
+                startDate: "2023-09-02",
+                endDate: "2023-09-05",
+                status: "已完成",
+                progress: 100,
+                description: "1. 收集9月2日项目例会的会议录音和笔记\n2. 整理会议讨论的主要内容\n3. 记录各项决策和待办事项\n4. 编写正式的会议纪要文档\n5. 发送给相关参会人员确认",
+                createTime: "2023-09-02 17:30:00",
+                updateTime: "2023-09-05 10:15:00",
+                history: [
+                    { action: "创建任务", time: "2023-09-02 17:30:00" },
+                    { action: "分配给张三", time: "2023-09-02 17:35:00" },
+                    { action: "更新状态为进行中", time: "2023-09-03 09:00:00" },
+                    { action: "更新进度至100%", time: "2023-09-05 10:10:00" },
+                    { action: "更新状态为已完成", time: "2023-09-05 10:15:00" }
+                ]
+            }
+        ];
+        
+        // 更新任务统计数据
+        function updateTaskStatistics(tasks) {
+            // 计算各类任务数量
+            const totalTasks = tasks.length;
+            const pendingTasks = tasks.filter(task => task.status === '待处理').length;
+            const inProgressTasks = tasks.filter(task => task.status === '进行中').length;
+            const completedTasks = tasks.filter(task => task.status === '已完成').length;
+            
+            // 计算逾期任务：未完成且截止日期已过的任务
+            const today = new Date();
+            const overdueTasks = tasks.filter(task => 
+                task.status !== '已完成' && 
+                new Date(task.endDate) < today
+            ).length;
+            
+            // 更新DOM
+            document.getElementById('total-tasks').textContent = totalTasks;
+            document.getElementById('pending-tasks').textContent = pendingTasks;
+            document.getElementById('in-progress-tasks').textContent = inProgressTasks;
+            document.getElementById('completed-tasks').textContent = completedTasks;
+            document.getElementById('overdue-tasks').textContent = overdueTasks;
+            
+            // 更新分页信息
+            const pageInfo = document.querySelector('.page-info');
+            if (pageInfo) {
+                pageInfo.textContent = `共 ${totalTasks} 条记录`;
+            }
+        }
+        
+        // 根据状态显示任务列表
+        function showTasksByStatus(status) {
+            // 获取筛选条件
+            document.getElementById('task-status').value = status;
+            // 触发筛选
+            filterTasks();
+        }
+        
+        // 统计详情模态框
+        const statsDetailModal = document.createElement('div');
+        statsDetailModal.id = 'stats-detail-modal';
+        statsDetailModal.className = 'modal-overlay';
+        statsDetailModal.innerHTML = `
+            <div class="stats-detail-modal">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="stats-detail-title">任务统计详情</h3>
+                    <div style="display: flex; align-items: center;">
+                        <button class="btn btn-primary" id="add-stat-btn" style="margin-right: 10px; padding: 6px 12px; font-size: 14px;">新增统计</button>
+                        <button class="modal-close" onclick="hideStatisticsDetailModal()">×</button>
+                    </div>
+                </div>
+                <div class="stats-detail-content">
+                    <div id="stats-detail-body"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-default" onclick="hideStatisticsDetailModal()">关闭</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(statsDetailModal);
+        
+        // 显示统计详情模态框
+        function showStatisticsDetailModal(type) {
+            const statsDetailBody = document.getElementById('stats-detail-body');
+            const statsDetailTitle = document.getElementById('stats-detail-title');
+            
+            // 更新模态框标题
+            if (type === 'all') {
+                statsDetailTitle.textContent = '任务统计详情';
+            } else {
+                const typeMap = {
+                    'total': '总任务',
+                    'pending': '待处理任务',
+                    'in-progress': '进行中任务',
+                    'completed': '已完成任务',
+                    'overdue': '已逾期任务'
+                };
+                statsDetailTitle.textContent = `${typeMap[type] || '任务'}统计详情`;
+            }
+            
+            // 计算所有统计数据
+            const today = new Date();
+            const allTasks = type === 'all' ? mockTasks : 
+                           type === 'total' ? mockTasks : 
+                           type === 'pending' ? mockTasks.filter(t => t.status === '待处理') :
+                           type === 'in-progress' ? mockTasks.filter(t => t.status === '进行中') :
+                           type === 'completed' ? mockTasks.filter(t => t.status === '已完成') :
+                           mockTasks.filter(t => t.status !== '已完成' && new Date(t.endDate) < today);
+            
+            const totalTasks = allTasks.length;
+            const highPriorityTasks = allTasks.filter(t => t.priority === '高').length;
+            const mediumPriorityTasks = allTasks.filter(t => t.priority === '中').length;
+            const lowPriorityTasks = allTasks.filter(t => t.priority === '低').length;
+            
+            // 计算按负责人分组的任务数量
+            const tasksByAssignee = {};
+            allTasks.forEach(task => {
+                tasksByAssignee[task.assignee] = (tasksByAssignee[task.assignee] || 0) + 1;
+            });
+            
+            // 生成模态框内容
+            let html = `
+                <div class="stats-summary-grid">
+                    <div class="stats-summary-item">
+                        <svg class="delete-icon" data-type="total" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <div class="stats-summary-number">${totalTasks}</div>
+                        <div class="stats-summary-label">总任务数</div>
+                    </div>
+                    <div class="stats-summary-item">
+                        <svg class="delete-icon" data-type="high" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <div class="stats-summary-number">${highPriorityTasks}</div>
+                        <div class="stats-summary-label">高优先级</div>
+                    </div>
+                    <div class="stats-summary-item">
+                        <svg class="delete-icon" data-type="medium" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <div class="stats-summary-number">${mediumPriorityTasks}</div>
+                        <div class="stats-summary-label">中优先级</div>
+                    </div>
+                    <div class="stats-summary-item">
+                        <svg class="delete-icon" data-type="low" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <div class="stats-summary-number">${lowPriorityTasks}</div>
+                        <div class="stats-summary-label">低优先级</div>
+                    </div>
+                </div>
+                
+                <div class="stats-section">
+                    <h3 class="stats-section-title">按负责人统计</h3>
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>负责人</th>
+                                <th>任务数量</th>
+                                <th>占比</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            // 添加负责人统计数据
+            Object.entries(tasksByAssignee).forEach(([assignee, count]) => {
+                const percentage = totalTasks > 0 ? ((count / totalTasks) * 100).toFixed(1) : 0;
+                html += `
+                    <tr>
+                        <td>${assignee}</td>
+                        <td>${count}</td>
+                        <td>${percentage}%</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            // 如果是特定类型，显示该类型的任务列表
+            if (type !== 'all') {
+                const filteredTasks = type === 'total' ? mockTasks : 
+                                     type === 'pending' ? mockTasks.filter(t => t.status === '待处理') :
+                                     type === 'in-progress' ? mockTasks.filter(t => t.status === '进行中') :
+                                     type === 'completed' ? mockTasks.filter(t => t.status === '已完成') :
+                                     mockTasks.filter(t => t.status !== '已完成' && new Date(t.endDate) < today);
+                
+                html += `
+                    <div class="stats-section">
+                        <h3 class="stats-section-title">任务列表</h3>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>任务名称</th>
+                                    <th>负责人</th>
+                                    <th>优先级</th>
+                                    <th>截止日期</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                // 添加任务列表
+                filteredTasks.forEach(task => {
+                    html += `
+                        <tr>
+                            <td>${task.name}</td>
+                            <td>${task.assignee}</td>
+                            <td>${task.priority}</td>
+                            <td>${task.endDate}</td>
+                            <td>
+                                <button class="task-action-btn" onclick="viewTask(${task.id}); hideStatisticsDetailModal();">查看</button>
+                                <button class="task-action-btn" onclick="deleteTask(${task.id}); hideStatisticsDetailModal();">删除</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            
+            // 更新模态框内容
+            statsDetailBody.innerHTML = html;
+            
+            // 绑定删除图标事件
+            bindDeleteIcons();
+            
+            // 显示模态框
+            statsDetailModal.classList.add('show');
+        }
+        
+        // 隐藏统计详情模态框
+        function hideStatisticsDetailModal() {
+            statsDetailModal.classList.remove('show');
+        }
+        
+        // 点击模态框外部关闭模态框
+        statsDetailModal.addEventListener('click', function(e) {
+            if (e.target === statsDetailModal) {
+                hideStatisticsDetailModal();
+            }
+        });
+        
+        // 防止点击模态框内容区域时关闭模态框
+        document.querySelector('.stats-detail-content').addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        // 绑定新增统计按钮事件
+        statsDetailModal.querySelector('#add-stat-btn').addEventListener('click', function() {
+            // 创建新增统计对话框
+            const addStatDialog = document.createElement('div');
+            addStatDialog.className = 'modal-overlay';
+            addStatDialog.innerHTML = `
+                <div class="task-form-modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title">选择统计类型</h3>
+                        <button class="modal-close" onclick="document.body.removeChild(addStatDialog)">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="stat-type">统计类型</label>
+                            <select id="stat-type" class="form-control">
+                                <option value="all">全部统计</option>
+                                <option value="total">总任务统计</option>
+                                <option value="pending">待处理任务统计</option>
+                                <option value="in-progress">进行中任务统计</option>
+                                <option value="completed">已完成任务统计</option>
+                                <option value="overdue">已逾期任务统计</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-default" onclick="document.body.removeChild(addStatDialog)">取消</button>
+                        <button class="btn btn-primary" onclick="confirmAddStat(addStatDialog)">确认</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(addStatDialog);
+            
+            // 显示对话框
+            setTimeout(() => {
+                addStatDialog.classList.add('show');
+            }, 10);
+        });
+        
+        // 确认新增统计
+        window.confirmAddStat = function(dialog) {
+            const statType = document.getElementById('stat-type').value;
+            // 关闭当前对话框
+            document.body.removeChild(dialog);
+            // 显示选择的统计类型
+            showStatisticsDetailModal(statType);
+        }
+        
+        // 删除统计摘要项的函数
+        window.deleteSummaryItem = function(event) {
+            // 阻止事件冒泡，避免触发统计项的点击事件
+            event.stopPropagation();
+            
+            // 获取类型
+            const type = event.target.closest('.delete-icon').getAttribute('data-type');
+            
+            // 显示确认对话框
+            if (confirm('确定要隐藏这个统计项吗？')) {
+                // 获取当前点击的删除图标对应的统计摘要项
+                const summaryItem = event.target.closest('.stats-summary-item');
+                if (summaryItem) {
+                    // 隐藏统计摘要项（实际项目中可以发送请求到服务器）
+                    summaryItem.style.display = 'none';
+                    
+                    // 可以在这里添加日志或其他操作
+                    console.log('已隐藏' + type + '类型的统计项');
+                }
+            }
+        }
+        
+        // 为所有删除图标绑定点击事件（在模态框内容更新后）
+        function bindDeleteIcons() {
+            const deleteIcons = document.querySelectorAll('.delete-icon');
+            deleteIcons.forEach(icon => {
+                // 移除旧的事件监听器
+                const newIcon = icon.cloneNode(true);
+                icon.parentNode.replaceChild(newIcon, icon);
+                // 添加新的事件监听器
+                newIcon.addEventListener('click', deleteSummaryItem);
+            });
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTaskList(mockTasks);
+            updateTaskStatistics(mockTasks);
+        });
+        
+        // 渲染任务列表
+        function renderTaskList(tasks) {
+            const taskListElement = document.getElementById('task-list');
+            taskListElement.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `<td colspan="7" style="text-align: center; padding: 40px; color: #999;">暂无任务数据</td>`;
+                taskListElement.appendChild(emptyRow);
+                return;
+            }
+            
+            tasks.forEach(task => {
+                const row = document.createElement('tr');
+                
+                // 根据状态获取对应的class
+                let statusClass = '';
+                switch (task.status) {
+                    case '待处理':
+                        statusClass = 'status-pending';
+                        break;
+                    case '进行中':
+                        statusClass = 'status-in-progress';
+                        break;
+                    case '已完成':
+                        statusClass = 'status-completed';
+                        break;
+                    case '已逾期':
+                        statusClass = 'status-overdue';
+                        break;
+                }
+                
+                row.innerHTML = `
+                    <td>${task.name}</td>
+                    <td><span class="status-badge ${task.priority === '高' ? 'status-overdue' : task.priority === '中' ? 'status-in-progress' : 'status-pending'}">${task.priority}</span></td>
+                    <td>${task.assignee}</td>
+                    <td>${task.startDate}</td>
+                    <td>${task.endDate}</td>
+                    <td><span class="status-badge ${statusClass}">${task.status}</span></td>
+                    <td>
+                        <button class="task-action-btn" onclick="viewTask(${task.id})">查看</button>
+                        <button class="task-action-btn" onclick="editTask(${task.id})">编辑</button>
+                        <button class="task-action-btn" onclick="deleteTask(${task.id})">删除</button>
+                    </td>
+                `;
+                
+                taskListElement.appendChild(row);
+            });
+        }
+        
+        // 创建任务模态框相关变量
+        const createTaskModal = document.getElementById('create-task-modal');
+        const createTaskForm = document.getElementById('create-task-form');
+        
+        // 创建任务模态框
+        function showCreateTaskModal() {
+            // 清空表单
+            createTaskForm.reset();
+            
+            // 设置默认日期为今天
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('create-task-start-date').value = today;
+            
+            // 显示模态框
+            createTaskModal.classList.add('show');
+        }
+        
+        // 隐藏创建任务模态框
+        function hideCreateTaskModal() {
+            createTaskModal.classList.remove('show');
+        }
+        
+        // 提交创建任务表单
+        function submitCreateTask() {
+            // 验证表单
+            if (!createTaskForm.checkValidity()) {
+                // 触发浏览器原生的验证提示
+                const invalidFields = createTaskForm.querySelectorAll(':invalid');
+                if (invalidFields.length > 0) {
+                    invalidFields[0].focus();
+                }
+                return;
+            }
+            
+            // 获取表单数据
+            const newTask = {
+                id: Date.now(), // 使用时间戳作为唯一ID
+                name: document.getElementById('create-task-name').value,
+                priority: document.getElementById('create-task-priority').value,
+                assignee: document.getElementById('create-task-assignee').value,
+                creator: '系统管理员',
+                startDate: document.getElementById('create-task-start-date').value,
+                endDate: document.getElementById('create-task-end-date').value,
+                status: '待处理',
+                type: document.getElementById('create-task-type').value,
+                progress: parseInt(document.getElementById('create-task-progress').value) || 0,
+                description: document.getElementById('create-task-description').value || '',
+                createTime: new Date().toLocaleString('zh-CN'),
+                updateTime: new Date().toLocaleString('zh-CN'),
+                history: [
+                    { action: '创建任务', time: new Date().toLocaleString('zh-CN') },
+                    { action: `分配给${document.getElementById('create-task-assignee').value}`, time: new Date().toLocaleString('zh-CN') },
+                    { action: `设置进度为${parseInt(document.getElementById('create-task-progress').value) || 0}%`, time: new Date().toLocaleString('zh-CN') },
+                    { action: `设置任务类型为${document.getElementById('create-task-type').value}`, time: new Date().toLocaleString('zh-CN') }
+                ]
+            };
+            
+            // 添加到模拟数据中
+            mockTasks.unshift(newTask); // 添加到数组开头
+            
+            // 重新渲染任务列表
+            renderTaskList(mockTasks);
+            
+            // 更新统计数据
+            updateTaskStatistics(mockTasks);
+            
+            // 关闭模态框
+            hideCreateTaskModal();
+            
+            // 显示成功提示
+            alert('任务创建成功！');
+        }
+        
+        // 点击创建任务模态框外部关闭模态框
+        createTaskModal.addEventListener('click', function(e) {
+            if (e.target === createTaskModal) {
+                hideCreateTaskModal();
+            }
+        });
+        
+        // 防止点击创建任务模态框内容区域时关闭模态框
+        document.querySelector('.task-form-modal').addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        // 刷新任务列表
+        function refreshTaskList() {
+            // 模拟加载效果
+            const taskListElement = document.getElementById('task-list');
+            taskListElement.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #999;">正在刷新...</td></tr>';
+            
+            setTimeout(() => {
+                renderTaskList(mockTasks);
+                updateTaskStatistics(mockTasks);
+            }, 500);
+        }
+        
+        // 筛选任务
+        function filterTasks() {
+            const status = document.getElementById('task-status').value;
+            const priority = document.getElementById('task-priority').value;
+            const searchText = document.getElementById('task-search').value.toLowerCase();
+            
+            let filteredTasks = mockTasks;
+            
+            // 按状态筛选
+            if (status !== 'all') {
+                let statusText = '';
+                switch (status) {
+                    case 'pending':
+                        statusText = '待处理';
+                        break;
+                    case 'in-progress':
+                        statusText = '进行中';
+                        break;
+                    case 'completed':
+                        statusText = '已完成';
+                        break;
+                    case 'overdue':
+                        statusText = '已逾期';
+                        break;
+                }
+                filteredTasks = filteredTasks.filter(task => task.status === statusText);
+            }
+            
+            // 按优先级筛选
+            if (priority !== 'all') {
+                let priorityText = '';
+                switch (priority) {
+                    case 'high':
+                        priorityText = '高';
+                        break;
+                    case 'medium':
+                        priorityText = '中';
+                        break;
+                    case 'low':
+                        priorityText = '低';
+                        break;
+                }
+                filteredTasks = filteredTasks.filter(task => task.priority === priorityText);
+            }
+            
+            // 按搜索文本筛选
+            if (searchText) {
+                filteredTasks = filteredTasks.filter(task => 
+                    task.name.toLowerCase().includes(searchText) || 
+                    task.assignee.toLowerCase().includes(searchText)
+                );
+            }
+            
+            renderTaskList(filteredTasks);
+            updateTaskStatistics(filteredTasks);
+        }
+        
+        // 重置筛选条件
+        function resetFilters() {
+            document.getElementById('task-status').value = 'all';
+            document.getElementById('task-priority').value = 'all';
+            document.getElementById('task-search').value = '';
+            renderTaskList(mockTasks);
+            updateTaskStatistics(mockTasks);
+        }
+        
+        // 任务详情模态框相关变量
+        const taskDetailModal = document.getElementById('task-detail-modal');
+        const taskDetailTitle = document.getElementById('task-detail-title');
+        const detailEditBtn = document.getElementById('detail-edit-btn');
+        
+        // 查看任务详情
+        function viewTask(taskId) {
+            // 根据任务ID查找任务数据
+            const task = mockTasks.find(t => t.id === taskId);
+            
+            if (task) {
+                // 填充模态框数据
+                taskDetailTitle.textContent = `${task.name} - 任务详情`;
+                
+                document.getElementById('detail-task-name').textContent = task.name;
+                document.getElementById('detail-task-status').textContent = task.status;
+                document.getElementById('detail-task-priority').textContent = task.priority;
+                document.getElementById('detail-task-assignee').textContent = task.assignee;
+                document.getElementById('detail-task-creator').textContent = task.creator || '系统管理员';
+                document.getElementById('detail-task-progress').textContent = `${task.progress}%`;
+                document.getElementById('detail-task-start-date').textContent = task.startDate;
+                document.getElementById('detail-task-end-date').textContent = task.endDate;
+                document.getElementById('detail-task-create-time').textContent = task.createTime || '未知';
+                document.getElementById('detail-task-update-time').textContent = task.updateTime || '未知';
+                document.getElementById('detail-task-description').textContent = task.description || '无描述';
+                
+                // 设置进度条
+                const progressBar = document.getElementById('detail-progress-bar');
+                progressBar.style.width = `${task.progress}%`;
+                
+                // 根据状态设置进度条颜色
+                progressBar.className = 'progress-fill';
+                if (task.status === '待处理') {
+                    progressBar.classList.add('pending');
+                } else if (task.status === '进行中') {
+                    progressBar.classList.add('in-progress');
+                } else if (task.status === '已完成') {
+                    progressBar.classList.add('completed');
+                } else if (task.status === '已逾期') {
+                    progressBar.classList.add('overdue');
+                }
+                
+                // 渲染任务历史记录
+                renderTaskHistory(task.history || []);
+                
+                // 绑定编辑按钮事件
+                detailEditBtn.onclick = function() {
+                    hideTaskDetailModal();
+                    editTask(taskId);
+                };
+                
+                // 显示模态框
+                taskDetailModal.classList.add('show');
+            }
+        }
+        
+        // 隐藏任务详情模态框
+        function hideTaskDetailModal() {
+            taskDetailModal.classList.remove('show');
+        }
+        
+        // 渲染任务历史记录
+        function renderTaskHistory(history) {
+            const historyContainer = document.getElementById('task-history');
+            historyContainer.innerHTML = '';
+            
+            if (history.length === 0) {
+                historyContainer.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">暂无任务历史记录</div>';
+                return;
+            }
+            
+            // 按时间倒序排列历史记录（最新的在前面）
+            const sortedHistory = [...history].sort((a, b) => new Date(b.time) - new Date(a.time));
+            
+            sortedHistory.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                historyItem.innerHTML = `
+                    <div class="history-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 1L10.5 5H15L11.5 7.5L14 12L9 9.5L4 12L6.5 7.5L3 5H7.5L8 1Z" stroke="#1890FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="history-content">
+                        <div class="history-action">${item.action}</div>
+                        <div class="history-time">${item.time}</div>
+                    </div>
+                `;
+                
+                historyContainer.appendChild(historyItem);
+            });
+        }
+        
+        // 点击模态框外部关闭模态框
+        taskDetailModal.addEventListener('click', function(e) {
+            if (e.target === taskDetailModal) {
+                hideTaskDetailModal();
+            }
+        });
+        
+        // 防止点击模态框内容区域时关闭模态框
+        document.querySelector('.task-detail-modal').addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        // 为任务列表上方添加一个创建任务按钮
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查是否已经有创建任务按钮
+            if (!document.getElementById('create-task-btn')) {
+                // 找到任务列表的头部区域
+                const filterContainer = document.querySelector('.filter-container');
+                if (filterContainer) {
+                    // 创建按钮
+                    const createTaskBtn = document.createElement('button');
+                    createTaskBtn.id = 'create-task-btn';
+                    createTaskBtn.className = 'btn btn-primary';
+                    createTaskBtn.textContent = '创建任务';
+                    createTaskBtn.onclick = showCreateTaskModal;
+                    
+                    // 添加到筛选区域的末尾
+                    filterContainer.appendChild(createTaskBtn);
+                }
+            }
+        });
+        
+        // 编辑任务模态框相关变量
+        const editTaskModal = document.getElementById('edit-task-modal');
+        const editTaskForm = document.getElementById('edit-task-form');
+        
+        // 编辑任务
+        function editTask(taskId) {
+            // 根据任务ID查找任务数据
+            const task = mockTasks.find(t => t.id === taskId);
+            
+            if (task) {
+                // 填充模态框数据
+                document.getElementById('edit-task-id').value = task.id;
+                document.getElementById('edit-task-title').textContent = `${task.name} - 编辑任务`;
+                document.getElementById('edit-task-name').value = task.name;
+                document.getElementById('edit-task-priority').value = task.priority;
+                document.getElementById('edit-task-assignee').value = task.assignee;
+                document.getElementById('edit-task-status').value = task.status;
+                document.getElementById('edit-task-progress').value = task.progress || 0;
+                document.getElementById('edit-task-start-date').value = task.startDate;
+                document.getElementById('edit-task-end-date').value = task.endDate;
+                document.getElementById('edit-task-description').value = task.description || '';
+                
+                // 立即更新进度条
+                setTimeout(function() {
+                    updateProgressBar(task.progress || 0);
+                }, 0);
+                
+                // 显示模态框
+                editTaskModal.classList.add('show');
+            }
+        }
+        
+        // 隐藏编辑任务模态框
+        function hideEditTaskModal() {
+            editTaskModal.classList.remove('show');
+        }
+        
+        // 提交编辑任务表单
+        function submitEditTask() {
+            // 验证表单
+            if (!editTaskForm.checkValidity()) {
+                // 触发浏览器原生的验证提示
+                const invalidFields = editTaskForm.querySelectorAll(':invalid');
+                if (invalidFields.length > 0) {
+                    invalidFields[0].focus();
+                }
+                return;
+            }
+            
+            // 获取表单数据
+            const taskId = parseInt(document.getElementById('edit-task-id').value);
+            const taskIndex = mockTasks.findIndex(t => t.id === taskId);
+            
+            if (taskIndex !== -1) {
+                // 保存旧的任务数据用于比较变更
+                const oldTask = { ...mockTasks[taskIndex] };
+                const updatedTask = {
+                    ...oldTask,
+                    name: document.getElementById('edit-task-name').value,
+                    priority: document.getElementById('edit-task-priority').value,
+                    assignee: document.getElementById('edit-task-assignee').value,
+                    status: document.getElementById('edit-task-status').value,
+                    progress: parseInt(document.getElementById('edit-task-progress').value) || 0,
+                    startDate: document.getElementById('edit-task-start-date').value,
+                    endDate: document.getElementById('edit-task-end-date').value,
+                    description: document.getElementById('edit-task-description').value || '',
+                    updateTime: new Date().toLocaleString('zh-CN')
+                };
+                
+                // 检查任务状态是否变为已完成，如果是且进度不是100%，则设置进度为100%
+                if (updatedTask.status === '已完成' && updatedTask.progress < 100) {
+                    updatedTask.progress = 100;
+                }
+                
+                // 生成任务历史记录
+                const historyChanges = [];
+                if (updatedTask.name !== oldTask.name) historyChanges.push(`任务名称从 "${oldTask.name}" 改为 "${updatedTask.name}"`);
+                if (updatedTask.priority !== oldTask.priority) historyChanges.push(`优先级从 "${oldTask.priority}" 改为 "${updatedTask.priority}"`);
+                if (updatedTask.assignee !== oldTask.assignee) historyChanges.push(`负责人从 "${oldTask.assignee}" 改为 "${updatedTask.assignee}"`);
+                if (updatedTask.status !== oldTask.status) historyChanges.push(`状态从 "${oldTask.status}" 改为 "${updatedTask.status}"`);
+                if (updatedTask.progress !== (oldTask.progress || 0)) historyChanges.push(`进度从 ${oldTask.progress || 0}% 改为 ${updatedTask.progress}%`);
+                if (updatedTask.startDate !== oldTask.startDate) historyChanges.push(`开始时间从 "${oldTask.startDate}" 改为 "${updatedTask.startDate}"`);
+                if (updatedTask.endDate !== oldTask.endDate) historyChanges.push(`截止时间从 "${oldTask.endDate}" 改为 "${updatedTask.endDate}"`);
+                
+                // 如果有变更，添加到历史记录
+                if (historyChanges.length > 0) {
+                    updatedTask.history = [...(oldTask.history || [])];
+                    historyChanges.forEach(change => {
+                        updatedTask.history.push({ action: change, time: updatedTask.updateTime });
+                    });
+                }
+                
+                // 更新任务数据
+                mockTasks[taskIndex] = updatedTask;
+                
+                // 重新渲染任务列表
+                renderTaskList(mockTasks);
+                
+                // 更新统计数据
+                updateTaskStatistics(mockTasks);
+                
+                // 关闭模态框
+                hideEditTaskModal();
+                
+                // 显示成功提示
+                alert('任务更新成功！');
+            }
+        }
+        
+        // 点击编辑任务模态框外部关闭模态框
+        editTaskModal.addEventListener('click', function(e) {
+            if (e.target === editTaskModal) {
+                hideEditTaskModal();
+            }
+        });
+        
+        // 防止点击编辑任务模态框内容区域时关闭模态框
+        document.querySelector('#edit-task-modal .task-form-modal').addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        // 删除任务
+        function deleteTask(taskId) {
+            if (confirm(`确定要删除任务ID: ${taskId} 吗？删除后无法恢复！`)) {
+                // 查找并删除任务
+                const taskIndex = mockTasks.findIndex(t => t.id === taskId);
+                if (taskIndex !== -1) {
+                    mockTasks.splice(taskIndex, 1);
+                    
+                    // 重新渲染任务列表
+                    renderTaskList(mockTasks);
+                    
+                    // 更新统计数据
+                    updateTaskStatistics(mockTasks);
+                    
+                    // 显示成功提示
+                    alert(`任务已成功删除！`);
+                }
+            }
+        }
+        
+        // 进度条实时更新功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 编辑任务表单进度条
+            const editProgressInput = document.getElementById('edit-task-progress');
+            const editProgressDisplay = document.getElementById('progress-value-display');
+            const editProgressBar = document.getElementById('progress-bar-display');
+            
+            if (editProgressInput && editProgressDisplay && editProgressBar) {
+                // 添加输入事件监听器
+                editProgressInput.addEventListener('input', function() {
+                    updateProgressBar(parseInt(this.value) || 0);
+                });
+                
+                // 初始化进度条
+                if (editProgressInput.value) {
+                    updateProgressBar(parseInt(editProgressInput.value) || 0);
+                }
+            }
+            
+            // 创建任务表单进度条
+            const createProgressInput = document.getElementById('create-task-progress');
+            const createProgressDisplay = document.getElementById('create-progress-value-display');
+            const createProgressBar = document.getElementById('create-progress-bar-display');
+            
+            if (createProgressInput && createProgressDisplay && createProgressBar) {
+                // 添加输入事件监听器
+                createProgressInput.addEventListener('input', function() {
+                    updateCreateProgressBar(parseInt(this.value) || 0);
+                });
+                
+                // 初始化进度条
+                if (createProgressInput.value) {
+                    updateCreateProgressBar(parseInt(createProgressInput.value) || 0);
+                }
+            }
+        });
+        
+        // 更新编辑任务表单进度条函数
+        function updateProgressBar(progressValue) {
+            const progressDisplay = document.getElementById('progress-value-display');
+            const progressBar = document.getElementById('progress-bar-display');
+            
+            if (progressDisplay && progressBar) {
+                // 更新显示的百分比
+                progressDisplay.textContent = `${progressValue}%`;
+                
+                // 更新进度条宽度
+                progressBar.style.width = `${progressValue}%`;
+                
+                // 移除所有颜色类
+                progressBar.classList.remove('low', 'medium', 'high', 'completed');
+                
+                // 根据进度值添加对应的颜色类
+                if (progressValue === 100) {
+                    progressBar.classList.add('completed');
+                } else if (progressValue > 60) {
+                    progressBar.classList.add('high');
+                } else if (progressValue > 30) {
+                    progressBar.classList.add('medium');
+                } else {
+                    progressBar.classList.add('low');
+                }
+            }
+        }
+        
+        // 更新创建任务表单进度条函数
+        function updateCreateProgressBar(progressValue) {
+            const progressDisplay = document.getElementById('create-progress-value-display');
+            const progressBar = document.getElementById('create-progress-bar-display');
+            
+            if (progressDisplay && progressBar) {
+                // 更新显示的百分比
+                progressDisplay.textContent = `${progressValue}%`;
+                
+                // 更新进度条宽度
+                progressBar.style.width = `${progressValue}%`;
+                
+                // 移除所有颜色类
+                progressBar.classList.remove('low', 'medium', 'high', 'completed');
+                
+                // 根据进度值添加对应的颜色类
+                if (progressValue === 100) {
+                    progressBar.classList.add('completed');
+                } else if (progressValue > 60) {
+                    progressBar.classList.add('high');
+                } else if (progressValue > 30) {
+                    progressBar.classList.add('medium');
+                } else {
+                    progressBar.classList.add('low');
+                }
+            }
+        }
+        
+        // 页签切换函数
+        function switchTab(tabName) {
+            // 隐藏所有页签内容
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 移除所有页签按钮的活跃状态
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // 显示选中的页签内容和激活对应的按钮
+            document.getElementById(tabName + '-tab').classList.add('active');
+            const activeButton = Array.from(tabButtons).find(btn => btn.getAttribute('onclick').includes(tabName));
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+            
+            // 如果切换到图表页，渲染图表
+            if (tabName === 'chart') {
+                renderCharts();
+            }
+            
+            // 如果切换到报告页，生成报告
+            if (tabName === 'report') {
+                generateReport();
+            }
+        }
+        
+        // 图表实例变量，用于避免重复创建
+        let statusChartInstance = null;
+        let priorityChartInstance = null;
+        let assigneeChartInstance = null;
+        let reportChartInstance = null;
+        
+        // 渲染图表函数
+        function renderCharts() {
+            // 计算任务统计数据
+            const totalTasks = mockTasks.length;
+            const pendingTasks = mockTasks.filter(task => task.status === '待处理').length;
+            const inProgressTasks = mockTasks.filter(task => task.status === '进行中').length;
+            const completedTasks = mockTasks.filter(task => task.status === '已完成').length;
+            const today = new Date();
+            const overdueTasks = mockTasks.filter(task => task.status !== '已完成' && new Date(task.endDate) < today).length;
+            
+            const highPriorityTasks = mockTasks.filter(task => task.priority === '高').length;
+            const mediumPriorityTasks = mockTasks.filter(task => task.priority === '中').length;
+            const lowPriorityTasks = mockTasks.filter(task => task.priority === '低').length;
+            
+            // 按负责人分组统计
+            const tasksByAssignee = {};
+            mockTasks.forEach(task => {
+                tasksByAssignee[task.assignee] = (tasksByAssignee[task.assignee] || 0) + 1;
+            });
+            const assignees = Object.keys(tasksByAssignee);
+            const assigneeCounts = Object.values(tasksByAssignee);
+            
+            // 任务状态分布图
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            if (statusChartInstance) {
+                statusChartInstance.destroy();
+            }
+            statusChartInstance = new Chart(statusCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['待处理', '进行中', '已完成', '已逾期'],
+                    datasets: [{
+                        data: [pendingTasks, inProgressTasks, completedTasks, overdueTasks],
+                        backgroundColor: [
+                            '#faad14',
+                            '#1890ff',
+                            '#52c41a',
+                            '#ff4d4f'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+            
+            // 优先级分布图
+            const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+            if (priorityChartInstance) {
+                priorityChartInstance.destroy();
+            }
+            priorityChartInstance = new Chart(priorityCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['高优先级', '中优先级', '低优先级'],
+                    datasets: [{
+                        data: [highPriorityTasks, mediumPriorityTasks, lowPriorityTasks],
+                        backgroundColor: [
+                            '#ff4d4f',
+                            '#faad14',
+                            '#52c41a'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+            
+            // 负责人任务量柱状图
+            const assigneeCtx = document.getElementById('assigneeChart').getContext('2d');
+            if (assigneeChartInstance) {
+                assigneeChartInstance.destroy();
+            }
+            assigneeChartInstance = new Chart(assigneeCtx, {
+                type: 'bar',
+                data: {
+                    labels: assignees,
+                    datasets: [{
+                        label: '任务数量',
+                        data: assigneeCounts,
+                        backgroundColor: '#1890ff',
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 导入任务函数
+        function importTasks() {
+            // 创建文件上传输入元素
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.json,.csv';
+            fileInput.style.display = 'none';
+            
+            // 添加到文档
+            document.body.appendChild(fileInput);
+            
+            // 触发文件选择对话框
+            fileInput.click();
+            
+            // 监听文件选择事件
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    try {
+                        let tasksToImport = [];
+                        const fileExtension = file.name.split('.').pop().toLowerCase();
+                        
+                        if (fileExtension === 'json') {
+                            // 解析JSON文件
+                            tasksToImport = JSON.parse(event.target.result);
+                            if (!Array.isArray(tasksToImport)) {
+                                throw new Error('JSON文件格式不正确，应为任务对象数组');
+                            }
+                        } else if (fileExtension === 'csv') {
+                            // 解析CSV文件
+                            const csvContent = event.target.result;
+                            const lines = csvContent.split('\n');
+                            if (lines.length < 2) {
+                                throw new Error('CSV文件没有有效数据');
+                            }
+                            
+                            // 解析表头
+                            const headers = lines[0].split(',').map(header => header.trim());
+                            
+                            // 解析数据行
+                            for (let i = 1; i < lines.length; i++) {
+                                if (!lines[i].trim()) continue;
+                                
+                                const values = lines[i].split(',').map(value => value.trim());
+                                const task = {};
+                                
+                                // 映射CSV值到任务对象属性
+                                for (let j = 0; j < headers.length; j++) {
+                                    if (headers[j] === '任务名称') task.name = values[j];
+                                    else if (headers[j] === '优先级') task.priority = values[j];
+                                    else if (headers[j] === '负责人') task.assignee = values[j];
+                                    else if (headers[j] === '开始时间') task.startDate = values[j];
+                                    else if (headers[j] === '截止时间') task.endDate = values[j];
+                                    else if (headers[j] === '状态') task.status = values[j];
+                                    else if (headers[j] === '进度') task.progress = parseInt(values[j]) || 0;
+                                }
+                                
+                                // 确保必要字段存在
+                                if (task.name && task.priority && task.assignee && task.startDate && task.endDate && task.status) {
+                                    // 添加其他必要字段
+                                    task.id = Date.now() + i; // 生成唯一ID
+                                    task.creator = '系统管理员';
+                                    task.createTime = new Date().toLocaleString('zh-CN');
+                                    task.updateTime = new Date().toLocaleString('zh-CN');
+                                    task.history = [
+                                        { action: '导入任务', time: new Date().toLocaleString('zh-CN') }
+                                    ];
+                                    
+                                    tasksToImport.push(task);
+                                }
+                            }
+                        } else {
+                            throw new Error('不支持的文件格式，请上传JSON或CSV文件');
+                        }
+                        
+                        // 合并导入的任务到现有任务列表
+                        mockTasks.push(...tasksToImport);
+                        
+                        // 更新UI
+                        renderTaskList(mockTasks);
+                        updateTaskStatistics(mockTasks);
+                        
+                        alert(`成功导入${tasksToImport.length}个任务！`);
+                    } catch (error) {
+                        alert('导入失败：' + error.message);
+                    }
+                };
+                
+                reader.onerror = function() {
+                    alert('文件读取失败');
+                };
+                
+                // 开始读取文件
+                if (fileExtension === 'json') {
+                    reader.readAsText(file);
+                } else {
+                    reader.readAsText(file, 'UTF-8');
+                }
+                
+                // 清理
+                document.body.removeChild(fileInput);
+            });
+        }
+        
+        // 导出任务函数
+        function exportTasks() {
+            // 让用户选择导出格式
+            const format = prompt('请选择导出格式：\n1. JSON\n2. CSV', 'JSON');
+            
+            if (!format) return; // 用户取消
+            
+            let content = '';
+            let mimeType = '';
+            let fileName = `任务数据_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.${format.toLowerCase()}`;
+            
+            if (format.toLowerCase() === 'json') {
+                // 导出为JSON格式
+                content = JSON.stringify(mockTasks, null, 2);
+            } else if (format.toLowerCase() === 'csv') {
+                // 导出为CSV格式
+                // 定义CSV表头
+                const headers = ['任务名称', '优先级', '负责人', '开始时间', '截止时间', '状态', '进度'];
+                const fields = ['name', 'priority', 'assignee', 'startDate', 'endDate', 'status', 'progress'];
+                
+                // 添加表头
+                content = headers.join(',') + '\n';
+                
+                // 添加数据行
+                mockTasks.forEach(task => {
+                    const row = fields.map(field => {
+                        const value = task[field] || '';
+                        // 如果值包含逗号或引号，需要用引号包围并转义内部的引号
+                        return value.toString().includes(',') || value.toString().includes('"') 
+                            ? '"' + value.toString().replace(/"/g, '""') + '"' 
+                            : value;
+                    });
+                    content += row.join(',') + '\n';
+                });
+            }
+            
+            // 创建Blob对象
+            const blob = new Blob([content], { type: format.toLowerCase() === 'json' ? 'application/json' : 'text/csv' });
+            
+            // 创建下载链接
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            
+            // 添加到文档并触发点击事件
+            document.body.appendChild(a);
+            a.click();
+            
+            // 清理
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        }
+        
+        // 生成报告函数
+        function generateReport() {
+            // 计算任务统计数据
+            const totalTasks = mockTasks.length;
+            const pendingTasks = mockTasks.filter(task => task.status === '待处理').length;
+            const inProgressTasks = mockTasks.filter(task => task.status === '进行中').length;
+            const completedTasks = mockTasks.filter(task => task.status === '已完成').length;
+            const today = new Date();
+            const overdueTasks = mockTasks.filter(task => task.status !== '已完成' && new Date(task.endDate) < today).length;
+            
+            // 更新报告日期
+            document.getElementById('report-date').textContent = new Date().toLocaleDateString('zh-CN');
+            
+            // 更新统计数据
+            document.getElementById('report-total').textContent = totalTasks;
+            document.getElementById('report-pending').textContent = pendingTasks;
+            document.getElementById('report-in-progress').textContent = inProgressTasks;
+            document.getElementById('report-completed').textContent = completedTasks;
+            document.getElementById('report-overdue').textContent = overdueTasks;
+            
+            // 生成报告分析内容
+            let analysis = '';
+            if (totalTasks === 0) {
+                analysis = '当前暂无任务数据。';
+            } else {
+                analysis = `当前共有${totalTasks}个任务，其中${pendingTasks}个待处理任务，${inProgressTasks}个进行中任务，${completedTasks}个已完成任务，${overdueTasks}个已逾期任务。`;
+                
+                // 计算完成率
+                const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+                analysis += `总体完成率为${completionRate}%。`;
+                
+                if (overdueTasks > 0) {
+                    const overdueRate = Math.round((overdueTasks / (totalTasks - completedTasks)) * 100);
+                    analysis += `逾期率为${overdueRate}%，需要关注逾期任务的处理进度。`;
+                } else {
+                    analysis += '目前没有逾期任务，任务进度整体良好。';
+                }
+            }
+            document.getElementById('report-analysis').textContent = analysis;
+            
+            // 渲染报告图表
+            const reportCtx = document.getElementById('reportChart').getContext('2d');
+            if (reportChartInstance) {
+                reportChartInstance.destroy();
+            }
+            reportChartInstance = new Chart(reportCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['待处理', '进行中', '已完成', '已逾期'],
+                    datasets: [{
+                        label: '任务数量',
+                        data: [pendingTasks, inProgressTasks, completedTasks, overdueTasks],
+                        backgroundColor: [
+                            '#faad14',
+                            '#1890ff',
+                            '#52c41a',
+                            '#ff4d4f'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '任务状态分布'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 生成负责人任务分布表格
+            const assigneeTableBody = document.getElementById('report-assignee-table');
+            assigneeTableBody.innerHTML = '';
+            
+            // 按负责人分组统计并计算完成率和逾期率
+            const assigneeStats = {};
+            mockTasks.forEach(task => {
+                if (!assigneeStats[task.assignee]) {
+                    assigneeStats[task.assignee] = {
+                        total: 0,
+                        completed: 0,
+                        overdue: 0
+                    };
+                }
+                assigneeStats[task.assignee].total++;
+                if (task.status === '已完成') {
+                    assigneeStats[task.assignee].completed++;
+                }
+                if (task.status !== '已完成' && new Date(task.endDate) < today) {
+                    assigneeStats[task.assignee].overdue++;
+                }
+            });
+            
+            // 添加表格行
+            Object.entries(assigneeStats).forEach(([assignee, stats]) => {
+                const completionRate = Math.round((stats.completed / stats.total) * 100);
+                const overdueRate = Math.round((stats.overdue / (stats.total - stats.completed)) * 100);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${assignee}</td>
+                    <td>${stats.total}</td>
+                    <td>${completionRate}%</td>
+                    <td>${overdueRate}%</td>
+                `;
+                assigneeTableBody.appendChild(row);
+            });
+        }
+
+    </script>
+</body>
+</html>

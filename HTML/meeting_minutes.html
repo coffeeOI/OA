@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会议纪要 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <style>
+        .meeting-minutes-container {
+            padding: 20px;
+        }
+        
+        .meeting-minutes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .meeting-minutes-header h1 {
+            margin: 0;
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .btn:hover {
+            color: #409EFF;
+            border-color: #409EFF;
+        }
+        
+        .btn-primary {
+            background-color: #409EFF;
+            color: white;
+            border-color: #409EFF;
+        }
+        
+        .btn-primary:hover {
+            background-color: #66b1ff;
+            color: white;
+            border-color: #66b1ff;
+        }
+        
+        .btn-danger {
+            background-color: #f56c6c;
+            color: white;
+            border-color: #f56c6c;
+        }
+        
+        .btn-danger:hover {
+            background-color: #f78989;
+            color: white;
+            border-color: #f78989;
+        }
+        
+        /* 操作按钮样式优化 */
+        .btn-view, .btn-edit, .btn-delete {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.5;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            color: #606266;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;
+        }
+        
+        .btn-view:hover {
+            border-color: #409EFF;
+            color: #409EFF;
+        }
+        
+        .btn-edit {
+            border-color: #67c23a;
+            color: #67c23a;
+        }
+        
+        .btn-edit:hover {
+            background-color: #67c23a;
+            color: white;
+        }
+        
+        .btn-delete {
+            border-color: #f56c6c;
+            color: #f56c6c;
+        }
+        
+        .btn-delete:hover {
+            background-color: #f56c6c;
+            color: white;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .search-filter {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 16px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #409EFF;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+        
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .date-input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+        }
+        
+        .date-input:focus {
+            outline: none;
+            border-color: #409EFF;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+        
+        .filter-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: #409EFF;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+        
+        .minutes-table {
+            width: 100%;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        /* .table-header {
+            background-color: #f5f7fa;
+            border-bottom: 1px solid #ebeef5;
+        } */
+        
+        .table-row {
+            display: flex;
+            border-bottom: 1px solid #ebeef5;
+            transition: background-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .table-row:hover {
+            background-color: #f5f7fa;
+        }
+        
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        .table-cell {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        
+        .header-cell {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .cell-checkbox {
+            width: 50px;
+            justify-content: center;
+        }
+        
+        .cell-title {
+            flex: 1;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .cell-meeting-time {
+            width: 160px;
+        }
+        
+        .cell-meeting-room {
+            width: 120px;
+        }
+        
+        .cell-author {
+            width: 100px;
+        }
+        
+        .cell-create-time {
+            width: 160px;
+        }
+        
+        .cell-status {
+            width: 100px;
+        }
+        
+        .cell-actions {
+            width: 180px;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+        
+        .status-tag {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .status-draft {
+            background-color: #f5f7fa;
+            color: #909399;
+        }
+        
+        .status-submitted {
+            background-color: #e6f7ff;
+            color: #1890ff;
+        }
+        
+        .status-approved {
+            background-color: #f6ffed;
+            color: #52c41a;
+        }
+        
+        .status-rejected {
+            background-color: #fff2e8;
+            color: #fa8c16;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 20px;
+            gap: 8px;
+        }
+        
+        .pagination-info {
+            font-size: 14px;
+            color: #606266;
+        }
+        
+        .pagination-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            color: #409EFF;
+            border-color: #409EFF;
+        }
+        
+        .pagination-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        .pagination-btn.active {
+            background-color: #409EFF;
+            color: white;
+            border-color: #409EFF;
+        }
+        
+        .export-btn {
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .batch-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .batch-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .all-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            color: #606266;
+        }
+        
+        @media (max-width: 1200px) {
+            .search-filter {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .cell-create-time {
+                display: none;
+            }
+            
+            .cell-meeting-time {
+                width: 120px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .meeting-minutes-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+            }
+            
+            .search-filter {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+            
+            .date-range {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+            
+            .date-input {
+                flex: 1;
+                min-width: 150px;
+            }
+            
+            .filter-select {
+                width: 100%;
+            }
+            
+            .table-cell {
+                padding: 8px 12px;
+            }
+            
+            .cell-meeting-room,
+            .cell-status {
+                display: none;
+            }
+            
+            .pagination {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .export-btn {
+                margin-right: 0;
+                margin-bottom: 12px;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="meeting-minutes-container">
+        <div class="meeting-minutes-header">
+            <h1>会议纪要</h1>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="create-minute-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    新建纪要
+                </button>
+                <button class="btn" id="import-minute-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    导入纪要
+                </button>
+            </div>
+        </div>
+        
+        <!-- 搜索筛选区域 -->
+        <div class="search-filter">
+            <input type="text" class="search-input" placeholder="请输入会议标题或关键词进行搜索">
+            <div class="date-range" style="display: flex; align-items: center; gap: 8px;">
+                <input type="date" class="date-input" placeholder="开始日期" style="flex: 1;">
+                <span style="white-space: nowrap;">至</span>
+                <input type="date" class="date-input" placeholder="结束日期" style="flex: 1;">
+            </div>
+            <select class="filter-select">
+                <option value="all">全部会议类型</option>
+                <option value="weekly">周会</option>
+                <option value="project">项目会议</option>
+                <option value="team">团队会议</option>
+                <option value="other">其他会议</option>
+            </select>
+            <select class="filter-select">
+                <option value="all">全部状态</option>
+                <option value="draft">草稿</option>
+                <option value="submitted">已提交</option>
+                <option value="approved">已审核</option>
+                <option value="rejected">已驳回</option>
+            </select>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-primary" style="flex: 1;">搜索</button>
+                <button class="btn" style="flex: 1;">重置</button>
+            </div>
+        </div>
+        
+        <!-- 会议纪要列表 -->
+        <table class="minutes-table">
+            <!-- 表头 -->
+            <!-- <thead class="table-header">
+
+            </thead> -->
+            
+            <!-- 表格内容 -->
+            <tbody class="table-body">
+                    <tr class="table-row">
+                    <th class="table-cell cell-checkbox header-cell" style="text-align: center;">
+                        <label class="all-checkbox">
+                            <input type="checkbox" id="select-all">
+                        </label>
+                    </th>
+                    <th class="table-cell cell-title header-cell" style="text-align: center;">会议标题</th>
+                    <th class="table-cell cell-meeting-time header-cell" style="text-align: center;">会议时间</th>
+                    <th class="table-cell cell-meeting-room header-cell" style="text-align: center;">会议室</th>
+                    <th class="table-cell cell-author header-cell" style="text-align: center;">记录人</th>
+                    <th class="table-cell cell-create-time header-cell" style="text-align: center;">创建时间</th>
+                    <th class="table-cell cell-status header-cell" style="text-align: center;">状态</th>
+                    <th class="table-cell cell-actions header-cell" style="text-align: center;">操作</th>
+                </tr>
+                <!-- 会议纪要项 1 -->
+                <tr class="table-row">
+                    <td class="table-cell cell-checkbox">
+                        <input type="checkbox" class="minute-checkbox">
+                    </td>
+                    <td class="table-cell cell-title">每周团队例会纪要（2023-05-05）</td>
+                    <td class="table-cell cell-meeting-time">2023-05-05 09:30</td>
+                    <td class="table-cell cell-meeting-room">会议室A</td>
+                    <td class="table-cell cell-author">张三</td>
+                    <td class="table-cell cell-create-time">2023-05-05 11:00</td>
+                    <td class="table-cell cell-status">
+                        <span class="status-tag status-approved">已审核</span>
+                    </td>
+                    <td class="table-cell cell-actions">
+                        <button class="btn btn-view" data-id="1">查看</button>
+                        <button class="btn btn-edit" data-id="1">编辑</button>
+                        <button class="btn btn-delete" data-id="1">删除</button>
+                    </td>
+                </tr>
+                
+                <!-- 会议纪要项 2 -->
+                <tr class="table-row">
+                    <td class="table-cell cell-checkbox">
+                        <input type="checkbox" class="minute-checkbox">
+                    </td>
+                    <td class="table-cell cell-title">产品需求评审会议纪要</td>
+                    <td class="table-cell cell-meeting-time">2023-05-04 14:00</td>
+                    <td class="table-cell cell-meeting-room">会议室B</td>
+                    <td class="table-cell cell-author">李四</td>
+                    <td class="table-cell cell-create-time">2023-05-04 16:30</td>
+                    <td class="table-cell cell-status">
+                        <span class="status-tag status-approved">已审核</span>
+                    </td>
+                    <td class="table-cell cell-actions">
+                        <button class="btn btn-view" data-id="2">查看</button>
+                        <button class="btn btn-edit" data-id="2">编辑</button>
+                        <button class="btn btn-delete" data-id="2">删除</button>
+                    </td>
+                </tr>
+                
+                <!-- 会议纪要项 3 -->
+                <tr class="table-row">
+                    <td class="table-cell cell-checkbox">
+                        <input type="checkbox" class="minute-checkbox">
+                    </td>
+                    <td class="table-cell cell-title">项目进度汇报会议纪要</td>
+                    <td class="table-cell cell-meeting-time">2023-05-03 16:00</td>
+                    <td class="table-cell cell-meeting-room">线上会议</td>
+                    <td class="table-cell cell-author">王五</td>
+                    <td class="table-cell cell-create-time">2023-05-03 17:30</td>
+                    <td class="table-cell cell-status">
+                        <span class="status-tag status-submitted">已提交</span>
+                    </td>
+                    <td class="table-cell cell-actions">
+                        <button class="btn btn-view" data-id="3">查看</button>
+                        <button class="btn btn-edit" data-id="3">编辑</button>
+                        <button class="btn btn-delete" data-id="3">删除</button>
+                    </td>
+                </tr>
+                
+                <!-- 会议纪要项 4 -->
+                <tr class="table-row">
+                    <td class="table-cell cell-checkbox">
+                        <input type="checkbox" class="minute-checkbox">
+                    </td>
+                    <td class="table-cell cell-title">技术方案讨论会议纪要</td>
+                    <td class="table-cell cell-meeting-time">2023-05-02 10:00</td>
+                    <td class="table-cell cell-meeting-room">会议室C</td>
+                    <td class="table-cell cell-author">赵六</td>
+                    <td class="table-cell cell-create-time">2023-05-02 11:30</td>
+                    <td class="table-cell cell-status">
+                        <span class="status-tag status-rejected">已驳回</span>
+                    </td>
+                    <td class="table-cell cell-actions">
+                        <button class="btn btn-view" data-id="4">查看</button>
+                        <button class="btn btn-edit" data-id="4">编辑</button>
+                        <button class="btn btn-delete" data-id="4">删除</button>
+                    </td>
+                </tr>
+                
+                <!-- 会议纪要项 5 -->
+                <tr class="table-row">
+                    <td class="table-cell cell-checkbox">
+                        <input type="checkbox" class="minute-checkbox">
+                    </td>
+                    <td class="table-cell cell-title">新员工入职培训会议纪要</td>
+                    <td class="table-cell cell-meeting-time">2023-05-01 14:30</td>
+                    <td class="table-cell cell-meeting-room">培训室</td>
+                    <td class="table-cell cell-author">钱七</td>
+                    <td class="table-cell cell-create-time">2023-05-01 16:00</td>
+                    <td class="table-cell cell-status">
+                        <span class="status-tag status-draft">草稿</span>
+                    </td>
+                    <td class="table-cell cell-actions">
+                        <button class="btn btn-view" data-id="5">查看</button>
+                        <button class="btn btn-edit" data-id="5">编辑</button>
+                        <button class="btn btn-delete" data-id="5">删除</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <!-- 分页和操作按钮 -->
+        <div class="pagination">
+            <button class="btn export-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                导出选中纪要
+            </button>
+            
+            <div class="batch-actions">
+                <span class="pagination-info">已选择 <span id="selected-count">0</span> 项</span>
+                <button class="btn batch-btn btn-primary" id="batch-submit" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    批量提交
+                </button>
+                <button class="btn batch-btn btn-danger" id="batch-delete" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    批量删除
+                </button>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button class="pagination-btn" id="prev-page" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="pagination-btn active">1</button>
+                <button class="pagination-btn">2</button>
+                <button class="pagination-btn">3</button>
+                <span style="color: #909399;">...</span>
+                <button class="pagination-btn">8</button>
+                <button class="pagination-btn" id="next-page">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <span class="pagination-info">共 8 页 / 42 条</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="../JS/common.js"></script>
+    <script src="../JS/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 全选/取消全选功能
+            const selectAllCheckbox = document.getElementById('select-all');
+            const minuteCheckboxes = document.querySelectorAll('.minute-checkbox');
+            const selectedCountSpan = document.getElementById('selected-count');
+            const batchSubmitBtn = document.getElementById('batch-submit');
+            const batchDeleteBtn = document.getElementById('batch-delete');
+            
+            selectAllCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                minuteCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+                updateSelectedCount();
+            });
+            
+            minuteCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateSelectedCount();
+                    // 检查是否所有复选框都被选中
+                    const allChecked = Array.from(minuteCheckboxes).every(cb => cb.checked);
+                    selectAllCheckbox.checked = allChecked;
+                });
+            });
+            
+            function updateSelectedCount() {
+                const selectedCount = Array.from(minuteCheckboxes).filter(cb => cb.checked).length;
+                selectedCountSpan.textContent = selectedCount;
+                
+                // 更新批量操作按钮的状态
+                batchSubmitBtn.disabled = selectedCount === 0;
+                batchDeleteBtn.disabled = selectedCount === 0;
+            }
+            
+            // 查看按钮点击事件
+            document.querySelectorAll('.btn-view').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const minuteId = this.getAttribute('data-id');
+                    showMessage(`查看会议纪要 ID: ${minuteId}`, 'info');
+                });
+            });
+            
+            // 编辑按钮点击事件
+            document.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const minuteId = this.getAttribute('data-id');
+                    showMessage(`编辑会议纪要 ID: ${minuteId}`, 'info');
+                });
+            });
+            
+            // 删除按钮点击事件
+            document.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const minuteId = this.getAttribute('data-id');
+                    if (confirm('确定要删除这条会议纪要吗？删除后将无法恢复。')) {
+                        showMessage(`会议纪要 ID: ${minuteId} 已删除`, 'success');
+                        // 在实际应用中，这里应该发送删除请求到服务器
+                        // 然后从列表中移除对应的会议纪要项
+                    }
+                });
+            });
+            
+            // 新建纪要按钮点击事件
+            document.getElementById('create-minute-btn').addEventListener('click', function() {
+                showMessage('新建会议纪要功能尚未实现', 'info');
+            });
+            
+            // 导入纪要按钮点击事件
+            document.getElementById('import-minute-btn').addEventListener('click', function() {
+                showMessage('导入会议纪要功能尚未实现', 'info');
+            });
+            
+            // 批量提交按钮点击事件
+            batchSubmitBtn.addEventListener('click', function() {
+                const selectedMinutes = Array.from(minuteCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.closest('.table-row').querySelector('.cell-title').textContent);
+                
+                showMessage(`批量提交 ${selectedMinutes.length} 条会议纪要`, 'info');
+            });
+            
+            // 批量删除按钮点击事件
+            batchDeleteBtn.addEventListener('click', function() {
+                if (confirm('确定要删除选中的会议纪要吗？删除后将无法恢复。')) {
+                    showMessage('批量删除功能尚未实现', 'info');
+                }
+            });
+            
+            // 导出按钮点击事件
+            document.querySelector('.export-btn').addEventListener('click', function() {
+                showMessage('导出会议纪要功能尚未实现', 'info');
+            });
+            
+            // 分页按钮点击事件
+            document.querySelectorAll('.pagination-btn:not(#prev-page):not(#next-page)').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.pagination-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    showMessage(`切换到第 ${this.textContent} 页`, 'info');
+                });
+            });
+            
+            // 上一页按钮点击事件
+            document.getElementById('prev-page').addEventListener('click', function() {
+                const activePage = document.querySelector('.pagination-btn.active');
+                const prevPage = activePage.previousElementSibling;
+                
+                if (prevPage && !prevPage.id) {
+                    activePage.classList.remove('active');
+                    prevPage.classList.add('active');
+                    showMessage(`切换到第 ${prevPage.textContent} 页`, 'info');
+                }
+            });
+            
+            // 下一页按钮点击事件
+            document.getElementById('next-page').addEventListener('click', function() {
+                const activePage = document.querySelector('.pagination-btn.active');
+                let nextPage = activePage.nextElementSibling;
+                
+                // 如果下一个元素是省略号，则跳过
+                if (nextPage && nextPage.tagName === 'SPAN') {
+                    nextPage = nextPage.nextElementSibling;
+                }
+                
+                if (nextPage && !nextPage.id) {
+                    activePage.classList.remove('active');
+                    nextPage.classList.add('active');
+                    showMessage(`切换到第 ${nextPage.textContent} 页`, 'info');
+                }
+            });
+            
+            // 搜索按钮点击事件
+            document.querySelector('.search-filter .btn-primary').addEventListener('click', function() {
+                const searchValue = document.querySelector('.search-input').value;
+                const startDate = document.querySelector('.date-input:first-of-type').value;
+                const endDate = document.querySelector('.date-input:last-of-type').value;
+                const typeFilter = document.querySelector('.filter-select:first-of-type').value;
+                const statusFilter = document.querySelector('.filter-select:last-of-type').value;
+                
+                showMessage(`搜索条件: ${searchValue}, 日期范围: ${startDate} 至 ${endDate}, 类型: ${typeFilter}, 状态: ${statusFilter}`, 'info');
+            });
+            
+            // 重置按钮点击事件
+            document.querySelector('.search-filter .btn:last-of-type').addEventListener('click', function() {
+                document.querySelector('.search-input').value = '';
+                document.querySelector('.date-input:first-of-type').value = '';
+                document.querySelector('.date-input:last-of-type').value = '';
+                document.querySelector('.filter-select:first-of-type').value = 'all';
+                document.querySelector('.filter-select:last-of-type').value = 'all';
+                showMessage('搜索条件已重置', 'info');
+            });
+        });
+    </script>
+</body>
+</html>

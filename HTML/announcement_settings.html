@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公告设置 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <style>
+        .settings-container {
+            padding: 20px;
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .settings-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 20px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn-primary {
+            background-color: #409EFF;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-primary:hover {
+            background-color: #66b1ff;
+        }
+        
+        .btn-secondary {
+            padding: 8px 16px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-secondary:hover {
+            border-color: #409EFF;
+            color: #409EFF;
+        }
+        
+        .settings-tabs {
+            display: flex;
+            border-bottom: 1px solid #ebeef5;
+            margin-bottom: 24px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #606266;
+            border-bottom: 2px solid transparent;
+            transition: color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        .tab:hover {
+            color: #409EFF;
+        }
+        
+        .tab.active {
+            color: #409EFF;
+            border-color: #409EFF;
+        }
+        
+        .settings-content {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+        }
+        
+        .settings-section {
+            margin-bottom: 32px;
+        }
+        
+        .settings-section h3 {
+            margin: 0 0 16px 0;
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .settings-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+        
+        .settings-label {
+            flex: 0 0 180px;
+            font-size: 14px;
+            color: #606266;
+        }
+        
+        .settings-value {
+            flex: 1;
+        }
+        
+        .settings-desc {
+            font-size: 12px;
+            color: #909399;
+            margin-top: 4px;
+        }
+        
+        .form-input,
+        .form-select {
+            width: 100%;
+            max-width: 400px;
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #409EFF;
+        }
+        
+        .checkbox-group,
+        .radio-group {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .checkbox-item,
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #606266;
+        }
+        
+        .checkbox-item input[type="checkbox"],
+        .radio-item input[type="radio"] {
+            cursor: pointer;
+        }
+        
+        .settings-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 20px 0 0 0;
+            border-top: 1px solid #ebeef5;
+        }
+        
+        .color-picker {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+        
+        .color-option:hover {
+            border-color: #999;
+        }
+        
+        .color-option.selected {
+            border-color: #409EFF;
+        }
+        
+        .textarea-group {
+            max-width: 600px;
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: #409EFF;
+        }
+        
+        .time-range {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .time-range input {
+            max-width: 150px;
+        }
+        
+        .permissions-list {
+            max-width: 400px;
+        }
+        
+        .permission-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+        }
+        
+        .permission-item input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        
+        .notification-template {
+            background-color: #f5f7fa;
+            border: 1px solid #ebeef5;
+            border-radius: 4px;
+            padding: 16px;
+            margin-top: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .template-variable {
+            display: inline-block;
+            padding: 2px 6px;
+            background-color: #e6f7ff;
+            color: #1890ff;
+            border-radius: 3px;
+            font-size: 12px;
+            margin: 0 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <div class="settings-header">
+            <h2>公告设置</h2>
+            <div class="header-actions">
+                <button class="btn-primary" id="btn-save">保存设置</button>
+            </div>
+        </div>
+        
+        <div class="settings-tabs">
+            <div class="tab active" data-tab="basic">基本设置</div>
+            <div class="tab" data-tab="display">显示设置</div>
+            <div class="tab" data-tab="notification">通知设置</div>
+            <div class="tab" data-tab="permission">权限设置</div>
+        </div>
+        
+        <div class="settings-content">
+            <!-- 基本设置 -->
+            <div class="tab-content" id="tab-basic">
+                <div class="settings-section">
+                    <h3>公告系统设置</h3>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">公告默认有效期</div>
+                        <div class="settings-value">
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" id="validity-7" name="default-validity" value="7" checked>
+                                    <label for="validity-7">7天</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="validity-15" name="default-validity" value="15">
+                                    <label for="validity-15">15天</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="validity-30" name="default-validity" value="30">
+                                    <label for="validity-30">30天</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="validity-custom" name="default-validity" value="custom">
+                                    <label for="validity-custom">自定义</label>
+                                </div>
+                            </div>
+                            <div class="settings-desc">设置公告发布时的默认有效期</div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item" id="custom-validity-container" style="display: none;">
+                        <div class="settings-label">自定义有效期天数</div>
+                        <div class="settings-value">
+                            <input type="number" class="form-input" min="1" max="365" value="30">
+                            <span style="margin-left: 8px;">天</span>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">公告置顶数量限制</div>
+                        <div class="settings-value">
+                            <input type="number" class="form-input" min="0" max="20" value="5">
+                            <span style="margin-left: 8px;">条</span>
+                            <div class="settings-desc">设置同时置顶的公告最大数量，0表示不限制</div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">公告附件大小限制</div>
+                        <div class="settings-value">
+                            <input type="number" class="form-input" min="1" max="200" value="50">
+                            <span style="margin-left: 8px;">MB</span>
+                            <div class="settings-desc">设置单个公告附件的最大大小</div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">公告内容字数限制</div>
+                        <div class="settings-value">
+                            <input type="number" class="form-input" min="100" max="50000" value="5000">
+                            <span style="margin-left: 8px;">字</span>
+                            <div class="settings-desc">设置公告内容的最大字数</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>草稿设置</h3>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">自动保存草稿</div>
+                        <div class="settings-value">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="auto-save" checked>
+                                <label for="auto-save">启用自动保存草稿功能</label>
+                            </div>
+                            <div class="settings-desc">启用后，编辑公告时将自动保存草稿</div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">自动保存间隔</div>
+                        <div class="settings-value">
+                            <input type="number" class="form-input" min="1" max="60" value="3">
+                            <span style="margin-left: 8px;">分钟</span>
+                            <div class="settings-desc">设置自动保存草稿的时间间隔</div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">草稿保留时间</div>
+                        <div class="settings-value">
+                            <select class="form-select">
+                                <option value="7">7天</option>
+                                <option value="30" selected>30天</option>
+                                <option value="90">90天</option>
+                                <option value="180">180天</option>
+                                <option value="0">永久保留</option>
+                            </select>
+                            <div class="settings-desc">设置未发布草稿的自动清理时间</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 显示设置 -->
+            <div class="tab-content" id="tab-display" style="display: none;">
+                <div class="settings-section">
+                    <h3>列表显示设置</h3>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">默认显示数量</div>
+                        <div class="settings-value">
+                            <select class="form-select">
+                                <option value="5">5条</option>
+                                <option value="10" selected>10条</option>
+                                <option value="20">20条</option>
+                                <option value="50">50条</option>
+                            </select>
+                            <div class="settings-desc">设置公告列表每页默认显示的公告数量</div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">默认排序方式</div>
+                        <div class="settings-value">
+                            <select class="form-select">
+                                <option value="publish_time_desc" selected>发布时间（降序）</option>
+                                <option value="publish_time_asc">发布时间（升序）</option>
+                                <option value="title_asc">标题（升序）</option>
+                                <option value="title_desc">标题（降序）</option>
+                            </select>
+                            <div class="settings-desc">设置公告列表的默认排序方式</div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">显示公告标签</div>
+                        <div class="settings-value">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="show-tags" checked>
+                                <label for="show-tags">在公告列表中显示标签</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>公告样式设置</h3>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">重要公告标识颜色</div>
+                        <div class="settings-value">
+                            <div class="color-picker">
+                                <div class="color-option selected" style="background-color: #f56c6c;"></div>
+                                <div class="color-option" style="background-color: #ff4d4f;"></div>
+                                <div class="color-option" style="background-color: #fa8c16;"></div>
+                                <div class="color-option" style="background-color: #722ed1;"></div>
+                                <div class="color-option" style="background-color: #1890ff;"></div>
+                            </div>
+                            <div class="settings-desc">设置重要公告的标识颜色</div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">置顶公告标识颜色</div>
+                        <div class="settings-value">
+                            <div class="color-picker">
+                                <div class="color-option" style="background-color: #f56c6c;"></div>
+                                <div class="color-option" style="background-color: #ff4d4f;"></div>
+                                <div class="color-option selected" style="background-color: #fa8c16;"></div>
+                                <div class="color-option" style="background-color: #722ed1;"></div>
+                                <div class="color-option" style="background-color: #1890ff;"></div>
+                            </div>
+                            <div class="settings-desc">设置置顶公告的标识颜色</div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">公告字体大小</div>
+                        <div class="settings-value">
+                            <select class="form-select">
+                                <option value="small">小</option>
+                                <option value="normal" selected>正常</option>
+                                <option value="large">大</option>
+                                <option value="xlarge">超大</option>
+                            </select>
+                            <div class="settings-desc">设置公告详情页面的字体大小</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 通知设置 -->
+            <div class="tab-content" id="tab-notification" style="display: none;">
+                <div class="settings-section">
+                    <h3>新公告通知</h3>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">OA消息通知</div>
+                        <div class="settings-value">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="oa-notify" checked>
+                                <label for="oa-notify">启用OA系统消息通知</label>
+                            </div>
+                            <div class="settings-desc">有新公告发布时，通过OA系统消息通知相关人员</div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">邮件通知</div>
+                        <div class="settings-value">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="email-notify" checked>
+                                <label for="email-notify">启用邮件通知</label>
+                            </div>
+                            <div class="settings-desc">有新公告发布时，通过邮件通知相关人员</div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">短信通知</div>
+                        <div class="settings-value">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="sms-notify">
+                                <label for="sms-notify">启用短信通知</label>
+                            </div>
+                            <div class="settings-desc">有新公告发布时，通过短信通知相关人员（重要公告才会发送）</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>通知时间段设置</h3>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">工作日通知时间</div>
+                        <div class="settings-value">
+                            <div class="time-range">
+                                <input type="time" class="form-input" value="09:00">
+                                <span>至</span>
+                                <input type="time" class="form-input" value="18:00">
+                            </div>
+                            <div class="settings-desc">设置工作日内允许发送通知的时间段</div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">非工作日通知时间</div>
+                        <div class="settings-value">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="disable-weekend-notify" checked>
+                                <label for="disable-weekend-notify">禁止在非工作日发送通知</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>通知模板设置</h3>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">邮件通知模板</div>
+                        <div class="settings-value textarea-group">
+                            <textarea class="form-textarea">您好，
+
+您有一条新的公告通知：
+公告标题：<span class="template-variable">{announcement_title}</span>
+公告类型：<span class="template-variable">{announcement_type}</span>
+发布部门：<span class="template-variable">{publish_department}</span>
+发布时间：<span class="template-variable">{publish_time}</span>
+
+请登录OA系统查看详情。
+
+此致
+OA系统</textarea>
+                            <div class="settings-desc">支持使用变量：{announcement_title}（公告标题）、{announcement_type}（公告类型）、{publish_department}（发布部门）、{publish_time}（发布时间）</div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">短信通知模板</div>
+                        <div class="settings-value textarea-group">
+                            <textarea class="form-textarea">【OA系统】您有一条新公告：{announcement_title}，请及时登录系统查看详情。</textarea>
+                            <div class="settings-desc">支持使用变量：{announcement_title}（公告标题）、{announcement_type}（公告类型）</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 权限设置 -->
+            <div class="tab-content" id="tab-permission" style="display: none;">
+                <div class="settings-section">
+                    <h3>发布权限设置</h3>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">允许发布公告的角色</div>
+                        <div class="settings-value permissions-list">
+                            <div class="permission-item">
+                                <input type="checkbox" id="permission-admin" checked>
+                                <label for="permission-admin">系统管理员</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" id="permission-hr" checked>
+                                <label for="permission-hr">人力资源部</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" id="permission-it" checked>
+                                <label for="permission-it">IT部</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" id="permission-department">
+                                <label for="permission-department">部门负责人</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" id="permission-team">
+                                <label for="permission-team">团队负责人</label>
+                            </div>
+                            <div class="settings-desc">设置哪些角色有发布公告的权限</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>公告管理权限</h3>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">允许管理所有公告</div>
+                        <div class="settings-value permissions-list">
+                            <div class="permission-item">
+                                <input type="checkbox" id="manage-all-admin" checked>
+                                <label for="manage-all-admin">系统管理员</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" id="manage-all-hr" checked>
+                                <label for="manage-all-hr">人力资源部</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" id="manage-all-it">
+                                <label for="manage-all-it">IT部</label>
+                            </div>
+                            <div class="settings-desc">设置哪些角色可以管理所有公告（包括其他部门发布的公告）</div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">允许管理部门公告</div>
+                        <div class="settings-value permissions-list">
+                            <div class="permission-item">
+                                <input type="checkbox" id="manage-department-admin" checked>
+                                <label for="manage-department-admin">系统管理员</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" id="manage-department-hr" checked>
+                                <label for="manage-department-hr">人力资源部</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" id="manage-department-it" checked>
+                                <label for="manage-department-it">IT部</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" id="manage-department-head" checked>
+                                <label for="manage-department-head">部门负责人</label>
+                            </div>
+                            <div class="settings-desc">设置哪些角色可以管理本部门发布的公告</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>公告阅读权限</h3>
+                    
+                    <div class="settings-item">
+                        <div class="settings-label">允许查看所有公告</div>
+                        <div class="settings-value permissions-list">
+                            <div class="permission-item">
+                                <input type="checkbox" id="view-all-admin" checked>
+                                <label for="view-all-admin">系统管理员</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" id="view-all-hr" checked>
+                                <label for="view-all-hr">人力资源部</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" id="view-all-it" checked>
+                                <label for="view-all-it">IT部</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" id="view-all-all" checked>
+                                <label for="view-all-all">全体员工</label>
+                            </div>
+                            <div class="settings-desc">设置哪些角色可以查看所有公告</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 表单操作 -->
+            <div class="settings-actions">
+                <button type="button" class="btn-secondary" id="btn-cancel">取消</button>
+                <button type="button" class="btn-primary" id="btn-save-settings">保存设置</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../JS/common.js"></script>
+    <script src="../JS/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 标签切换功能
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // 移除所有标签的active类
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // 隐藏所有内容
+                    tabContents.forEach(content => content.style.display = 'none');
+                    // 激活当前标签
+                    this.classList.add('active');
+                    // 显示对应内容
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(`tab-${tabId}`).style.display = 'block';
+                });
+            });
+            
+            // 自定义有效期显示控制
+            const defaultValidityRadios = document.querySelectorAll('input[name="default-validity"]');
+            const customValidityContainer = document.getElementById('custom-validity-container');
+            
+            defaultValidityRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'custom') {
+                        customValidityContainer.style.display = 'flex';
+                    } else {
+                        customValidityContainer.style.display = 'none';
+                    }
+                });
+            });
+            
+            // 检查初始状态
+            const customRadio = document.getElementById('validity-custom');
+            if (customRadio.checked) {
+                customValidityContainer.style.display = 'flex';
+            }
+            
+            // 颜色选择功能
+            const colorOptions = document.querySelectorAll('.color-option');
+            
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // 在同一组内移除其他选中状态
+                    const parent = this.parentElement;
+                    const siblings = parent.querySelectorAll('.color-option');
+                    siblings.forEach(sib => sib.classList.remove('selected'));
+                    // 设置当前选中状态
+                    this.classList.add('selected');
+                });
+            });
+            
+            // 取消按钮点击事件
+            document.getElementById('btn-cancel').addEventListener('click', function() {
+                confirmDialog('确定要取消设置吗？未保存的设置将丢失。', function(confirm) {
+                    if (confirm) {
+                        window.location.href = 'announcement_list.html';
+                    }
+                });
+            });
+            
+            // 保存设置按钮点击事件
+            const saveButtons = [document.getElementById('btn-save'), document.getElementById('btn-save-settings')];
+            
+            saveButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    saveSettings();
+                });
+            });
+            
+            // 辅助函数：保存设置
+            function saveSettings() {
+                // 构建设置数据
+                const settingsData = {
+                    basic: {
+                        defaultValidity: getSelectedRadioValue('default-validity'),
+                        customValidityDays: customValidityContainer.style.display !== 'none' ? 
+                            document.querySelector('#custom-validity-container .form-input').value : null,
+                        topLimit: document.querySelector('.settings-section:nth-child(1) .settings-item:nth-child(3) .form-input').value,
+                        attachmentSizeLimit: document.querySelector('.settings-section:nth-child(1) .settings-item:nth-child(4) .form-input').value,
+                        contentWordLimit: document.querySelector('.settings-section:nth-child(1) .settings-item:nth-child(5) .form-input').value,
+                        autoSaveDraft: document.getElementById('auto-save').checked,
+                        autoSaveInterval: document.querySelector('.settings-section:nth-child(2) .settings-item:nth-child(2) .form-input').value,
+                        draftRetentionDays: document.querySelector('.settings-section:nth-child(2) .settings-item:nth-child(3) .form-select').value
+                    },
+                    display: {
+                        defaultPageSize: document.querySelector('#tab-display .settings-section:nth-child(1) .settings-item:nth-child(1) .form-select').value,
+                        defaultSort: document.querySelector('#tab-display .settings-section:nth-child(1) .settings-item:nth-child(2) .form-select').value,
+                        showTags: document.getElementById('show-tags').checked,
+                        importantColor: getSelectedColorValue('#tab-display .settings-section:nth-child(2) .settings-item:nth-child(1) .color-picker'),
+                        topColor: getSelectedColorValue('#tab-display .settings-section:nth-child(2) .settings-item:nth-child(2) .color-picker'),
+                        fontSize: document.querySelector('#tab-display .settings-section:nth-child(2) .settings-item:nth-child(3) .form-select').value
+                    },
+                    notification: {
+                        oaNotify: document.getElementById('oa-notify').checked,
+                        emailNotify: document.getElementById('email-notify').checked,
+                        smsNotify: document.getElementById('sms-notify').checked,
+                        workdayStartTime: document.querySelector('#tab-notification .settings-section:nth-child(2) .settings-item:nth-child(1) .form-input:nth-child(1)').value,
+                        workdayEndTime: document.querySelector('#tab-notification .settings-section:nth-child(2) .settings-item:nth-child(1) .form-input:nth-child(3)').value,
+                        disableWeekendNotify: document.getElementById('disable-weekend-notify').checked,
+                        emailTemplate: document.querySelector('#tab-notification .settings-section:nth-child(3) .settings-item:nth-child(1) .form-textarea').value,
+                        smsTemplate: document.querySelector('#tab-notification .settings-section:nth-child(3) .settings-item:nth-child(2) .form-textarea').value
+                    },
+                    permission: {
+                        publishPermissions: getCheckedPermissions('#tab-permission .settings-section:nth-child(1) .permissions-list'),
+                        manageAllPermissions: getCheckedPermissions('#tab-permission .settings-section:nth-child(2) .settings-item:nth-child(1) .permissions-list'),
+                        manageDepartmentPermissions: getCheckedPermissions('#tab-permission .settings-section:nth-child(2) .settings-item:nth-child(2) .permissions-list'),
+                        viewAllPermissions: getCheckedPermissions('#tab-permission .settings-section:nth-child(3) .permissions-list')
+                    }
+                };
+                
+                // 这里可以添加实际的保存逻辑
+                console.log('设置数据：', settingsData);
+                
+                showMessage('公告设置已成功保存', 'success');
+            }
+            
+            // 辅助函数：获取单选按钮选中值
+            function getSelectedRadioValue(name) {
+                const selected = document.querySelector(`input[name="${name}"]:checked`);
+                return selected ? selected.value : null;
+            }
+            
+            // 辅助函数：获取颜色选择器选中值
+            function getSelectedColorValue(containerSelector) {
+                const container = document.querySelector(containerSelector);
+                const selected = container.querySelector('.color-option.selected');
+                return selected ? selected.style.backgroundColor : null;
+            }
+            
+            // 辅助函数：获取复选框选中值
+            function getCheckedPermissions(containerSelector) {
+                const container = document.querySelector(containerSelector);
+                const checkboxes = container.querySelectorAll('input[type="checkbox"]:checked');
+                const permissions = Array.from(checkboxes).map(cb => cb.id);
+                return permissions;
+            }
+        });
+    </script>
+</body>
+</html>

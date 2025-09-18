@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档回收站 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <style>
+        .document-recycle-container {
+            padding: 20px;
+        }
+        
+        .document-recycle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .document-recycle-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 20px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn-primary {
+            background-color: #409EFF;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-primary:hover {
+            background-color: #66b1ff;
+        }
+        
+        .btn-danger {
+            background-color: #f56c6c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-danger:hover {
+            background-color: #f78989;
+        }
+        
+        .search-filter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .search-input-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            width: 300px;
+            font-size: 14px;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #409EFF;
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: #409EFF;
+        }
+        
+        .document-content {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .document-recycle-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .document-recycle-table th,
+        .document-recycle-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ebeef5;
+        }
+        
+        .document-recycle-table th {
+            background-color: #fafafa;
+            font-weight: 600;
+            color: #606266;
+            font-size: 14px;
+        }
+        
+        .document-recycle-table td {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .document-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+        
+        .document-name {
+            display: inline-flex;
+            align-items: center;
+            color: #606266;
+        }
+        
+        .delete-time {
+            color: #909399;
+        }
+        
+        .recover-days {
+            color: #f56c6c;
+        }
+        
+        .select-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        
+        .btn-recover,
+        .btn-delete-forever {
+            padding: 4px 8px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        
+        .btn-recover:hover {
+            border-color: #409EFF;
+            color: #409EFF;
+        }
+        
+        .btn-delete-forever {
+            color: #f56c6c;
+            border-color: #f56c6c;
+        }
+        
+        .btn-delete-forever:hover {
+            background-color: #f56c6c;
+            color: white;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 20px;
+            gap: 8px;
+        }
+        
+        .pagination-info {
+            color: #606266;
+            font-size: 14px;
+        }
+        
+        .pagination-btn {
+            padding: 6px 12px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            color: #409EFF;
+            border-color: #c6e2ff;
+        }
+        
+        .pagination-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        .pagination-btn.active {
+            background-color: #409EFF;
+            color: white;
+            border-color: #409EFF;
+        }
+    </style>
+</head>
+<body>
+    <div class="document-recycle-container">
+        <div class="document-recycle-header">
+            <h2>文档回收站</h2>
+            <div class="header-actions">
+                <button class="btn-primary" id="btn-recover-selected">恢复选中</button>
+                <button class="btn-danger" id="btn-delete-all">清空回收站</button>
+            </div>
+        </div>
+        
+        <div class="search-filter">
+            <div class="search-input-container">
+                <input type="text" class="search-input" placeholder="搜索已删除的文档">
+                <select class="filter-select">
+                    <option value="all">全部类型</option>
+                    <option value="doc">文档</option>
+                    <option value="sheet">表格</option>
+                    <option value="slide">演示文稿</option>
+                    <option value="pdf">PDF</option>
+                    <option value="image">图片</option>
+                </select>
+            </div>
+            <div>
+                <button class="btn-primary">筛选</button>
+            </div>
+        </div>
+        
+        <div class="document-content">
+            <table class="document-recycle-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="select-checkbox" id="select-all"></th>
+                        <th>文档名称</th>
+                        <th>文件大小</th>
+                        <th>删除时间</th>
+                        <th>剩余可恢复天数</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="checkbox" class="select-checkbox document-checkbox"></td>
+                        <td>
+                            <span class="document-name">
+                                <svg class="document-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                旧版需求文档.docx
+                            </span>
+                        </td>
+                        <td>1.2MB</td>
+                        <td class="delete-time">2023-06-15 14:30</td>
+                        <td class="recover-days">29 天</td>
+                        <td>
+                            <button class="btn-recover">恢复</button>
+                            <button class="btn-delete-forever">永久删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="select-checkbox document-checkbox"></td>
+                        <td>
+                            <span class="document-name">
+                                <svg class="document-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M3 3H21V21H3V3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M3 9H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 21V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M15 21V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                2022年预算表.xlsx
+                            </span>
+                        </td>
+                        <td>2.8MB</td>
+                        <td class="delete-time">2023-06-14 09:15</td>
+                        <td class="recover-days">28 天</td>
+                        <td>
+                            <button class="btn-recover">恢复</button>
+                            <button class="btn-delete-forever">永久删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="select-checkbox document-checkbox"></td>
+                        <td>
+                            <span class="document-name">
+                                <svg class="document-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M3 9H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 21V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="16" cy="16" r="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                产品发布会演示稿.pptx
+                            </span>
+                        </td>
+                        <td>5.3MB</td>
+                        <td class="delete-time">2023-06-12 16:45</td>
+                        <td class="recover-days">26 天</td>
+                        <td>
+                            <button class="btn-recover">恢复</button>
+                            <button class="btn-delete-forever">永久删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="select-checkbox document-checkbox"></td>
+                        <td>
+                            <span class="document-name">
+                                <svg class="document-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 3V15M12 19H15M12 19H9M12 19V15M21 12H15M12 15H9M12 15H15M9 21H15C17.2091 21 19 19.2091 19 17V7C19 4.79086 17.2091 3 15 3H9C6.79086 3 5 4.79086 5 7V17C5 19.2091 6.79086 21 9 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                旧版产品手册.pdf
+                            </span>
+                        </td>
+                        <td>3.2MB</td>
+                        <td class="delete-time">2023-06-10 11:20</td>
+                        <td class="recover-days">24 天</td>
+                        <td>
+                            <button class="btn-recover">恢复</button>
+                            <button class="btn-delete-forever">永久删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="select-checkbox document-checkbox"></td>
+                        <td>
+                            <span class="document-name">
+                                <svg class="document-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 19.5C4 18.837 4.26339 18.2011 4.73223 17.7322C5.20107 17.2634 5.83696 17 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M6.5 2H20V22H6.5C5.83696 22 5.20107 21.7366 4.73223 21.2678C4.26339 20.7989 4 20.163 4 19.5V4.5C4 3.83696 4.26339 3.20107 4.73223 2.73223C5.20107 2.26339 5.83696 2 6.5 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M14 9L16 11L14 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                旧版UI设计稿.jpg
+                            </span>
+                        </td>
+                        <td>2.7MB</td>
+                        <td class="delete-time">2023-06-08 15:50</td>
+                        <td class="recover-days">22 天</td>
+                        <td>
+                            <button class="btn-recover">恢复</button>
+                            <button class="btn-delete-forever">永久删除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="pagination">
+                <span class="pagination-info">共 8 个文档，每页显示 5 个</span>
+                <button class="pagination-btn" disabled>上一页</button>
+                <button class="pagination-btn active">1</button>
+                <button class="pagination-btn">2</button>
+                <button class="pagination-btn">下一页</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../JS/common.js"></script>
+    <script src="../JS/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 全选/取消全选
+            const selectAllCheckbox = document.getElementById('select-all');
+            const documentCheckboxes = document.querySelectorAll('.document-checkbox');
+            
+            selectAllCheckbox.addEventListener('change', function() {
+                documentCheckboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+            });
+            
+            // 恢复选中按钮点击事件
+            document.getElementById('btn-recover-selected').addEventListener('click', function() {
+                const selectedCount = document.querySelectorAll('.document-checkbox:checked').length;
+                if (selectedCount > 0) {
+                    showConfirm(`确定要恢复选中的 ${selectedCount} 个文档吗？`, function() {
+                        showMessage(`已成功恢复 ${selectedCount} 个文档`, 'success');
+                    });
+                } else {
+                    showMessage('请先选择要恢复的文档', 'warning');
+                }
+            });
+            
+            // 清空回收站按钮点击事件
+            document.getElementById('btn-delete-all').addEventListener('click', function() {
+                showConfirm('确定要清空回收站吗？此操作不可撤销！', function() {
+                    showMessage('回收站已清空', 'success');
+                });
+            });
+            
+            // 筛选按钮点击事件
+            document.querySelectorAll('.btn-primary')[1].addEventListener('click', function() {
+                showMessage('筛选功能尚未实现', 'info');
+            });
+            
+            // 单个恢复按钮点击事件
+            document.querySelectorAll('.btn-recover').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const name = this.closest('tr').querySelector('.document-name').textContent.trim();
+                    showConfirm(`确定要恢复文档 ${name} 吗？`, function() {
+                        showMessage(`已成功恢复文档 ${name}`, 'success');
+                    });
+                });
+            });
+            
+            // 单个永久删除按钮点击事件
+            document.querySelectorAll('.btn-delete-forever').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const name = this.closest('tr').querySelector('.document-name').textContent.trim();
+                    showConfirm(`确定要永久删除文档 ${name} 吗？此操作不可撤销！`, function() {
+                        showMessage(`文档 ${name} 已永久删除`, 'success');
+                    });
+                });
+            });
+            
+            // 分页按钮点击事件
+            document.querySelectorAll('.pagination-btn:not(:disabled)').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (this.textContent === '上一页' || this.textContent === '下一页') {
+                        showMessage('分页功能尚未实现', 'info');
+                    } else {
+                        document.querySelectorAll('.pagination-btn').forEach(b => {
+                            b.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

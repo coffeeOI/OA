@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>邮件管理 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <style>
+        /* 设置html和body为100%高度，使子元素可以正确使用百分比高度 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        /* 邮件管理页面特定样式 */
+        .email-management-container {
+            padding: 20px;
+            background-color: #f0f2f5;
+            height: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .email-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+        
+        .email-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .email-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-primary {
+            background-color: #1890ff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #40a9ff;
+        }
+        
+        .btn-default {
+            background-color: #fff;
+            color: #666;
+            border: 1px solid #d9d9d9;
+        }
+        
+        .btn-default:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+        
+        /* 调整邮件布局高度，使其除了间距外铺满剩余空间 */
+        .email-layout {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .email-folders {
+            width: 220px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .folder-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .folder-item:hover {
+            background-color: #e6f7ff;
+            color: #1890ff;
+        }
+        
+        .folder-item.active {
+            background-color: #e6f7ff;
+            color: #1890ff;
+        }
+        
+        .folder-count {
+            background-color: #f5f5f5;
+            color: #666;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .email-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .email-list {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+            max-height: 30%;
+        }
+        
+        .list-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .checkbox {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .email-search {
+            flex: 1;
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        #email-list-container {
+            overflow-y: auto;
+            max-height: calc(100% - 56px);
+        }
+        
+        .email-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .email-item:hover {
+            background-color: #fafafa;
+        }
+        
+        .email-item.unread {
+            background-color: #f5f7fa;
+            font-weight: 500;
+        }
+        
+        .email-from {
+            width: 180px;
+            font-weight: 500;
+        }
+        
+        .email-subject {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .email-time {
+            width: 120px;
+            text-align: right;
+            color: #999;
+            font-size: 12px;
+        }
+        
+        .email-body {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .email-detail-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .email-detail-subject {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .email-detail-info {
+            display: flex;
+            gap: 20px;
+            color: #666;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+        
+        .email-detail-body {
+            line-height: 1.8;
+            color: #333;
+            white-space: pre-wrap;
+        }
+
+        /* 撰写邮件模态框样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .modal {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 100%;
+            max-height: 100vh;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+        
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-close:hover {
+            color: #666;
+        }
+        
+        .modal-body {
+            padding: 0;
+            flex: 1;
+            overflow-y: auto;
+            width: 100%;
+        }
+        
+        .compose-email-form {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+        
+        .form-group {
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .form-group:last-child {
+            border-bottom: none;
+        }
+        
+        .form-label {
+            width: 80px;
+            font-size: 14px;
+            color: #666;
+            flex-shrink: 0;
+        }
+        
+        .form-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .form-input:focus {
+            border-color: #40a9ff;
+        }
+        
+        .form-textarea {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            min-height: 150px;
+        }
+        
+        .textarea-group {
+            flex-direction: column;
+            align-items: flex-start;
+            min-height: 200px;
+        }
+        
+        .textarea-label {
+            margin-bottom: 8px;
+        }
+        
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .attachment-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .attachment-list {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .attachment-remove {
+            color: #f56c6c;
+            cursor: pointer;
+        }
+        
+        .attachment-remove:hover {
+            color: #ff4d4f;
+        }
+        
+        .attachment-input {
+            display: none;
+        }
+        
+        .attachment-btn {
+            padding: 6px 12px;
+            background-color: #f5f5f5;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .attachment-btn:hover {
+            background-color: #e6f7ff;
+            border-color: #40a9ff;
+            color: #40a9ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-management-container">
+        <!-- 页面头部 -->
+        <div class="email-header">
+            <h2 class="email-title">邮件管理</h2>
+            <div class="email-actions">
+                <button class="btn btn-primary" onclick="showComposeEmailModal()">撰写邮件</button>
+                <button class="btn btn-default" onclick="refreshEmailList()">刷新</button>
+            </div>
+        </div>
+        
+        <!-- 邮件布局 -->
+        <div class="email-layout">
+            <!-- 文件夹列表 -->
+            <div class="email-folders">
+                <div class="folder-item active" onclick="switchFolder('inbox')">
+                    <span>收件箱</span>
+                    <span class="folder-count">18</span>
+                </div>
+                <div class="folder-item" onclick="switchFolder('outbox')">
+                    <span>发件箱</span>
+                    <span class="folder-count">24</span>
+                </div>
+                <div class="folder-item" onclick="switchFolder('draft')">
+                    <span>草稿箱</span>
+                    <span class="folder-count">3</span>
+                </div>
+                <div class="folder-item" onclick="switchFolder('sent')">
+                    <span>已发送</span>
+                    <span class="folder-count">56</span>
+                </div>
+                <div class="folder-item" onclick="switchFolder('trash')">
+                    <span>垃圾箱</span>
+                    <span class="folder-count">7</span>
+                </div>
+                <div class="folder-item" onclick="switchFolder('important')">
+                    <span>重要邮件</span>
+                    <span class="folder-count">9</span>
+                </div>
+            </div>
+            
+            <!-- 邮件内容区 -->
+            <div class="email-content">
+                <!-- 邮件列表 -->
+                <div class="email-list">
+                    <!-- 列表头部 -->
+                    <div class="list-header">
+                        <input type="checkbox" class="checkbox" id="selectAll">
+                        <button class="btn btn-default">删除</button>
+                        <button class="btn btn-default">标记</button>
+                        <input type="text" class="email-search" placeholder="搜索邮件...">
+                    </div>
+                    
+                    <!-- 邮件列表内容 -->
+                    <div id="email-list-container">
+                        <!-- 邮件项 -->
+                        <div class="email-item unread" onclick="viewEmail('1')">
+                            <input type="checkbox" class="checkbox">
+                            <div class="email-from">系统通知</div>
+                            <div class="email-subject">[系统] 您有3条待处理审批</div>
+                            <div class="email-time">09:30</div>
+                        </div>
+                        <div class="email-item unread" onclick="viewEmail('2')">
+                            <input type="checkbox" class="checkbox">
+                            <div class="email-from">张三</div>
+                            <div class="email-subject">关于下周项目进度会议的通知</div>
+                            <div class="email-time">昨天</div>
+                        </div>
+                        <div class="email-item unread" onclick="viewEmail('3')">
+                            <input type="checkbox" class="checkbox">
+                            <div class="email-from">李四</div>
+                            <div class="email-subject">请审核本月财务报表</div>
+                            <div class="email-time">昨天</div>
+                        </div>
+                        <div class="email-item" onclick="viewEmail('4')">
+                            <input type="checkbox" class="checkbox">
+                            <div class="email-from">王五</div>
+                            <div class="email-subject">新员工入职流程文档</div>
+                            <div class="email-time">01-15</div>
+                        </div>
+                        <div class="email-item" onclick="viewEmail('5')">
+                            <input type="checkbox" class="checkbox">
+                            <div class="email-from">赵六</div>
+                            <div class="email-subject">项目需求变更说明</div>
+                            <div class="email-time">01-14</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 邮件详情 -->
+                <div class="email-body">
+                    <div class="email-detail-header">
+                        <div class="email-detail-subject">[系统] 您有3条待处理审批</div>
+                        <div class="email-detail-info">
+                            <span>发件人：系统通知 &lt;system@example.com&gt;</span>
+                            <span>日期：2024-01-16 09:30:00</span>
+                            <span>收件人：张三 &lt;zhangsan@example.com&gt;</span>
+                        </div>
+                    </div>
+                    <div class="email-detail-body">
+亲爱的张三：
+
+您有以下3条待处理的审批请求：
+
+1. 李四的请假申请（3天）
+2. 王五的报销申请（¥2,500.00）
+3. 赵六的出差申请（北京，3天）
+
+请及时登录系统处理这些审批请求。
+
+系统通知中心
+
+
+--
+此邮件为系统自动发送，请勿直接回复。如有疑问，请联系系统管理员。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 撰写邮件模态框 -->
+    <div class="modal-overlay" id="composeEmailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">撰写邮件</h3>
+                <button class="modal-close" onclick="hideComposeEmailModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form class="compose-email-form" id="emailForm">
+                    <div class="form-group">
+                        <label class="form-label">收件人</label>
+                        <input type="text" class="form-input" id="to" placeholder="请输入收件人邮箱地址，多个地址用分号分隔">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">抄送人</label>
+                        <input type="text" class="form-input" id="cc" placeholder="请输入抄送人邮箱地址，多个地址用分号分隔">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">密送人</label>
+                        <input type="text" class="form-input" id="bcc" placeholder="请输入密送人邮箱地址，多个地址用分号分隔">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">主题</label>
+                        <input type="text" class="form-input" id="subject" placeholder="请输入邮件主题">
+                    </div>
+                    <div class="form-group textarea-group">
+                        <label class="form-label textarea-label">正文</label>
+                        <textarea class="form-textarea" id="content" placeholder="请输入邮件内容..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">附件</label>
+                        <div class="attachment-controls">
+                            <label class="attachment-btn">
+                                <input type="file" class="attachment-input" id="attachmentInput" multiple>
+                                <span>添加附件</span>
+                            </label>
+                        </div>
+                        <div id="attachmentList" class="attachment-list">
+                            <!-- 附件将在这里动态添加 -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="footer-actions">
+                    <button class="btn btn-primary" onclick="sendEmail()">发送</button>
+                    <button class="btn btn-default" onclick="saveDraft()">保存草稿</button>
+                    <button class="btn btn-default" onclick="hideComposeEmailModal()">取消</button>
+                </div>
+                <div class="email-signature">
+                    <span style="font-size: 12px; color: #999;">此邮件由OA系统发送</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化邮件列表
+            renderEmailList('inbox');
+            
+            // 监听附件上传
+            document.getElementById('attachmentInput').addEventListener('change', handleFileUpload);
+        });
+
+        // 渲染邮件列表
+        function renderEmailList(folder) {
+            console.log('渲染邮件列表:', folder);
+            // 实际应用中这里会根据文件夹类型加载不同的邮件数据
+        }
+
+        // 切换文件夹
+        function switchFolder(folder) {
+            console.log('切换到文件夹:', folder);
+            
+            // 更新文件夹选中状态
+            document.querySelectorAll('.folder-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // 渲染对应文件夹的邮件列表
+            renderEmailList(folder);
+        }
+
+        // 查看邮件详情
+        function viewEmail(id) {
+            console.log('查看邮件:', id);
+            
+            // 标记为已读
+            const emailItem = event.currentTarget;
+            emailItem.classList.remove('unread');
+            
+            // 实际应用中这里会加载邮件详情
+        }
+
+        // 显示撰写邮件模态框
+        function showComposeEmailModal() {
+            console.log('显示撰写邮件模态框');
+            const modal = document.getElementById('composeEmailModal');
+            modal.style.display = 'flex';
+        }
+
+        // 隐藏撰写邮件模态框
+        function hideComposeEmailModal() {
+            console.log('隐藏撰写邮件模态框');
+            const modal = document.getElementById('composeEmailModal');
+            modal.style.display = 'none';
+        }
+
+        // 处理文件上传
+        function handleFileUpload(event) {
+            const files = event.target.files;
+            const attachmentList = document.getElementById('attachmentList');
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const attachmentItem = document.createElement('div');
+                attachmentItem.className = 'attachment-item';
+                attachmentItem.innerHTML = `
+                    <span>${file.name}</span>
+                    <span class="attachment-remove" onclick="removeAttachment(this, '${file.name}')">×</span>
+                `;
+                attachmentList.appendChild(attachmentItem);
+            }
+            
+            // 清空input，允许重新选择相同的文件
+            event.target.value = '';
+        }
+
+        // 移除附件
+        function removeAttachment(element, fileName) {
+            console.log('移除附件:', fileName);
+            const attachmentItem = element.parentElement;
+            attachmentItem.remove();
+        }
+
+        // 发送邮件
+        function sendEmail() {
+            console.log('发送邮件');
+            const to = document.getElementById('to').value;
+            const cc = document.getElementById('cc').value;
+            const bcc = document.getElementById('bcc').value;
+            const subject = document.getElementById('subject').value;
+            const content = document.getElementById('content').value;
+            
+            // 简单的表单验证
+            if (!to) {
+                alert('请输入收件人');
+                return;
+            }
+            
+            if (!subject) {
+                alert('请输入邮件主题');
+                return;
+            }
+            
+            // 实际应用中这里会发送邮件
+            console.log('邮件信息:', {
+                to, cc, bcc, subject, content
+            });
+            
+            // 显示发送成功提示
+            alert('邮件发送成功');
+            
+            // 隐藏模态框并清空表单
+            hideComposeEmailModal();
+            document.getElementById('emailForm').reset();
+            document.getElementById('attachmentList').innerHTML = '';
+        }
+
+        // 保存草稿
+        function saveDraft() {
+            console.log('保存草稿');
+            const to = document.getElementById('to').value;
+            const cc = document.getElementById('cc').value;
+            const bcc = document.getElementById('bcc').value;
+            const subject = document.getElementById('subject').value;
+            const content = document.getElementById('content').value;
+            
+            // 实际应用中这里会保存草稿
+            console.log('保存草稿信息:', {
+                to, cc, bcc, subject, content
+            });
+            
+            // 显示保存成功提示
+            alert('草稿保存成功');
+            
+            // 隐藏模态框
+            hideComposeEmailModal();
+        }
+
+        // 刷新邮件列表
+        function refreshEmailList() {
+            console.log('刷新邮件列表');
+            // 获取当前激活的文件夹
+            const activeFolder = document.querySelector('.folder-item.active');
+            const folderName = activeFolder.textContent.trim().split(' ')[0];
+            
+            renderEmailList(folderName);
+            showMessage('邮件列表已刷新', 'info');
+        }
+
+        // 显示消息提示（这里假设在父页面或common.js中定义了showMessage函数）
+        function showMessage(message, type = 'info') {
+            if (window.parent && window.parent.showMessage) {
+                window.parent.showMessage(message, type);
+            } else {
+                console.log(type.toUpperCase() + ': ' + message);
+            }
+        }
+    </script>
+</body>
+</html>

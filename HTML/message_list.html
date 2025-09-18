@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消息列表 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <script src="../JS/common.js"></script>
+    <style>
+        /* 消息列表容器样式 */
+        .message-container {
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 消息列表头部 */
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        /* 消息列表标题 */
+        .message-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        /* 消息列表工具栏 */
+        .message-toolbar {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* 消息列表 */
+        .message-list {
+            list-style: none;
+        }
+        
+        /* 消息项 */
+        .message-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .message-item:hover {
+            background-color: #fafafa;
+        }
+        
+        /* 未读消息 */
+        .message-item.unread {
+            background-color: #e6f7ff;
+        }
+        
+        /* 未读状态指示器 */
+        .message-unread-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #1890ff;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        /* 消息内容 */
+        .message-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* 消息信息 */
+        .message-info {
+            flex: 1;
+        }
+        
+        /* 消息标题 */
+        .message-item-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        /* 消息摘要 */
+        .message-summary {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* 消息时间 */
+        .message-time {
+            font-size: 12px;
+            color: #999;
+            margin-left: 20px;
+        }
+        
+        /* 已读按钮 */
+        .read-btn {
+            padding: 4px 12px;
+            background-color: #1890ff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.3s;
+        }
+        
+        .read-btn:hover {
+            background-color: #40a9ff;
+        }
+        
+        /* 已读状态 */
+        .read-status {
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="message-container">
+        <div class="message-header">
+            <h2 class="message-title">消息列表</h2>
+            <div class="message-toolbar">
+                <button class="btn btn-primary" onclick="markAllAsRead()">全部标记为已读</button>
+                <button class="btn btn-default" onclick="refreshMessages()">刷新</button>
+            </div>
+        </div>
+        
+        <ul class="message-list">
+            <!-- 未读消息 -->
+            <li class="message-item unread" data-id="1">
+                <div class="message-content">
+                    <span class="message-unread-dot"></span>
+                    <div class="message-info">
+                        <div class="message-item-title">系统通知：OA系统维护通知</div>
+                        <div class="message-summary">系统将于今晚23:00-次日凌晨1:00进行例行维护，请提前做好准备。</div>
+                    </div>
+                    <div class="message-time">10:30</div>
+                </div>
+                <button class="read-btn" onclick="markAsRead(1, event)">标记已读</button>
+            </li>
+            
+            <li class="message-item unread" data-id="2">
+                <div class="message-content">
+                    <span class="message-unread-dot"></span>
+                    <div class="message-info">
+                        <div class="message-item-title">新审批：张三提交了请假申请</div>
+                        <div class="message-summary">张三申请2023年10月1日至10月3日休假，等待您的审批。</div>
+                    </div>
+                    <div class="message-time">昨天</div>
+                </div>
+                <button class="read-btn" onclick="markAsRead(2, event)">标记已读</button>
+            </li>
+            
+            <!-- 已读消息 -->
+            <li class="message-item" data-id="3">
+                <div class="message-content">
+                    <div class="message-info">
+                        <div class="message-item-title">公告发布：关于国庆节放假安排的通知</div>
+                        <div class="message-summary">国庆节放假时间为2023年10月1日至10月7日，共7天。</div>
+                    </div>
+                    <div class="message-time">2023-09-25</div>
+                </div>
+                <span class="read-status">已读</span>
+            </li>
+            
+            <li class="message-item" data-id="4">
+                <div class="message-content">
+                    <div class="message-info">
+                        <div class="message-item-title">系统消息：账户安全提醒</div>
+                        <div class="message-summary">您的账户于2023年09月20日在新设备上登录，请确认是否为您本人操作。</div>
+                    </div>
+                    <div class="message-time">2023-09-20</div>
+                </div>
+                <span class="read-status">已读</span>
+            </li>
+            
+            <li class="message-item" data-id="5">
+                <div class="message-content">
+                    <div class="message-info">
+                        <div class="message-item-title">会议通知：产品周会</div>
+                        <div class="message-summary">产品周会将于2023年09月18日15:00在会议室A召开，请准时参加。</div>
+                    </div>
+                    <div class="message-time">2023-09-18</div>
+                </div>
+                <span class="read-status">已读</span>
+            </li>
+        </ul>
+    </div>
+    
+    <script>
+        /**
+         * 标记单条消息为已读
+         * @param {number} messageId - 消息ID
+         * @param {Event} event - 点击事件
+         */
+        function markAsRead(messageId, event) {
+            // 阻止事件冒泡
+            event.stopPropagation();
+            
+            // 查找对应的消息项
+            const messageItem = document.querySelector(`.message-item[data-id="${messageId}"]`);
+            if (messageItem) {
+                // 移除未读状态和未读指示器
+                messageItem.classList.remove('unread');
+                
+                // 获取未读指示器并移除
+                const unreadDot = messageItem.querySelector('.message-unread-dot');
+                if (unreadDot) {
+                    unreadDot.remove();
+                }
+                
+                // 更改按钮为已读状态
+                const readBtn = messageItem.querySelector('.read-btn');
+                if (readBtn) {
+                    readBtn.parentNode.replaceChild(
+                        document.createElement('span'),
+                        readBtn
+                    ).textContent = '已读';
+                }
+                
+                // 显示成功消息
+                showMessage('消息已标记为已读', 'success');
+                
+                // 模拟减少顶部通知计数
+                updateNotificationCount();
+            }
+        }
+        
+        /**
+         * 标记所有消息为已读
+         */
+        function markAllAsRead() {
+            // 获取所有未读消息
+            const unreadMessages = document.querySelectorAll('.message-item.unread');
+            
+            // 遍历并标记为已读
+            unreadMessages.forEach(message => {
+                // 移除未读状态
+                message.classList.remove('unread');
+                
+                // 获取未读指示器并移除
+                const unreadDot = message.querySelector('.message-unread-dot');
+                if (unreadDot) {
+                    unreadDot.remove();
+                }
+                
+                // 更改按钮为已读状态
+                const readBtn = message.querySelector('.read-btn');
+                if (readBtn) {
+                    readBtn.parentNode.replaceChild(
+                        document.createElement('span'),
+                        readBtn
+                    ).textContent = '已读';
+                }
+            });
+            
+            // 显示成功消息
+            showMessage('所有消息已标记为已读', 'success');
+            
+            // 模拟减少顶部通知计数
+            updateNotificationCount();
+        }
+        
+        /**
+         * 刷新消息列表
+         */
+        function refreshMessages() {
+            showMessage('正在刷新消息列表...', 'info');
+            
+            // 模拟刷新操作
+            setTimeout(() => {
+                showMessage('消息列表刷新成功', 'success');
+            }, 500);
+        }
+        
+        /**
+         * 更新顶部通知计数
+         * 注意：这个函数依赖于父页面的通信机制
+         */
+        function updateNotificationCount() {
+            // 检查是否在iframe中
+            if (window.parent && window.parent.updateMessageCount) {
+                // 统计剩余未读消息数
+                const unreadCount = document.querySelectorAll('.message-item.unread').length;
+                // 调用父页面的更新函数
+                window.parent.updateMessageCount(unreadCount);
+            }
+        }
+        
+        /**
+         * 为消息项添加点击事件
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为所有消息项添加点击事件
+            const messageItems = document.querySelectorAll('.message-item');
+            messageItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const messageId = this.getAttribute('data-id');
+                    console.log('点击了消息ID:', messageId);
+                    // 这里可以添加打开消息详情的逻辑
+                });
+            });
+        });
+    </script>
+</body>
+</html>

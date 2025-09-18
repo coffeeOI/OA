@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OA系统 - 表单字段</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <style>
+        /* 表单字段页面专用样式 */
+        .fields-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .fields-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .fields-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .fields-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+        
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+            flex: 1;
+        }
+        
+        .filter-label {
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .filter-input:focus {
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        
+        .fields-table {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .table-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 20px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        th {
+            background-color: #fafafa;
+            font-weight: 500;
+            color: #666;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        
+        td {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        tr:hover {
+            background-color: #fafafa;
+        }
+        
+        .field-type-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #fff;
+        }
+        
+        .tag-text {
+            background-color: #1890ff;
+        }
+        
+        .tag-textarea {
+            background-color: #722ed1;
+        }
+        
+        .tag-number {
+            background-color: #52c41a;
+        }
+        
+        .tag-date {
+            background-color: #faad14;
+        }
+        
+        .tag-select {
+            background-color: #f5222d;
+        }
+        
+        .tag-radio {
+            background-color: #13c2c2;
+        }
+        
+        .tag-checkbox {
+            background-color: #eb2f96;
+        }
+        
+        .tag-switch {
+            background-color: #fa8c16;
+        }
+        
+        .tag-upload {
+            background-color: #a0d911;
+        }
+        
+        .tag-image {
+            background-color: #722ed1;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background-color: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+        
+        .status-inactive {
+            background-color: #fff2f0;
+            color: #ff4d4f;
+            border: 1px solid #ffccc7;
+        }
+        
+        .table-actions-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .table-action-btn {
+            padding: 4px 12px;
+            border: 1px solid #d9d9d9;
+            background-color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .table-action-btn:hover {
+            color: #1890ff;
+            border-color: #1890ff;
+        }
+        
+        .table-action-btn.edit-btn:hover {
+            color: #1890ff;
+            border-color: #1890ff;
+        }
+        
+        .table-action-btn.delete-btn:hover {
+            color: #f5222d;
+            border-color: #f5222d;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 16px 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .page-info {
+            margin-right: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .page-control {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .page-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #d9d9d9;
+            background-color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .page-btn:hover {
+            color: #1890ff;
+            border-color: #1890ff;
+        }
+        
+        .page-btn.active {
+            background-color: #1890ff;
+            color: #fff;
+            border-color: #1890ff;
+        }
+        
+        .page-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        /* 模态框样式增强 */
+        .modal-content {
+            max-width: 700px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .form-col {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        /* 字段属性组 */
+        .field-properties {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .property-section {
+            margin-bottom: 20px;
+        }
+        
+        .property-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .fields-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .fields-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            
+            .filter-row {
+                flex-direction: column;
+            }
+            
+            .filter-item {
+                min-width: 100%;
+            }
+            
+            .filter-buttons {
+                justify-content: flex-start;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .table-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
+            .pagination {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+            
+            .page-info {
+                margin-right: 0;
+            }
+            
+            .table-wrapper {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 内容区 -->
+    <div class="fields-container">
+                <!-- 页面头部 -->
+                <div class="fields-header">
+                    <h1 class="fields-title">表单字段管理</h1>
+                    <div class="fields-actions">
+                        <button class="btn btn-primary" id="addFieldBtn">新增字段</button>
+                        <button class="btn btn-default" id="importFieldsBtn">导入字段</button>
+                        <button class="btn btn-default" id="exportFieldsBtn">导出字段</button>
+                    </div>
+                </div>
+
+                <!-- 筛选区域 -->
+                <div class="filter-container">
+                    <div class="filter-row">
+                        <div class="filter-item">
+                            <label class="filter-label">字段名称</label>
+                            <input type="text" class="filter-input" id="fieldNameFilter" placeholder="请输入字段名称">
+                        </div>
+                        <div class="filter-item">
+                            <label class="filter-label">字段类型</label>
+                            <select class="filter-input" id="fieldTypeFilter">
+                                <option value="">全部类型</option>
+                                <option value="text">单行文本</option>
+                                <option value="textarea">多行文本</option>
+                                <option value="number">数字输入</option>
+                                <option value="date">日期选择</option>
+                                <option value="select">下拉选择</option>
+                                <option value="radio">单选框组</option>
+                                <option value="checkbox">复选框组</option>
+                                <option value="switch">开关</option>
+                                <option value="upload">文件上传</option>
+                                <option value="image">图片上传</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label class="filter-label">状态</label>
+                            <select class="filter-input" id="fieldStatusFilter">
+                                <option value="">全部状态</option>
+                                <option value="active">启用</option>
+                                <option value="inactive">禁用</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label class="filter-label">创建时间</label>
+                            <input type="date" class="filter-input" id="createTimeFilter">
+                        </div>
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="btn btn-primary" id="searchBtn">搜索</button>
+                        <button class="btn btn-default" id="resetBtn">重置</button>
+                    </div>
+                </div>
+
+                <!-- 字段表格 -->
+                <div class="fields-table">
+                    <div class="table-header">
+                        <h2 class="table-title">字段列表</h2>
+                        <div class="table-actions">
+                            <div style="display: flex; align-items: center;">
+                                <label style="margin-right: 8px; font-size: 14px; color: #666;">显示：</label>
+                                <select class="filter-input" style="width: 100px;">
+                                    <option value="10">10条</option>
+                                    <option value="20">20条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;">
+                                        <input type="checkbox" id="selectAll">
+                                    </th>
+                                    <th>字段名称</th>
+                                    <th>字段标识</th>
+                                    <th>字段类型</th>
+                                    <th>字段描述</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>更新时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr data-field-id="1">
+                                    <td>
+                                        <input type="checkbox" class="field-checkbox">
+                                    </td>
+                                    <td>申请人</td>
+                                    <td>applicant</td>
+                                    <td>
+                                        <span class="field-type-tag tag-text">单行文本</span>
+                                    </td>
+                                    <td>表单申请人姓名</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-15 10:30</td>
+                                    <td>2023-06-15 10:30</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-field-id="2">
+                                    <td>
+                                        <input type="checkbox" class="field-checkbox">
+                                    </td>
+                                    <td>请假类型</td>
+                                    <td>leave_type</td>
+                                    <td>
+                                        <span class="field-type-tag tag-select">下拉选择</span>
+                                    </td>
+                                    <td>请假类型选择</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-15 10:32</td>
+                                    <td>2023-06-15 10:32</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-field-id="3">
+                                    <td>
+                                        <input type="checkbox" class="field-checkbox">
+                                    </td>
+                                    <td>开始日期</td>
+                                    <td>start_date</td>
+                                    <td>
+                                        <span class="field-type-tag tag-date">日期选择</span>
+                                    </td>
+                                    <td>请假开始日期</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-15 10:35</td>
+                                    <td>2023-06-15 10:35</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-field-id="4">
+                                    <td>
+                                        <input type="checkbox" class="field-checkbox">
+                                    </td>
+                                    <td>结束日期</td>
+                                    <td>end_date</td>
+                                    <td>
+                                        <span class="field-type-tag tag-date">日期选择</span>
+                                    </td>
+                                    <td>请假结束日期</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-15 10:36</td>
+                                    <td>2023-06-15 10:36</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-field-id="5">
+                                    <td>
+                                        <input type="checkbox" class="field-checkbox">
+                                    </td>
+                                    <td>请假天数</td>
+                                    <td>leave_days</td>
+                                    <td>
+                                        <span class="field-type-tag tag-number">数字输入</span>
+                                    </td>
+                                    <td>请假总天数</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-15 10:38</td>
+                                    <td>2023-06-15 10:38</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-field-id="6">
+                                    <td>
+                                        <input type="checkbox" class="field-checkbox">
+                                    </td>
+                                    <td>请假原因</td>
+                                    <td>leave_reason</td>
+                                    <td>
+                                        <span class="field-type-tag tag-textarea">多行文本</span>
+                                    </td>
+                                    <td>请假详细原因</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-15 10:40</td>
+                                    <td>2023-06-15 10:40</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-field-id="7">
+                                    <td>
+                                        <input type="checkbox" class="field-checkbox">
+                                    </td>
+                                    <td>附件上传</td>
+                                    <td>attachment</td>
+                                    <td>
+                                        <span class="field-type-tag tag-upload">文件上传</span>
+                                    </td>
+                                    <td>上传请假相关证明材料</td>
+                                    <td>
+                                        <span class="status-badge status-inactive">禁用</span>
+                                    </td>
+                                    <td>2023-06-15 10:42</td>
+                                    <td>2023-06-15 15:20</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-field-id="8">
+                                    <td>
+                                        <input type="checkbox" class="field-checkbox">
+                                    </td>
+                                    <td>紧急程度</td>
+                                    <td>urgency_level</td>
+                                    <td>
+                                        <span class="field-type-tag tag-radio">单选框组</span>
+                                    </td>
+                                    <td>请假紧急程度选择</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-16 09:15</td>
+                                    <td>2023-06-16 09:15</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-field-id="9">
+                                    <td>
+                                        <input type="checkbox" class="field-checkbox">
+                                    </td>
+                                    <td>联系方式</td>
+                                    <td>contact_info</td>
+                                    <td>
+                                        <span class="field-type-tag tag-text">单行文本</span>
+                                    </td>
+                                    <td>请假期间联系方式</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-16 14:30</td>
+                                    <td>2023-06-16 14:30</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr data-field-id="10">
+                                    <td>
+                                        <input type="checkbox" class="field-checkbox">
+                                    </td>
+                                    <td>工作交接</td>
+                                    <td>work_handover</td>
+                                    <td>
+                                        <span class="field-type-tag tag-checkbox">复选框组</span>
+                                    </td>
+                                    <td>请假期间工作交接情况</td>
+                                    <td>
+                                        <span class="status-badge status-active">启用</span>
+                                    </td>
+                                    <td>2023-06-17 11:20</td>
+                                    <td>2023-06-17 11:20</td>
+                                    <td>
+                                        <div class="table-actions-buttons">
+                                            <button class="table-action-btn edit-btn" title="编辑">编辑</button>
+                                            <button class="table-action-btn delete-btn" title="删除">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <div class="page-info">显示 1-10 条，共 24 条</div>
+                        <div class="page-control">
+                            <button class="page-btn" disabled>上一页</button>
+                            <button class="page-btn active">1</button>
+                            <button class="page-btn">2</button>
+                            <button class="page-btn">3</button>
+                            <button class="page-btn">下一页</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 新增/编辑字段模态框 -->
+    <div class="modal" id="fieldModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">新增字段</h3>
+                <button class="modal-close" onclick="closeFieldModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="fieldForm">
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">字段名称 <span style="color: #f5222d;">*</span></label>
+                                <input type="text" class="form-control" id="fieldName" name="fieldName" required placeholder="请输入字段名称">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">字段标识 <span style="color: #f5222d;">*</span></label>
+                                <input type="text" class="form-control" id="fieldKey" name="fieldKey" required placeholder="请输入字段标识（英文、数字、下划线）">
+                                <p style="font-size: 12px; color: #999; margin-top: 4px;">字段标识用于系统内部使用，建议使用英文、数字和下划线</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">字段类型 <span style="color: #f5222d;">*</span></label>
+                                <select class="form-control" id="fieldType" name="fieldType" required>
+                                    <option value="">请选择字段类型</option>
+                                    <option value="text">单行文本</option>
+                                    <option value="textarea">多行文本</option>
+                                    <option value="number">数字输入</option>
+                                    <option value="date">日期选择</option>
+                                    <option value="select">下拉选择</option>
+                                    <option value="radio">单选框组</option>
+                                    <option value="checkbox">复选框组</option>
+                                    <option value="switch">开关</option>
+                                    <option value="upload">文件上传</option>
+                                    <option value="image">图片上传</option>
+                                    <option value="divider">分割线</option>
+                                    <option value="static">静态文本</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">状态</label>
+                                <select class="form-control" id="fieldStatus" name="fieldStatus">
+                                    <option value="active">启用</option>
+                                    <option value="inactive">禁用</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">字段描述</label>
+                        <textarea class="form-control" id="fieldDescription" name="fieldDescription" rows="3" placeholder="请输入字段描述"></textarea>
+                    </div>
+                    
+                    <!-- 字段基本属性 -->
+                    <div class="field-properties">
+                        <div class="property-section">
+                            <div class="property-title">基本属性</div>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label class="form-label">默认值</label>
+                                        <input type="text" class="form-control" id="defaultValue" name="defaultValue" placeholder="请输入默认值">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label class="form-label">占位符</label>
+                                        <input type="text" class="form-control" id="placeholder" name="placeholder" placeholder="请输入占位符文本">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label class="form-label">最大长度</label>
+                                        <input type="number" class="form-control" id="maxLength" name="maxLength" placeholder="请输入最大长度" min="0">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label class="form-label">最小长度</label>
+                                        <input type="number" class="form-control" id="minLength" name="minLength" placeholder="请输入最小长度" min="0">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="checkbox-group" style="margin-top: 16px;">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="required" name="required">
+                                    <label for="required">必填字段</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="readOnly" name="readOnly">
+                                    <label for="readOnly">只读字段</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="unique" name="unique">
+                                    <label for="unique">唯一值</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="searchable" name="searchable">
+                                    <label for="searchable">可搜索</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 验证规则 -->
+                        <div class="property-section">
+                            <div class="property-title">验证规则</div>
+                            <div class="form-group">
+                                <label class="form-label">验证类型</label>
+                                <select class="form-control" id="validationType" name="validationType">
+                                    <option value="none">无验证</option>
+                                    <option value="email">邮箱</option>
+                                    <option value="phone">手机号码</option>
+                                    <option value="number">数字</option>
+                                    <option value="integer">整数</option>
+                                    <option value="url">URL</option>
+                                    <option value="custom">自定义正则</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">自定义正则表达式</label>
+                                <input type="text" class="form-control" id="customRegex" name="customRegex" placeholder="请输入正则表达式" disabled>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">错误提示信息</label>
+                                <input type="text" class="form-control" id="errorMessage" name="errorMessage" placeholder="请输入错误提示信息">
+                            </div>
+                        </div>
+                        
+                        <!-- 选项配置（针对选择类字段） -->
+                        <div class="property-section" id="optionsSection" style="display: none;">
+                            <div class="property-title">选项配置</div>
+                            <div id="optionsList">
+                                <div class="option-item">
+                                    <div class="form-row">
+                                        <div class="form-col">
+                                            <div class="form-group">
+                                                <label class="form-label">选项值</label>
+                                                <input type="text" class="form-control option-value" placeholder="请输入选项值">
+                                            </div>
+                                        </div>
+                                        <div class="form-col">
+                                            <div class="form-group">
+                                                <label class="form-label">选项文本</label>
+                                                <input type="text" class="form-control option-text" placeholder="请输入选项文本">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-default" id="addOptionBtn" style="margin-top: 12px;">添加选项</button>
+                            <p style="font-size: 12px; color: #999; margin-top: 8px;">提示：选项值将存储在数据库中，选项文本将显示给用户</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeFieldModal()">取消</button>
+                <button class="btn btn-primary" id="saveFieldBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../JS/common.js"></script>
+    <script src="../JS/main.js"></script>
+    <script>
+        // 表单字段页面专用脚本
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化变量
+            const fieldModal = document.getElementById('fieldModal');
+            const addFieldBtn = document.getElementById('addFieldBtn');
+            const saveFieldBtn = document.getElementById('saveFieldBtn');
+            const modalTitle = document.getElementById('modalTitle');
+            const fieldTypeSelect = document.getElementById('fieldType');
+            const optionsSection = document.getElementById('optionsSection');
+            const validationTypeSelect = document.getElementById('validationType');
+            const customRegexInput = document.getElementById('customRegex');
+            const addOptionBtn = document.getElementById('addOptionBtn');
+            const optionsList = document.getElementById('optionsList');
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const fieldCheckboxes = document.querySelectorAll('.field-checkbox');
+            const searchBtn = document.getElementById('searchBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const importFieldsBtn = document.getElementById('importFieldsBtn');
+            const exportFieldsBtn = document.getElementById('exportFieldsBtn');
+            
+            // 当前编辑的字段ID
+            let currentFieldId = null;
+            
+            // 初始化事件监听
+            initEventListeners();
+            
+            // 初始化表格操作按钮
+            initTableActions();
+            
+            // 初始化验证类型选择事件
+            validationTypeSelect.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customRegexInput.disabled = false;
+                } else {
+                    customRegexInput.disabled = true;
+                }
+            });
+            
+            // 初始化字段类型选择事件
+            fieldTypeSelect.addEventListener('change', function() {
+                const selectedType = this.value;
+                if (selectedType === 'select' || selectedType === 'radio' || selectedType === 'checkbox') {
+                    optionsSection.style.display = 'block';
+                } else {
+                    optionsSection.style.display = 'none';
+                }
+            });
+            
+            // 初始化添加选项按钮事件
+            addOptionBtn.addEventListener('click', function() {
+                addOption();
+            });
+            
+            // 初始化全选/取消全选事件
+            selectAllCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                fieldCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+            });
+            
+            // 初始化单选框变化事件
+            fieldCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateSelectAllStatus();
+                });
+            });
+        });
+        
+        /**
+         * 初始化事件监听
+         */
+        function initEventListeners() {
+            // 新增字段按钮事件
+            document.getElementById('addFieldBtn').addEventListener('click', function() {
+                openAddFieldModal();
+            });
+            
+            // 保存字段按钮事件
+            document.getElementById('saveFieldBtn').addEventListener('click', function() {
+                saveField();
+            });
+            
+            // 搜索按钮事件
+            document.getElementById('searchBtn').addEventListener('click', function() {
+                searchFields();
+            });
+            
+            // 重置按钮事件
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                resetFilters();
+            });
+            
+            // 导入字段按钮事件
+            document.getElementById('importFieldsBtn').addEventListener('click', function() {
+                importFields();
+            });
+            
+            // 导出字段按钮事件
+            document.getElementById('exportFieldsBtn').addEventListener('click', function() {
+                exportFields();
+            });
+            
+            // 模态框点击外部关闭
+            document.getElementById('fieldModal').addEventListener('click', function(event) {
+                if (event.target === this) {
+                    closeFieldModal();
+                }
+            });
+        }
+        
+        /**
+         * 初始化表格操作按钮
+         */
+        function initTableActions() {
+            // 编辑按钮事件
+            const editButtons = document.querySelectorAll('.table-action-btn.edit-btn');
+            editButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const fieldId = this.closest('tr').dataset.fieldId;
+                    openEditFieldModal(fieldId);
+                });
+            });
+            
+            // 删除按钮事件
+            const deleteButtons = document.querySelectorAll('.table-action-btn.delete-btn');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const fieldId = this.closest('tr').dataset.fieldId;
+                    deleteField(fieldId);
+                });
+            });
+        }
+        
+        /**
+         * 打开新增字段模态框
+         */
+        function openAddFieldModal() {
+            // 重置表单
+            const fieldForm = document.getElementById('fieldForm');
+            fieldForm.reset();
+            
+            // 重置选项列表
+            resetOptionsList();
+            
+            // 隐藏选项配置区域
+            document.getElementById('optionsSection').style.display = 'none';
+            
+            // 设置模态框标题
+            document.getElementById('modalTitle').textContent = '新增字段';
+            
+            // 重置当前编辑的字段ID
+            currentFieldId = null;
+            
+            // 显示模态框
+            document.getElementById('fieldModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        /**
+         * 打开编辑字段模态框
+         * @param {string} fieldId - 字段ID
+         */
+        function openEditFieldModal(fieldId) {
+            // 重置表单
+            const fieldForm = document.getElementById('fieldForm');
+            fieldForm.reset();
+            
+            // 重置选项列表
+            resetOptionsList();
+            
+            // 设置当前编辑的字段ID
+            currentFieldId = fieldId;
+            
+            // 设置模态框标题
+            document.getElementById('modalTitle').textContent = '编辑字段';
+            
+            // 模拟加载字段数据
+            loadFieldData(fieldId);
+            
+            // 显示模态框
+            document.getElementById('fieldModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        /**
+         * 关闭字段模态框
+         */
+        function closeFieldModal() {
+            document.getElementById('fieldModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        
+        /**
+         * 加载字段数据
+         * @param {string} fieldId - 字段ID
+         */
+        function loadFieldData(fieldId) {
+            // 模拟根据ID获取字段数据
+            // 实际项目中应该从服务器获取数据
+            let fieldData = {
+                name: '',
+                key: '',
+                type: '',
+                status: 'active',
+                description: '',
+                defaultValue: '',
+                placeholder: '',
+                maxLength: '',
+                minLength: '',
+                required: false,
+                readOnly: false,
+                unique: false,
+                searchable: false,
+                validationType: 'none',
+                customRegex: '',
+                errorMessage: '',
+                options: []
+            };
+            
+            // 根据字段ID模拟不同的字段数据
+            switch(fieldId) {
+                case '1':
+                    fieldData = {
+                        name: '申请人',
+                        key: 'applicant',
+                        type: 'text',
+                        status: 'active',
+                        description: '表单申请人姓名',
+                        defaultValue: '',
+                        placeholder: '请输入申请人姓名',
+                        maxLength: '50',
+                        minLength: '2',
+                        required: true,
+                        readOnly: false,
+                        unique: false,
+                        searchable: true,
+                        validationType: 'none',
+                        customRegex: '',
+                        errorMessage: '',
+                        options: []
+                    };
+                    break;
+                case '2':
+                    fieldData = {
+                        name: '请假类型',
+                        key: 'leave_type',
+                        type: 'select',
+                        status: 'active',
+                        description: '请假类型选择',
+                        defaultValue: '',
+                        placeholder: '请选择请假类型',
+                        maxLength: '',
+                        minLength: '',
+                        required: true,
+                        readOnly: false,
+                        unique: false,
+                        searchable: true,
+                        validationType: 'none',
+                        customRegex: '',
+                        errorMessage: '',
+                        options: [
+                            { value: 'annual', text: '年假' },
+                            { value: 'sick', text: '病假' },
+                            { value: 'personal', text: '事假' },
+                            { value: 'marriage', text: '婚假' },
+                            { value: 'maternity', text: '产假' },
+                            { value: 'other', text: '其他' }
+                        ]
+                    };
+                    break;
+                // 其他字段ID的数据...
+            }
+            
+            // 填充表单数据
+            document.getElementById('fieldName').value = fieldData.name;
+            document.getElementById('fieldKey').value = fieldData.key;
+            document.getElementById('fieldType').value = fieldData.type;
+            document.getElementById('fieldStatus').value = fieldData.status;
+            document.getElementById('fieldDescription').value = fieldData.description;
+            document.getElementById('defaultValue').value = fieldData.defaultValue;
+            document.getElementById('placeholder').value = fieldData.placeholder;
+            document.getElementById('maxLength').value = fieldData.maxLength;
+            document.getElementById('minLength').value = fieldData.minLength;
+            document.getElementById('required').checked = fieldData.required;
+            document.getElementById('readOnly').checked = fieldData.readOnly;
+            document.getElementById('unique').checked = fieldData.unique;
+            document.getElementById('searchable').checked = fieldData.searchable;
+            document.getElementById('validationType').value = fieldData.validationType;
+            document.getElementById('customRegex').value = fieldData.customRegex;
+            document.getElementById('errorMessage').value = fieldData.errorMessage;
+            
+            // 更新自定义正则输入框状态
+            if (fieldData.validationType === 'custom') {
+                document.getElementById('customRegex').disabled = false;
+            } else {
+                document.getElementById('customRegex').disabled = true;
+            }
+            
+            // 更新选项配置区域显示状态
+            if (fieldData.type === 'select' || fieldData.type === 'radio' || fieldData.type === 'checkbox') {
+                document.getElementById('optionsSection').style.display = 'block';
+                
+                // 填充选项数据
+                if (fieldData.options && fieldData.options.length > 0) {
+                    // 清空默认的选项
+                    const optionsList = document.getElementById('optionsList');
+                    optionsList.innerHTML = '';
+                    
+                    // 添加选项
+                    fieldData.options.forEach((option, index) => {
+                        addOption(option.value, option.text, index > 0);
+                    });
+                }
+            } else {
+                document.getElementById('optionsSection').style.display = 'none';
+            }
+        }
+        
+        /**
+         * 重置选项列表
+         */
+        function resetOptionsList() {
+            const optionsList = document.getElementById('optionsList');
+            optionsList.innerHTML = `
+                <div class="option-item">
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">选项值</label>
+                                <input type="text" class="form-control option-value" placeholder="请输入选项值">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">选项文本</label>
+                                <input type="text" class="form-control option-text" placeholder="请输入选项文本">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        /**
+         * 添加选项
+         * @param {string} value - 选项值
+         * @param {string} text - 选项文本
+         * @param {boolean} showDelete - 是否显示删除按钮
+         */
+        function addOption(value = '', text = '', showDelete = true) {
+            const optionsList = document.getElementById('optionsList');
+            const optionItem = document.createElement('div');
+            optionItem.className = 'option-item';
+            
+            let deleteButtonHtml = '';
+            if (showDelete) {
+                deleteButtonHtml = `
+                    <div style="display: flex; align-items: flex-end; margin-bottom: 16px;">
+                        <button type="button" class="btn btn-danger delete-option-btn" style="height: 32px; padding: 0 8px; font-size: 12px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 6H16V4C16 2.89543 15.1046 2 14 2H10C8.89543 2 8 2.89543 8 4V6H4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M18 20V8H6V20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M12 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M8 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+            }
+            
+            optionItem.innerHTML = `
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label class="form-label">选项值</label>
+                            <input type="text" class="form-control option-value" placeholder="请输入选项值" value="${value}">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label class="form-label">选项文本</label>
+                            <input type="text" class="form-control option-text" placeholder="请输入选项文本" value="${text}">
+                        </div>
+                    </div>
+                    ${deleteButtonHtml}
+                </div>
+            `;
+            
+            optionsList.appendChild(optionItem);
+            
+            // 添加删除选项按钮事件
+            if (showDelete) {
+                const deleteButton = optionItem.querySelector('.delete-option-btn');
+                deleteButton.addEventListener('click', function() {
+                    optionItem.remove();
+                });
+            }
+        }
+        
+        /**
+         * 保存字段
+         */
+        function saveField() {
+            const fieldForm = document.getElementById('fieldForm');
+            
+            // 表单验证
+            if (!fieldForm.checkValidity()) {
+                fieldForm.reportValidity();
+                return;
+            }
+            
+            // 收集表单数据
+            const fieldData = {
+                id: currentFieldId,
+                name: document.getElementById('fieldName').value,
+                key: document.getElementById('fieldKey').value,
+                type: document.getElementById('fieldType').value,
+                status: document.getElementById('fieldStatus').value,
+                description: document.getElementById('fieldDescription').value,
+                defaultValue: document.getElementById('defaultValue').value,
+                placeholder: document.getElementById('placeholder').value,
+                maxLength: document.getElementById('maxLength').value,
+                minLength: document.getElementById('minLength').value,
+                required: document.getElementById('required').checked,
+                readOnly: document.getElementById('readOnly').checked,
+                unique: document.getElementById('unique').checked,
+                searchable: document.getElementById('searchable').checked,
+                validationType: document.getElementById('validationType').value,
+                customRegex: document.getElementById('customRegex').value,
+                errorMessage: document.getElementById('errorMessage').value,
+                options: []
+            };
+            
+            // 收集选项数据
+            if (fieldData.type === 'select' || fieldData.type === 'radio' || fieldData.type === 'checkbox') {
+                const optionValues = document.querySelectorAll('.option-value');
+                const optionTexts = document.querySelectorAll('.option-text');
+                
+                for (let i = 0; i < optionValues.length; i++) {
+                    const value = optionValues[i].value.trim();
+                    const text = optionTexts[i].value.trim();
+                    
+                    if (value && text) {
+                        fieldData.options.push({
+                            value: value,
+                            text: text
+                        });
+                    }
+                }
+                
+                // 验证选项数据
+                if (fieldData.options.length === 0) {
+                    showMessage('请至少添加一个选项', 'error');
+                    return;
+                }
+            }
+            
+            // 模拟保存操作
+            console.log('保存字段数据:', fieldData);
+            
+            // 显示成功消息
+            showMessage(currentFieldId ? '字段更新成功' : '字段添加成功', 'success');
+            
+            // 关闭模态框
+            closeFieldModal();
+            
+            // 刷新字段列表（实际项目中应该重新从服务器获取数据）
+            // refreshFieldList();
+        }
+        
+        /**
+         * 删除字段
+         * @param {string} fieldId - 字段ID
+         */
+        function deleteField(fieldId) {
+            confirmDialog(
+                '确定要删除这个字段吗？删除后将无法恢复，并且可能影响使用该字段的表单。',
+                function() {
+                    // 模拟删除操作
+                    console.log('删除字段:', fieldId);
+                    
+                    // 显示成功消息
+                    showMessage('字段删除成功', 'success');
+                    
+                    // 刷新字段列表（实际项目中应该重新从服务器获取数据）
+                    // refreshFieldList();
+                },
+                null,
+                '确认删除'
+            );
+        }
+        
+        /**
+         * 搜索字段
+         */
+        function searchFields() {
+            const fieldName = document.getElementById('fieldNameFilter').value.trim();
+            const fieldType = document.getElementById('fieldTypeFilter').value;
+            const fieldStatus = document.getElementById('fieldStatusFilter').value;
+            const createTime = document.getElementById('createTimeFilter').value;
+            
+            // 模拟搜索操作
+            console.log('搜索字段:', { fieldName, fieldType, fieldStatus, createTime });
+            
+            // 显示搜索结果消息
+            showMessage('搜索完成，共找到 10 条记录', 'success');
+            
+            // 实际项目中应该根据搜索条件从服务器获取数据并更新表格
+        }
+        
+        /**
+         * 重置筛选条件
+         */
+        function resetFilters() {
+            document.getElementById('fieldNameFilter').value = '';
+            document.getElementById('fieldTypeFilter').value = '';
+            document.getElementById('fieldStatusFilter').value = '';
+            document.getElementById('createTimeFilter').value = '';
+            
+            // 显示重置消息
+            showMessage('筛选条件已重置', 'success');
+        }
+        
+        /**
+         * 导入字段
+         */
+        function importFields() {
+            showMessage('导入功能即将开放', 'info');
+            // 实际项目中应该打开文件选择对话框，允许用户选择导入文件
+        }
+        
+        /**
+         * 导出字段
+         */
+        function exportFields() {
+            // 获取选中的字段
+            const selectedFields = [];
+            const fieldCheckboxes = document.querySelectorAll('.field-checkbox:checked');
+            
+            if (fieldCheckboxes.length === 0) {
+                showMessage('请至少选择一个字段进行导出', 'error');
+                return;
+            }
+            
+            fieldCheckboxes.forEach(checkbox => {
+                const fieldId = checkbox.closest('tr').dataset.fieldId;
+                selectedFields.push(fieldId);
+            });
+            
+            console.log('导出字段:', selectedFields);
+            showMessage('字段导出成功', 'success');
+            // 实际项目中应该根据选中的字段ID从服务器获取数据并导出
+        }
+        
+        /**
+         * 更新全选复选框状态
+         */
+        function updateSelectAllStatus() {
+            const fieldCheckboxes = document.querySelectorAll('.field-checkbox');
+            const checkedBoxes = document.querySelectorAll('.field-checkbox:checked');
+            const selectAllCheckbox = document.getElementById('selectAll');
+            
+            selectAllCheckbox.checked = fieldCheckboxes.length > 0 && fieldCheckboxes.length === checkedBoxes.length;
+        }
+    </script>
+</body>
+</html>

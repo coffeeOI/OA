@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>审批统计 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <style>
+        /* 全局变量定义 */
+        :root {
+            --primary-color: #409EFF;
+            --success-color: #67c23a;
+            --danger-color: #f56c6c;
+            --warning-color: #e6a23c;
+            --info-color: #909399;
+            --text-primary: #333;
+            --text-regular: #606266;
+            --text-secondary: #909399;
+            --text-placeholder: #c0c4cc;
+            --border-color: #ebeef5;
+            --border-light: #f0f2f5;
+            --bg-color: #fafafa;
+            --white: #ffffff;
+            --shadow-base: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            --border-radius: 4px;
+            --transition-base: all 0.3s ease;
+            --spacing-xs: 8px;
+            --spacing-sm: 12px;
+            --spacing-md: 16px;
+            --spacing-lg: 20px;
+            --spacing-xl: 24px;
+        }
+
+        /* 主容器 */
+        .approval-statistics-container {
+            padding: var(--spacing-lg);
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* 页面头部 */
+        .approval-statistics-header {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .approval-statistics-header h2 {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        /* 时间周期选择器 */
+        .statistics-period {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+            padding: var(--spacing-md);
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-base);
+            flex-wrap: wrap;
+        }
+
+        .period-item {
+            padding: var(--spacing-xs) var(--spacing-md);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 14px;
+            transition: var(--transition-base);
+            background-color: var(--white);
+            color: var(--text-regular);
+            border: 1px solid var(--border-color);
+        }
+
+        .period-item.active {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
+        }
+
+        .period-item:hover:not(.active) {
+            background-color: #ecf5ff;
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* 统计概览卡片 */
+        .statistics-summary {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            width: 100%;
+        }
+
+        .summary-card {
+            flex: 0 0 auto;
+            min-width: calc(12.5% - var(--spacing-sm));
+            max-width: calc(12.5% - var(--spacing-sm));
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-base);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            transition: var(--transition-base);
+            text-align: center;
+            width: calc(12.5% - var(--spacing-sm));
+        }
+
+        .summary-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .summary-card h3 {
+            margin: 0 0 var(--spacing-xs) 0;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+        .summary-number {
+            font-size: 18px;
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: var(--spacing-xs);
+            transition: var(--transition-base);
+            line-height: 1.2;
+        }
+
+        .summary-card:hover .summary-number {
+            color: var(--primary-color);
+        }
+
+        .summary-change {
+            font-size: 10px;
+            color: var(--success-color);
+            line-height: 1.1;
+        }
+
+        .summary-change.negative {
+            color: var(--danger-color);
+        }
+
+        /* 统计内容区域 */
+        .statistics-content {
+            display: flex;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            flex-wrap: wrap;
+        }
+
+        /* 统计图表 */
+        .statistics-chart {
+            flex: 2;
+            min-width: 300px;
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-base);
+            padding: var(--spacing-lg);
+            transition: var(--transition-base);
+        }
+
+        .statistics-chart:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .statistics-chart h3 {
+            margin: 0 0 var(--spacing-lg) 0;
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .chart-container {
+            height: 300px;
+            background-color: var(--bg-color);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-placeholder {
+            color: var(--text-secondary);
+            font-size: 14px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        /* 统计详情 */
+        .statistics-detail {
+            flex: 1;
+            min-width: 200px;
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-base);
+            padding: var(--spacing-lg);
+            transition: var(--transition-base);
+        }
+
+        .statistics-detail:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .statistics-detail h3 {
+            margin: 0 0 var(--spacing-lg) 0;
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .detail-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-xs) 0;
+            transition: var(--transition-base);
+        }
+
+        .detail-item:hover {
+            background-color: var(--bg-color);
+            padding: var(--spacing-xs);
+            border-radius: var(--border-radius);
+        }
+
+        .detail-name {
+            font-size: 14px;
+            color: var(--text-primary);
+            min-width: 80px;
+        }
+
+        .detail-progress {
+            flex: 1;
+            height: 6px;
+            background-color: var(--border-light);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 0 var(--spacing-sm);
+            position: relative;
+        }
+
+        .detail-progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 3px;
+            transition: width 1s ease;
+            position: relative;
+        }
+
+        .detail-progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: progress-shine 2s infinite;
+        }
+
+        @keyframes progress-shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .detail-percentage {
+            font-size: 14px;
+            color: var(--text-regular);
+            min-width: 40px;
+            text-align: right;
+            font-weight: 500;
+        }
+
+        /* 统计表格 */
+        .statistics-table {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-base);
+            margin-top: var(--spacing-lg);
+            overflow: hidden;
+            transition: var(--transition-base);
+        }
+
+        .statistics-table:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .statistics-table h3 {
+            margin: 0;
+            padding: var(--spacing-lg) var(--spacing-lg) 0 var(--spacing-lg);
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .table-container {
+            padding: var(--spacing-lg);
+            overflow-x: auto;
+        }
+
+        .statistics-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .statistics-table th,
+        .statistics-table td {
+            padding: var(--spacing-sm) var(--spacing-md);
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .statistics-table th {
+            background-color: var(--bg-color);
+            font-weight: 500;
+            color: var(--text-regular);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .statistics-table tr {
+            transition: var(--transition-base);
+        }
+
+        .statistics-table tr:hover {
+            background-color: #f5f7fa;
+        }
+
+        .statistics-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 加载状态 */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-xl);
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: var(--spacing-sm);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1400px) {
+            .summary-card {
+                min-width: calc(25% - var(--spacing-sm));
+                max-width: calc(25% - var(--spacing-sm));
+                margin-bottom: var(--spacing-md);
+            }
+        }
+        
+        /* 在超大屏幕上显示一行八列 */
+        @media (min-width: 1401px) {
+            .summary-card {
+                min-width: calc(12.5% - var(--spacing-sm));
+                max-width: calc(12.5% - var(--spacing-sm));
+                margin-bottom: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .approval-statistics-container {
+                padding: var(--spacing-md);
+            }
+
+            .statistics-summary,
+            .statistics-content {
+                flex-direction: column;
+            }
+
+            .summary-card {
+                min-width: auto;
+                max-width: 100%;
+                margin-bottom: var(--spacing-md);
+            }
+
+            .statistics-chart,
+            .statistics-detail {
+                min-width: auto;
+            }
+
+            .period-item {
+                flex: 1;
+                min-width: 70px;
+                text-align: center;
+            }
+
+            .chart-container {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="approval-statistics-container">
+        <header class="approval-statistics-header">
+            <h2>审批统计</h2>
+        </header>
+        
+        <section class="statistics-period">
+            <button class="period-item active" data-period="today">今日</button>
+            <button class="period-item" data-period="week">本周</button>
+            <button class="period-item" data-period="month">本月</button>
+            <button class="period-item" data-period="quarter">本季度</button>
+            <button class="period-item" data-period="year">本年</button>
+        </section>
+        
+        <section class="statistics-summary">
+            <div class="summary-card">
+                <h3>总审批数</h3>
+                <div class="summary-number">128</div>
+                <div class="summary-change">较上月增长 12%</div>
+            </div>
+            
+            <div class="summary-card">
+                <h3>已通过</h3>
+                <div class="summary-number">96</div>
+                <div class="summary-change">占比 75%</div>
+            </div>
+            
+            <div class="summary-card">
+                <h3>已驳回</h3>
+                <div class="summary-number">18</div>
+                <div class="summary-change">占比 14%</div>
+            </div>
+            
+            <div class="summary-card">
+                <h3>审批中</h3>
+                <div class="summary-number">14</div>
+                <div class="summary-change">占比 11%</div>
+            </div>
+            
+            <div class="summary-card">
+                <h3>已超时</h3>
+                <div class="summary-number">5</div>
+                <div class="summary-change">占比 4%</div>
+            </div>
+            
+            <div class="summary-card">
+                <h3>已转交</h3>
+                <div class="summary-number">3</div>
+                <div class="summary-change">占比 2%</div>
+            </div>
+            
+            <div class="summary-card">
+                <h3>已停止</h3>
+                <div class="summary-number">2</div>
+                <div class="summary-change">占比 1%</div>
+            </div>
+            
+            <div class="summary-card" style="background-color: #f0f7ff; border: 1px solid var(--primary-color);">
+                <h3>全部</h3>
+                <div class="summary-number">166</div>
+                <div class="summary-change">查看详情</div>
+            </div>
+        </section>
+        
+        <section class="statistics-content">
+            <div class="statistics-chart">
+                <h3>审批趋势</h3>
+                <div class="chart-container" id="trendChart">
+                    <!-- 图表将通过JavaScript动态生成 -->
+                    <div class="chart-placeholder">
+                        <div class="loading">
+                            <div class="loading-spinner"></div>
+                            <span>加载图表中...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="statistics-detail">
+                <h3>审批类型分布</h3>
+                <div class="detail-list">
+                    <div class="detail-item" data-type="hr">
+                        <span class="detail-name">人事审批</span>
+                        <div class="detail-progress">
+                            <div class="detail-progress-bar" data-width="45%"></div>
+                        </div>
+                        <span class="detail-percentage">45%</span>
+                    </div>
+                    
+                    <div class="detail-item" data-type="finance">
+                        <span class="detail-name">财务审批</span>
+                        <div class="detail-progress">
+                            <div class="detail-progress-bar" data-width="30%"></div>
+                        </div>
+                        <span class="detail-percentage">30%</span>
+                    </div>
+                    
+                    <div class="detail-item" data-type="material">
+                        <span class="detail-name">物资审批</span>
+                        <div class="detail-progress">
+                            <div class="detail-progress-bar" data-width="15%"></div>
+                        </div>
+                        <span class="detail-percentage">15%</span>
+                    </div>
+                    
+                    <div class="detail-item" data-type="other">
+                        <span class="detail-name">其他审批</span>
+                        <div class="detail-progress">
+                            <div class="detail-progress-bar" data-width="10%"></div>
+                        </div>
+                        <span class="detail-percentage">10%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="statistics-table">
+            <h3>审批明细统计</h3>
+            <div class="table-container">
+                <table id="approvalDetailTable">
+                    <thead>
+                        <tr>
+                            <th>审批类型</th>
+                            <th>发起数量</th>
+                            <th>通过数量</th>
+                            <th>驳回数量</th>
+                            <th>通过率</th>
+                            <th>平均处理时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-type="leave">
+                            <td>请假申请</td>
+                            <td>45</td>
+                            <td>38</td>
+                            <td>7</td>
+                            <td>84%</td>
+                            <td>2.5小时</td>
+                        </tr>
+                        <tr data-type="reimburse">
+                            <td>报销申请</td>
+                            <td>36</td>
+                            <td>28</td>
+                            <td>8</td>
+                            <td>78%</td>
+                            <td>1.8天</td>
+                        </tr>
+                        <tr data-type="purchase">
+                            <td>采购申请</td>
+                            <td>24</td>
+                            <td>18</td>
+                            <td>6</td>
+                            <td>75%</td>
+                            <td>2.2天</td>
+                        </tr>
+                        <tr data-type="business">
+                            <td>出差申请</td>
+                            <td>15</td>
+                            <td>12</td>
+                            <td>3</td>
+                            <td>80%</td>
+                            <td>1.5天</td>
+                        </tr>
+                        <tr data-type="off">
+                            <td>调休申请</td>
+                            <td>8</td>
+                            <td>8</td>
+                            <td>0</td>
+                            <td>100%</td>
+                            <td>1.2小时</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script src="../JS/common.js"></script>
+    <script src="../JS/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 模拟数据加载延迟，用于展示加载状态
+            setTimeout(() => {
+                // 初始化进度条动画
+                initProgressBars();
+                // 初始化图表
+                initChart();
+            }, 800);
+
+            // 时间周期选择事件
+            document.querySelectorAll('.period-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    // 防止重复点击
+                    if (this.classList.contains('active')) return;
+                     
+                    // 显示加载状态
+                    showLoadingState();
+                     
+                    // 移除所有激活状态
+                    document.querySelectorAll('.period-item').forEach(i => {
+                        i.classList.remove('active');
+                    });
+                    
+                    // 添加当前激活状态
+                    this.classList.add('active');
+                    
+                    // 获取选择的周期
+                    const period = this.textContent;
+                    
+                    // 模拟数据加载
+                    setTimeout(() => {
+                        // 更新数据（实际应用中这里应该是Ajax请求）
+                        updateStatisticsData(period);
+                        
+                        // 隐藏加载状态
+                        hideLoadingState();
+                        
+                        // 显示成功提示
+                        showMessage(`已切换至${period}数据`, 'success');
+                    }, 600);
+                });
+            });
+            
+
+
+            // 审批类型分布项点击事件
+            document.querySelectorAll('.detail-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const type = this.querySelector('.detail-name').textContent;
+                    showMessage(`查看${type}详细分布`, 'info');
+                });
+            });
+            
+            // "全部"卡片点击事件
+            const allCard = document.querySelector('.summary-card:last-child');
+            if (allCard) {
+                allCard.style.cursor = 'pointer';
+                allCard.addEventListener('click', function() {
+                    showMessage('查看全部审批状态统计详情', 'info');
+                    // 在实际应用中，这里可以打开一个模态框显示所有统计详情
+                    console.log('打开全部统计详情');
+                });
+            }
+
+            // 初始化进度条动画
+            function initProgressBars() {
+                document.querySelectorAll('.detail-progress-bar').forEach(bar => {
+                    const width = bar.getAttribute('data-width');
+                    // 使用setTimeout创建动画效果
+                    setTimeout(() => {
+                        bar.style.width = width;
+                    }, 100);
+                });
+            }
+
+            // 初始化图表（带交互功能的折线图）
+            function initChart() {
+                const chartContainer = document.getElementById('trendChart');
+                const placeholder = chartContainer.querySelector('.chart-placeholder');
+                
+                // 移除占位符
+                if (placeholder) {
+                    chartContainer.removeChild(placeholder);
+                }
+                
+                // 创建Canvas元素
+                const canvas = document.createElement('canvas');
+                canvas.width = chartContainer.clientWidth;
+                canvas.height = chartContainer.clientHeight;
+                canvas.style.cursor = 'pointer';
+                chartContainer.appendChild(canvas);
+                
+                // 获取Canvas上下文
+                const ctx = canvas.getContext('2d');
+                
+                // 模拟图表数据
+                const data = [
+                    { name: '1月', value: 12 },
+                    { name: '2月', value: 19 },
+                    { name: '3月', value: 15 },
+                    { name: '4月', value: 28 },
+                    { name: '5月', value: 22 },
+                    { name: '6月', value: 35 },
+                    { name: '7月', value: 30 },
+                    { name: '8月', value: 38 },
+                    { name: '9月', value: 42 },
+                    { name: '10月', value: 36 },
+                    { name: '11月', value: 45 },
+                    { name: '12月', value: 48 }
+                ];
+                
+                // 创建工具提示元素
+                let tooltip = null;
+                
+                // 绘制图表
+                drawChart(ctx, data, canvas.width, canvas.height);
+
+                // 窗口大小改变时重新绘制图表
+                window.addEventListener('resize', function() {
+                    canvas.width = chartContainer.clientWidth;
+                    canvas.height = chartContainer.clientHeight;
+                    drawChart(ctx, data, canvas.width, canvas.height);
+                });
+                
+                // 添加鼠标移动事件 - 显示工具提示
+                canvas.addEventListener('mousemove', function(e) {
+                    const rect = canvas.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    
+                    // 检测是否鼠标悬停在数据点上
+                    const margin = { top: 30, right: 30, bottom: 40, left: 40 };
+                    const chartWidth = canvas.width - margin.left - margin.right;
+                    const chartHeight = canvas.height - margin.top - margin.bottom;
+                    const maxValue = Math.max(...data.map(item => item.value)) * 1.1;
+                    const minValue = Math.min(...data.map(item => item.value));
+                    
+                    let hoveredData = null;
+                    const pointRadius = 5;
+                    
+                    data.forEach((item, index) => {
+                        const x = margin.left + (chartWidth / (data.length - 1)) * index;
+                        const y = margin.top + chartHeight - ((item.value - minValue) / (maxValue - minValue)) * chartHeight;
+                        
+                        // 计算鼠标与数据点的距离
+                        const distance = Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2));
+                        
+                        if (distance <= pointRadius + 10) { // 增加10px的检测范围
+                            hoveredData = { ...item, index, x, y };
+                        }
+                    });
+                    
+                    // 显示或隐藏工具提示
+                    if (hoveredData) {
+                        showTooltip(hoveredData, mouseX + rect.left, mouseY + rect.top);
+                    } else if (tooltip) {
+                        hideTooltip();
+                    }
+                });
+                
+                // 添加鼠标离开事件 - 隐藏工具提示
+                canvas.addEventListener('mouseleave', function() {
+                    hideTooltip();
+                });
+                
+                // 添加点击事件 - 显示详细信息
+                canvas.addEventListener('click', function(e) {
+                    const rect = canvas.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    
+                    // 检测是否点击在数据点上
+                    const margin = { top: 30, right: 30, bottom: 40, left: 40 };
+                    const chartWidth = canvas.width - margin.left - margin.right;
+                    const chartHeight = canvas.height - margin.top - margin.bottom;
+                    const maxValue = Math.max(...data.map(item => item.value)) * 1.1;
+                    const minValue = Math.min(...data.map(item => item.value));
+                    
+                    data.forEach((item, index) => {
+                        const x = margin.left + (chartWidth / (data.length - 1)) * index;
+                        const y = margin.top + chartHeight - ((item.value - minValue) / (maxValue - minValue)) * chartHeight;
+                        
+                        // 计算鼠标与数据点的距离
+                        const distance = Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2));
+                        
+                        if (distance <= 15) { // 点击检测范围
+                            showMessage(`${item.name}审批数量: ${item.value}`, 'info');
+                        }
+                    });
+                });
+                
+                // 显示工具提示
+                function showTooltip(data, x, y) {
+                    if (!tooltip) {
+                        tooltip = document.createElement('div');
+                        tooltip.className = 'chart-tooltip';
+                        tooltip.style.position = 'fixed';
+                        tooltip.style.background = 'rgba(0, 0, 0, 0.8)';
+                        tooltip.style.color = 'white';
+                        tooltip.style.padding = '8px 12px';
+                        tooltip.style.borderRadius = '4px';
+                        tooltip.style.fontSize = '12px';
+                        tooltip.style.zIndex = '10000';
+                        tooltip.style.pointerEvents = 'none';
+                        document.body.appendChild(tooltip);
+                    }
+                    
+                    tooltip.textContent = `${data.name}: ${data.value}次审批`;
+                    tooltip.style.left = (x + 10) + 'px';
+                    tooltip.style.top = (y - 30) + 'px';
+                }
+                
+                // 隐藏工具提示
+                function hideTooltip() {
+                    if (tooltip) {
+                        document.body.removeChild(tooltip);
+                        tooltip = null;
+                    }
+                }
+            }
+
+            // 绘制优化的折线图
+            function drawChart(ctx, data, width, height) {
+                // 清空画布
+                ctx.clearRect(0, 0, width, height);
+                
+                // 设置图表边距
+                const margin = { top: 30, right: 30, bottom: 40, left: 40 };
+                const chartWidth = width - margin.left - margin.right;
+                const chartHeight = height - margin.top - margin.bottom;
+                
+                // 找出最大值用于缩放
+                const maxValue = Math.max(...data.map(item => item.value)) * 1.1;
+                const minValue = Math.min(...data.map(item => item.value));
+                const valueRange = maxValue - minValue;
+                
+                // 绘制背景网格
+                ctx.strokeStyle = '#f0f2f5';
+                ctx.lineWidth = 1;
+                
+                // 水平线（带数值标签）
+                for (let i = 0; i <= 5; i++) {
+                    const y = margin.top + (chartHeight / 5) * i;
+                    const value = maxValue - (valueRange / 5) * i;
+                    
+                    // 绘制水平线
+                    ctx.beginPath();
+                    ctx.moveTo(margin.left, y);
+                    ctx.lineTo(width - margin.right, y);
+                    ctx.stroke();
+                    
+                    // 绘制Y轴数值标签
+                    ctx.fillStyle = '#909399';
+                    ctx.font = '11px Arial';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(Math.round(value).toString(), margin.left - 10, y + 4);
+                }
+                
+                // 垂直线（仅主刻度）
+                for (let i = 0; i < data.length; i += Math.ceil(data.length / 6)) {
+                    const x = margin.left + (chartWidth / (data.length - 1)) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(x, margin.top);
+                    ctx.lineTo(x, height - margin.bottom);
+                    ctx.stroke();
+                }
+                
+                // 绘制数据线条（增强的折线图效果）
+                ctx.strokeStyle = '#409EFF';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                
+                ctx.beginPath();
+                data.forEach((item, index) => {
+                    const x = margin.left + (chartWidth / (data.length - 1)) * index;
+                    const y = margin.top + chartHeight - ((item.value - minValue) / valueRange) * chartHeight;
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        // 使用贝塞尔曲线使线条更平滑
+                        const prevX = margin.left + (chartWidth / (data.length - 1)) * (index - 1);
+                        const prevY = margin.top + chartHeight - ((data[index - 1].value - minValue) / valueRange) * chartHeight;
+                        const cpX = (prevX + x) / 2;
+                        ctx.quadraticCurveTo(prevX, prevY, cpX, (prevY + y) / 2);
+                    }
+                });
+                // 绘制最后一段曲线
+                const lastIndex = data.length - 1;
+                const lastX = margin.left + (chartWidth / (data.length - 1)) * lastIndex;
+                const lastY = margin.top + chartHeight - ((data[lastIndex].value - minValue) / valueRange) * chartHeight;
+                const prevLastX = margin.left + (chartWidth / (data.length - 1)) * (lastIndex - 1);
+                const prevLastY = margin.top + chartHeight - ((data[lastIndex - 1].value - minValue) / valueRange) * chartHeight;
+                ctx.quadraticCurveTo(prevLastX, prevLastY, lastX, lastY);
+                ctx.stroke();
+                
+                // 绘制填充区域（增强视觉效果）
+                ctx.lineTo(lastX, height - margin.bottom);
+                ctx.lineTo(margin.left, height - margin.bottom);
+                ctx.closePath();
+                
+                const gradient = ctx.createLinearGradient(0, margin.top, 0, height - margin.bottom);
+                gradient.addColorStop(0, 'rgba(64, 158, 255, 0.2)');
+                gradient.addColorStop(1, 'rgba(64, 158, 255, 0.05)');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // 绘制数据点（增强的圆点效果）
+                data.forEach((item, index) => {
+                    const x = margin.left + (chartWidth / (data.length - 1)) * index;
+                    const y = margin.top + chartHeight - ((item.value - minValue) / valueRange) * chartHeight;
+                    
+                    // 外圈
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5, 0, Math.PI * 2);
+                    ctx.fillStyle = '#fff';
+                    ctx.fill();
+                    ctx.strokeStyle = '#409EFF';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    // 内圈
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.fillStyle = '#409EFF';
+                    ctx.fill();
+                    
+                    // 绘制数值标签
+                    ctx.fillStyle = '#606266';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(item.value.toString(), x, y - 10);
+                });
+                
+                // 绘制X轴标签
+                ctx.fillStyle = '#606266';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                data.forEach((item, index) => {
+                    const x = margin.left + (chartWidth / (data.length - 1)) * index;
+                    ctx.fillText(item.name, x, height - 10);
+                });
+                
+                // 绘制坐标轴
+                ctx.strokeStyle = '#dcdfe6';
+                ctx.lineWidth = 1;
+                
+                // X轴
+                ctx.beginPath();
+                ctx.moveTo(margin.left, height - margin.bottom);
+                ctx.lineTo(width - margin.right, height - margin.bottom);
+                ctx.stroke();
+                
+                // Y轴
+                ctx.beginPath();
+                ctx.moveTo(margin.left, margin.top);
+                ctx.lineTo(margin.left, height - margin.bottom);
+                ctx.stroke();
+                
+                // 绘制标题
+                ctx.fillStyle = '#333';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText('审批趋势折线图', margin.left, margin.top - 10);
+            }
+
+            // 更新统计数据
+            function updateStatisticsData(period) {
+                // 在实际应用中，这里应该是根据选择的周期获取不同的数据
+                // 这里只是简单模拟
+                console.log(`更新${period}的统计数据`);
+                
+                // 可以在这里更新图表和表格数据
+            }
+
+            // 显示加载状态
+            function showLoadingState() {
+                // 在实际应用中，这里应该显示全局加载遮罩
+                console.log('显示加载状态');
+            }
+
+            // 隐藏加载状态
+            function hideLoadingState() {
+                // 在实际应用中，这里应该隐藏全局加载遮罩
+                console.log('隐藏加载状态');
+            }
+
+            // 模拟showMessage函数（假设在common.js中定义）
+            // 如果common.js中已存在该函数，这部分可以删除
+            window.showMessage = window.showMessage || function(message, type = 'info') {
+                // 创建消息元素
+                const msgElement = document.createElement('div');
+                msgElement.className = `message message-${type}`;
+                msgElement.style.position = 'fixed';
+                msgElement.style.top = '20px';
+                msgElement.style.right = '20px';
+                msgElement.style.padding = '10px 16px';
+                msgElement.style.borderRadius = '4px';
+                msgElement.style.color = '#fff';
+                msgElement.style.fontSize = '14px';
+                msgElement.style.zIndex = '9999';
+                msgElement.style.opacity = '0';
+                msgElement.style.transition = 'opacity 0.3s ease';
+                
+                // 设置不同类型的背景色
+                switch(type) {
+                    case 'success':
+                        msgElement.style.backgroundColor = '#67c23a';
+                        break;
+                    case 'error':
+                    case 'danger':
+                        msgElement.style.backgroundColor = '#f56c6c';
+                        break;
+                    case 'warning':
+                        msgElement.style.backgroundColor = '#e6a23c';
+                        break;
+                    case 'info':
+                    default:
+                        msgElement.style.backgroundColor = '#909399';
+                        break;
+                }
+                
+                msgElement.textContent = message;
+                document.body.appendChild(msgElement);
+                
+                // 显示消息
+                setTimeout(() => {
+                    msgElement.style.opacity = '1';
+                }, 10);
+                
+                // 3秒后隐藏消息
+                setTimeout(() => {
+                    msgElement.style.opacity = '0';
+                    setTimeout(() => {
+                        document.body.removeChild(msgElement);
+                    }, 300);
+                }, 3000);
+            };
+        });
+    </script>
+</body>
+</html>

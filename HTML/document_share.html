@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档共享 - OA系统</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/main.css">
+    <style>
+        .document-share-container {
+            padding: 20px;
+        }
+        
+        .document-share-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .document-share-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 20px;
+        }
+        
+        .search-filter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .search-input-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            width: 300px;
+            font-size: 14px;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #409EFF;
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: #409EFF;
+        }
+        
+        .btn-secondary {
+            padding: 8px 16px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-secondary:hover {
+            border-color: #409EFF;
+            color: #409EFF;
+        }
+        
+        .document-content {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .document-tabs {
+            display: flex;
+            background-color: #f5f7fa;
+            border-radius: 4px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #606266;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-item.active {
+            background-color: white;
+            color: #409EFF;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .document-share-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .document-share-table th,
+        .document-share-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ebeef5;
+        }
+        
+        .document-share-table th {
+            background-color: #fafafa;
+            font-weight: 600;
+            color: #606266;
+            font-size: 14px;
+        }
+        
+        .document-share-table td {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .document-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+        
+        .document-name {
+            display: inline-flex;
+            align-items: center;
+            color: #409EFF;
+            cursor: pointer;
+        }
+        
+        .document-name:hover {
+            text-decoration: underline;
+        }
+        
+        .share-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .share-status.active {
+            background-color: #f0f9ff;
+            color: #09bb07;
+        }
+        
+        .share-status.expired {
+            background-color: #fdf6ec;
+            color: #f56c6c;
+        }
+        
+        .share-status.pending {
+            background-color: #fdf6ec;
+            color: #e6a23c;
+        }
+        
+        .share-permission {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .share-permission.view {
+            background-color: #ecf5ff;
+            color: #409EFF;
+        }
+        
+        .share-permission.edit {
+            background-color: #f0f9ff;
+            color: #67c23a;
+        }
+        
+        .share-permission.manage {
+            background-color: #fdf6ec;
+            color: #e6a23c;
+        }
+        
+        .btn-share,
+        .btn-modify,
+        .btn-cancel {
+            padding: 4px 8px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        
+        .btn-share:hover,
+        .btn-modify:hover {
+            border-color: #409EFF;
+            color: #409EFF;
+        }
+        
+        .btn-cancel {
+            color: #f56c6c;
+            border-color: #f56c6c;
+        }
+        
+        .btn-cancel:hover {
+            background-color: #f56c6c;
+            color: white;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 20px;
+            gap: 8px;
+        }
+        
+        .pagination-info {
+            color: #606266;
+            font-size: 14px;
+        }
+        
+        .pagination-btn {
+            padding: 6px 12px;
+            border: 1px solid #dcdfe6;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            color: #409EFF;
+            border-color: #c6e2ff;
+        }
+        
+        .pagination-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        .pagination-btn.active {
+            background-color: #409EFF;
+            color: white;
+            border-color: #409EFF;
+        }
+    </style>
+</head>
+<body>
+    <div class="document-share-container">
+        <div class="document-share-header">
+            <h2>文档共享</h2>
+        </div>
+        
+        <div class="search-filter">
+            <div class="search-input-container">
+                <input type="text" class="search-input" placeholder="搜索共享文档">
+                <select class="filter-select">
+                    <option value="all">全部类型</option>
+                    <option value="doc">文档</option>
+                    <option value="sheet">表格</option>
+                    <option value="slide">演示文稿</option>
+                    <option value="pdf">PDF</option>
+                    <option value="image">图片</option>
+                </select>
+                <select class="filter-select">
+                    <option value="all">全部状态</option>
+                    <option value="active">已共享</option>
+                    <option value="pending">待接收</option>
+                    <option value="expired">已过期</option>
+                </select>
+            </div>
+            <div>
+                <button class="btn-secondary">高级筛选</button>
+            </div>
+        </div>
+        
+        <div class="document-content">
+            <div class="document-tabs">
+                <div class="tab-item active">我共享的</div>
+                <div class="tab-item">共享给我的</div>
+                <div class="tab-item">共享链接</div>
+            </div>
+            
+            <table class="document-share-table">
+                <thead>
+                    <tr>
+                        <th>文档名称</th>
+                        <th>共享类型</th>
+                        <th>共享对象</th>
+                        <th>权限</th>
+                        <th>共享时间</th>
+                        <th>过期时间</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <span class="document-name">
+                                <svg class="document-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                周报模板.docx
+                            </span>
+                        </td>
+                        <td>个人</td>
+                        <td>张三</td>
+                        <td><span class="share-permission edit">可编辑</span></td>
+                        <td>2023-06-15 14:30</td>
+                        <td>2023-07-15 14:30</td>
+                        <td><span class="share-status active">已共享</span></td>
+                        <td>
+                            <button class="btn-modify">修改</button>
+                            <button class="btn-cancel">取消</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="document-name">
+                                <svg class="document-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M3 3H21V21H3V3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M3 9H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 21V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M15 21V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                项目进度跟踪表.xlsx
+                            </span>
+                        </td>
+                        <td>部门</td>
+                        <td>产品部</td>
+                        <td><span class="share-permission view">只读</span></td>
+                        <td>2023-06-14 09:15</td>
+                        <td>2023-07-14 09:15</td>
+                        <td><span class="share-status active">已共享</span></td>
+                        <td>
+                            <button class="btn-modify">修改</button>
+                            <button class="btn-cancel">取消</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="document-name">
+                                <svg class="document-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M3 9H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 21V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="16" cy="16" r="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                团队会议演示.pptx
+                            </span>
+                        </td>
+                        <td>团队</td>
+                        <td>项目组A</td>
+                        <td><span class="share-permission edit">可编辑</span></td>
+                        <td>2023-06-12 16:45</td>
+                        <td>2023-07-12 16:45</td>
+                        <td><span class="share-status active">已共享</span></td>
+                        <td>
+                            <button class="btn-modify">修改</button>
+                            <button class="btn-cancel">取消</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="document-name">
+                                <svg class="document-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 3V15M12 19H15M12 19H9M12 19V15M21 12H15M12 15H9M12 15H15M9 21H15C17.2091 21 19 19.2091 19 17V7C19 4.79086 17.2091 3 15 3H9C6.79086 3 5 4.79086 5 7V17C5 19.2091 6.79086 21 9 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                客户需求说明书.pdf
+                            </span>
+                        </td>
+                        <td>链接</td>
+                        <td>公开链接</td>
+                        <td><span class="share-permission view">只读</span></td>
+                        <td>2023-06-10 11:20</td>
+                        <td>2023-06-20 11:20</td>
+                        <td><span class="share-status expired">已过期</span></td>
+                        <td>
+                            <button class="btn-share">重新共享</button>
+                            <button class="btn-cancel">删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="document-name">
+                                <svg class="document-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 19.5C4 18.837 4.26339 18.2011 4.73223 17.7322C5.20107 17.2634 5.83696 17 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M6.5 2H20V22H6.5C5.83696 22 5.20107 21.7366 4.73223 21.2678C4.26339 20.7989 4 20.163 4 19.5V4.5C4 3.83696 4.26339 3.20107 4.73223 2.73223C5.20107 2.26339 5.83696 2 6.5 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M14 9L16 11L14 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                产品原型设计图.jpg
+                            </span>
+                        </td>
+                        <td>个人</td>
+                        <td>李四</td>
+                        <td><span class="share-permission manage">可管理</span></td>
+                        <td>2023-06-08 15:50</td>
+                        <td>2023-07-08 15:50</td>
+                        <td><span class="share-status pending">待接收</span></td>
+                        <td>
+                            <button class="btn-modify">修改</button>
+                            <button class="btn-cancel">取消</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="pagination">
+                <span class="pagination-info">共 12 个文档，每页显示 5 个</span>
+                <button class="pagination-btn" disabled>上一页</button>
+                <button class="pagination-btn active">1</button>
+                <button class="pagination-btn">2</button>
+                <button class="pagination-btn">3</button>
+                <button class="pagination-btn">下一页</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../JS/common.js"></script>
+    <script src="../JS/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 高级筛选按钮点击事件
+            document.querySelector('.btn-secondary').addEventListener('click', function() {
+                showMessage('高级筛选功能尚未实现', 'info');
+            });
+            
+            // 标签页切换事件
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.tab-item').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    showMessage(`已切换至${this.textContent}标签`, 'success');
+                });
+            });
+            
+            // 文档名称点击事件
+            document.querySelectorAll('.document-name').forEach(name => {
+                name.addEventListener('click', function() {
+                    showMessage(`查看文档 ${this.textContent.trim()} 功能尚未实现`, 'info');
+                });
+            });
+            
+            // 修改按钮点击事件
+            document.querySelectorAll('.btn-modify').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const name = this.closest('tr').querySelector('.document-name').textContent.trim();
+                    showMessage(`修改${name}的共享设置功能尚未实现`, 'info');
+                });
+            });
+            
+            // 重新共享按钮点击事件
+            document.querySelectorAll('.btn-share').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const name = this.closest('tr').querySelector('.document-name').textContent.trim();
+                    showMessage(`重新共享文档 ${name} 功能尚未实现`, 'info');
+                });
+            });
+            
+            // 取消/删除按钮点击事件
+            document.querySelectorAll('.btn-cancel').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const name = this.closest('tr').querySelector('.document-name').textContent.trim();
+                    showConfirm(`确定要取消共享文档 ${name} 吗？`, function() {
+                        showMessage(`已取消共享文档 ${name}`, 'success');
+                    });
+                });
+            });
+            
+            // 分页按钮点击事件
+            document.querySelectorAll('.pagination-btn:not(:disabled)').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (this.textContent === '上一页' || this.textContent === '下一页') {
+                        showMessage('分页功能尚未实现', 'info');
+                    } else {
+                        document.querySelectorAll('.pagination-btn').forEach(b => {
+                            b.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
